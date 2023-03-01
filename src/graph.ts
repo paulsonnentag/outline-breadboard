@@ -15,7 +15,7 @@ export function createGraphDoc(repo: Repo) {
   return handle
 }
 
-export function createDefaultGraph(handle: DocHandle<GraphDoc>) {
+export function createExampleOutline(handle: DocHandle<GraphDoc>) {
   handle.change((doc) => {
     const subA1 = {
       id: v4(),
@@ -68,6 +68,21 @@ export function createDefaultGraph(handle: DocHandle<GraphDoc>) {
       [transcluded.id]: transcluded,
       [childB.id]: childB,
       [subB1.id]: subB1,
+    }
+  })
+}
+
+export function createEmptyOutline(handle: DocHandle<GraphDoc>) {
+  handle.change((doc) => {
+    const rootNode = {
+      id: v4(),
+      value: "Outline",
+      children: [],
+    }
+
+    doc.rootId = rootNode.id
+    doc.graph = {
+      [rootNode.id]: rootNode,
     }
   })
 }

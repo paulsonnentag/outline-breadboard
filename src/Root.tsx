@@ -1,7 +1,14 @@
 import { DocumentId } from "automerge-repo"
 import { useDocument, useHandle } from "automerge-repo-react-hooks"
 import { useCallback, useMemo, useState } from "react"
-import { createDefaultGraph, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
+import {
+  createEmptyOutline,
+  createExampleOutline,
+  Graph,
+  GraphContext,
+  GraphContextProps,
+  GraphDoc,
+} from "./graph"
 import { NodeEditor } from "./NodeEditor"
 
 interface RootProps {
@@ -57,12 +64,18 @@ export function Root({ documentId }: RootProps) {
           />
         </div>
 
-        <div>
+        <div className="flex gap-2">
           <button
             className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
-            onClick={() => createDefaultGraph(handle)}
+            onClick={() => createExampleOutline(handle)}
           >
-            Reset outline
+            Example outline
+          </button>
+          <button
+            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
+            onClick={() => createEmptyOutline(handle)}
+          >
+            Empty outline
           </button>
         </div>
       </div>

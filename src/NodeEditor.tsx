@@ -1,12 +1,14 @@
 import { Graph, Node, useGraph, useNode } from "./graph"
 import ContentEditable, { ContentEditableEvent } from "react-contenteditable"
-import { useCallback, useRef, KeyboardEvent, useEffect } from "react"
+import { useCallback, useRef, KeyboardEvent, useEffect, DragEvent, useState } from "react"
 import { v4 } from "uuid"
+import classNames from "classnames"
 
 interface NodeEditorProps {
   id: string
   index: number
   parentId?: string
+  isParentDragged?: boolean
   grandParentId?: string
   path: number[]
   selectedPath: number[]
@@ -27,6 +29,7 @@ export function NodeEditor({
   path,
   index,
   parentId,
+  isParentDragged,
   grandParentId,
   selectedPath,
   onFocusPrev,
@@ -35,7 +38,10 @@ export function NodeEditor({
 }: NodeEditorProps) {
   const { node, changeNode } = useNode(id)
   const { graph, changeGraph } = useGraph()
+  const [isBeingDragged, setIsBeingDragged] = useState(false)
+  const [isDraggedOver, setIsDraggedOver] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
+  const isFocused = arePathsEqual(selectedPath, path)
 
   // ugly hack because content editable doesn't handle updating event handler functions
   const callbacksRef = useRef<ContentEditableCallbacks>({
@@ -94,8 +100,6 @@ export function NodeEditor({
 
             delete parent.children[index]
             prevNode.value += node.value
-
-            console.log(lastChildPath)
 
             onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath))
           })
@@ -235,15 +239,86 @@ export function NodeEditor({
     }
   }
 
+  const onDragStart = (evt: DragEvent) => {
+    evt.stopPropagation()
+    var elem = document.createElement("div")
+    elem.style.position = "absolute"
+    elem.className = "bg-white border border-gray-200 px-2 py-1 rounded flex gap-2"
+    elem.style.top = "-1000px"
+    elem.innerText = node.value
+    document.body.appendChild(elem)
+
+    setTimeout(() => {
+      elem.remove()
+    })
+
+    evt.dataTransfer.setDragImage(elem, -10, -10)
+    evt.dataTransfer.setData("application/node", JSON.stringify({ id, parentId, index }))
+    setIsBeingDragged(true)
+  }
+
+  const onDragEnd = () => {
+    setIsBeingDragged(false)
+  }
+
+  const onDragOver = (evt: DragEvent) => {
+    if (isBeingDragged || isParentDragged || !contentRef.current) {
+      return
+    }
+
+    const percentage =
+      (evt.clientY - contentRef.current.getBoundingClientRect().top) /
+      contentRef.current.clientHeight
+
+    setIsDraggedOver(true)
+
+    evt.preventDefault()
+    evt.stopPropagation()
+  }
+
+  const onDragEnter = (evt: DragEvent) => {
+    if (isBeingDragged || isParentDragged) {
+      return
+    }
+
+    evt.preventDefault()
+    evt.stopPropagation()
+  }
+
+  const onDragLeave = () => {
+    setIsDraggedOver(false)
+  }
+
+  const onDrop = (evt: DragEvent) => {
+    setIsDraggedOver(false)
+
+    const {
+      id: sourceId,
+      parentId: sourceParentId,
+      index: sourceIndex,
+    } = JSON.parse(evt.dataTransfer.getData("application/node"))
+
+    changeGraph((graph) => {
+      const sourceParent = graph[sourceParentId]
+      delete sourceParent.children[sourceIndex]
+
+      if (node.children.length !== 0) {
+        // important to get node from mutable graph
+        graph[node.id].children.unshift(sourceId)
+      } else if (parentId) {
+        const insertIndex = parentId === sourceParentId && sourceIndex < index ? index : index + 1
+
+        const parent = graph[parentId]
+        parent.children.splice(insertIndex, 0, sourceId)
+      }
+    })
+  }
+
   useEffect(() => {
-    if (
-      contentRef.current &&
-      arePathsEqual(selectedPath, path) &&
-      document.activeElement !== contentRef.current
-    ) {
+    if (contentRef.current && isFocused && document.activeElement !== contentRef.current) {
       contentRef.current.focus()
     }
-  }, [selectedPath, path])
+  }, [isFocused])
 
   if (!node) {
     return <div className="text-red-500"> •️ Invalid node id {id}</div>
@@ -260,17 +335,47 @@ export function NodeEditor({
   )
 
   return (
-    <div>
+    <div draggable={parentId !== undefined} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       {parentId ? (
-        <div className="flex gap-1">•️ {contentEditableView} </div>
+        <div
+          className={classNames("flex flex-1 gap-1", {
+            "text-gray-300": isBeingDragged || isParentDragged,
+          })}
+          onDragOver={onDragOver}
+          onDragEnter={onDragEnter}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+        >
+          <span
+            className={classNames({
+              invisible: !isFocused && node.value === "",
+            })}
+          >
+            •
+          </span>
+          ️ {contentEditableView}{" "}
+        </div>
       ) : (
         <div className="text-xl mb-2">{contentEditableView}</div>
       )}
 
+      {parentId && (
+        <div
+          className={classNames(
+            "w-full border-b-2",
+            {
+              "ml-4": node.children.length,
+            },
+            isDraggedOver ? "border-blue-500" : "border-white"
+          )}
+        />
+      )}
+
       {node.children.length > 0 && (
-        <div className={parentId ? "pl-4" : ""}>
+        <div className={classNames("w-full", parentId ? "pl-4" : "")}>
           {node.children.map((childId, index) => (
             <NodeEditor
+              isParentDragged={isBeingDragged}
               onFocusNext={(delegated) => onChildFocusNext(index, delegated)}
               onFocusPrev={(delegated) => onChildFocusPrev(index)}
               key={index}

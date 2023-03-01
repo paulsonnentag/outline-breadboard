@@ -1,6 +1,7 @@
 import { Graph, useGraph, useNode } from "./graph"
 import ContentEditable, { ContentEditableEvent } from "react-contenteditable"
 import { useCallback, useRef, KeyboardEvent, useEffect } from "react"
+import { v4 } from "uuid"
 
 interface NodeEditorProps {
   id: string
@@ -56,13 +57,56 @@ export function NodeEditor({
   }
 
   callbacksRef.current.onKeyDown = (evt: KeyboardEvent) => {
-    /*
-    if (this.props.onCreateNote && evt.key === "Enter") {
-      this.props.onCreateNote();
-      evt.preventDefault();
-      return;
+    if (evt.key === "Enter") {
+      evt.preventDefault()
+
+      const contentElement = contentRef.current
+
+      if (!contentElement) {
+        return
+      }
+
+      changeGraph((graph) => {
+        const node = graph[id]
+
+        const caretOffset = getCaretCharacterOffsetWithin(contentElement)
+
+        const newNode = {
+          id: v4(),
+          value: node.value.slice(caretOffset),
+          children: [],
+        }
+
+        graph[newNode.id] = newNode
+        node.value = node.value.slice(0, caretOffset)
+
+        if (node.children.length === 0 && parentId) {
+          const parent = graph[parentId]
+          parent.children.splice(index + 1, 0, newNode.id)
+          onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
+        } else {
+          if (parentId) {
+            const parent = graph[parentId]
+
+            if (caretOffset === 0) {
+              node.value = newNode.value
+              graph[newNode.id].value = ""
+
+              parent.children.splice(index, 0, newNode.id)
+            } else {
+              parent.children.splice(index + 1, 0, newNode.id)
+            }
+
+            onChangeSelectedPath(path.slice(0, -2).concat(index + 1))
+          } else {
+            node.children.unshift(newNode.id)
+            onChangeSelectedPath(path.concat(0))
+          }
+        }
+      })
     }
 
+    /*
     if (this.props.onDeleteNote && evt.key === "Delete" && evt.ctrlKey) {
       this.props.onDeleteNote();
       evt.preventDefault();
@@ -234,4 +278,29 @@ function getLastChildPath(graph: Graph, nodeId: string, prefixPath: number[] = [
 
   const lastChild = node.children[lastIndex]
   return getLastChildPath(graph, lastChild, prefixPath.concat(lastIndex))
+}
+
+// adapted from: https://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
+function getCaretCharacterOffsetWithin(element: HTMLElement) {
+  var caretOffset = 0
+  var doc = element.ownerDocument || (element as any).document
+  var win = doc.defaultView || (doc as any).parentWindow
+  var sel
+  if (typeof win.getSelection != "undefined") {
+    sel = win.getSelection()
+    if (sel.rangeCount > 0) {
+      var range = win.getSelection().getRangeAt(0)
+      var preCaretRange = range.cloneRange()
+      preCaretRange.selectNodeContents(element)
+      preCaretRange.setEnd(range.endContainer, range.endOffset)
+      caretOffset = preCaretRange.toString().length
+    }
+  } else if ((sel = (doc as any).selection) && sel.type != "Control") {
+    var textRange = sel.createRange()
+    var preCaretTextRange = (doc.body as any).createTextRange()
+    preCaretTextRange.moveToElementText(element)
+    preCaretTextRange.setEndPoint("EndToEnd", textRange)
+    caretOffset = preCaretTextRange.text.length
+  }
+  return caretOffset
 }

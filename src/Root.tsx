@@ -1,7 +1,7 @@
 import { DocumentId } from "automerge-repo"
-import { useDocument } from "automerge-repo-react-hooks"
+import { useDocument, useHandle } from "automerge-repo-react-hooks"
 import { useCallback, useMemo, useState } from "react"
-import { Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
+import { createDefaultGraph, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
 import { NodeEditor } from "./NodeEditor"
 
 interface RootProps {
@@ -10,6 +10,7 @@ interface RootProps {
 
 export function Root({ documentId }: RootProps) {
   const [doc, changeDoc] = useDocument<GraphDoc>(documentId)
+  const handle = useHandle<GraphDoc>(documentId)
 
   const [selectedPath, setSelectedPath] = useState<number[]>([])
 
@@ -25,8 +26,6 @@ export function Root({ documentId }: RootProps) {
   )
 
   const onFocusNext = () => {
-    console.log("root", selectedPath)
-
     if (selectedPath.length === 0) {
       setSelectedPath([0])
     }
@@ -38,10 +37,22 @@ export function Root({ documentId }: RootProps) {
 
   return (
     <GraphContext.Provider value={graphContext}>
-      {JSON.stringify(selectedPath)}
+      <div className="p-4 bg-gray-50 w- flex flex-col gap-4 w-screen h-screen">
+        <div className="flex items-center gap-2">
+          <button
+            className="shadow border bg-white border-gray-200 rounded-xl px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
+            onClick={() => createDefaultGraph(handle)}
+          >
+            Reset graph
+          </button>
+          <div>
+            <span className="text-gray-500 bold">selected path:</span>{" "}
+            {JSON.stringify(selectedPath)}
+          </div>
+        </div>
 
-      <div className="p-4">
         <NodeEditor
+          index={0}
           id={doc.rootId}
           path={[]}
           selectedPath={selectedPath}

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext } from "react"
-import { Repo } from "automerge-repo"
+import { DocHandle, Repo } from "automerge-repo"
 import { v4 } from "uuid"
 
 export interface GraphDoc {
@@ -10,6 +10,12 @@ export interface GraphDoc {
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
 
+  createDefaultGraph(handle)
+
+  return handle
+}
+
+export function createDefaultGraph(handle: DocHandle<GraphDoc>) {
   handle.change((doc) => {
     const subA1 = {
       id: v4(),
@@ -64,8 +70,6 @@ export function createGraphDoc(repo: Repo) {
       [subB1.id]: subB1,
     }
   })
-
-  return handle
 }
 
 export interface Graph {
@@ -83,10 +87,22 @@ export interface GraphContextProps {
   changeGraph: (fn: (graph: Graph) => void) => void
 }
 
-export const GraphContext = createContext<GraphContextProps>({})
+export const GraphContext = createContext<GraphContextProps | undefined>(undefined)
 
-export function useNode(id: string) {
-  const { graph, changeGraph } = useContext(GraphContext)
+export interface NodeContextProps {
+  node: Node
+  changeNode: (fn: (node: Node) => void) => void
+  deleteNode: () => void
+}
+
+export function useNode(id: string): NodeContextProps {
+  const context = useContext(GraphContext)
+
+  if (!context) {
+    throw new Error("missing graph context")
+  }
+
+  const { graph, changeGraph } = context
 
   const node = graph[id]
 
@@ -103,5 +119,15 @@ export function useNode(id: string) {
     changeGraph((graph) => delete graph[id])
   }, [id])
 
-  return { node, changeNode, deleteNode, graph }
+  return { node, changeNode, deleteNode }
+}
+
+export function useGraph(): GraphContextProps {
+  const context = useContext(GraphContext)
+
+  if (!context) {
+    throw new Error("missing graph context")
+  }
+
+  return context
 }

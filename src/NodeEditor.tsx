@@ -1,9 +1,10 @@
-import { Graph, useNode } from "./graph"
+import { Graph, useGraph, useNode } from "./graph"
 import ContentEditable, { ContentEditableEvent } from "react-contenteditable"
 import { useCallback, useRef, KeyboardEvent, useEffect } from "react"
 
 interface NodeEditorProps {
   id: string
+  index: number
   parentId?: string
   path: number[]
   selectedPath: number[]
@@ -22,13 +23,15 @@ interface ContentEditableCallbacks {
 export function NodeEditor({
   id,
   path,
+  index,
   parentId,
   selectedPath,
   onFocusPrev,
   onFocusNext,
   onChangeSelectedPath,
 }: NodeEditorProps) {
-  const { node, changeNode, graph } = useNode(id)
+  const { node, changeNode } = useNode(id)
+  const { graph, changeGraph } = useGraph()
   const contentRef = useRef<HTMLElement>(null)
 
   // ugly hack because content editable doesn't handle updating event handler functions
@@ -65,25 +68,34 @@ export function NodeEditor({
     }
 
 
-    if (evt.key === "Tab") {
-      if (evt.shiftKey) {
-        if (this.props.onUnindentNote) {
-          this.props.onUnindentNote();
-        }
-      }
-      else {
-        if (this.props.onIndentNote) {
-          this.props.onIndentNote();
-        }
-      }
-      evt.preventDefault();
-      return;
-    }
-
-
      */
 
     switch (evt.key) {
+      case "Tab":
+        evt.preventDefault()
+        evt.stopPropagation()
+        if (evt.shiftKey) {
+          // unindent
+        } else {
+          // indent
+          if (index == 0 || parentId === undefined) {
+            return
+          }
+
+          changeGraph((graph) => {
+            const parent = graph[parentId]
+            const prevSibling = graph[parent.children[index - 1]]
+
+            const newIndex = prevSibling.children.length
+
+            delete parent.children[index]
+            prevSibling.children[newIndex] = node.id
+
+            onChangeSelectedPath(path.slice(0, -1).concat([index - 1, newIndex]))
+          })
+        }
+        break
+
       case "ArrowDown":
         onFocusNext(false)
         evt.preventDefault()
@@ -149,7 +161,6 @@ export function NodeEditor({
           onChange={(evt) => callbacksRef.current.onChange(evt)}
           onFocus={(evt) => callbacksRef.current.onFocus()}
         />
-        {JSON.stringify(getLastChildPath(graph, id, path))}
       </div>
       {node.children.length > 0 && (
         <div className="pl-4">
@@ -159,6 +170,7 @@ export function NodeEditor({
               onFocusPrev={(delegated) => onChildFocusPrev(index)}
               key={index}
               id={childId}
+              index={index}
               parentId={id}
               path={path.concat(index)}
               selectedPath={selectedPath}

@@ -39,27 +39,32 @@ export function Root({ documentId }: RootProps) {
     <GraphContext.Provider value={graphContext}>
       <div className="p-4 bg-gray-50 w- flex flex-col gap-4 w-screen h-screen">
         <div className="flex items-center gap-2">
-          <button
-            className="shadow border bg-white border-gray-200 rounded-xl px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
-            onClick={() => createDefaultGraph(handle)}
-          >
-            Reset graph
-          </button>
           <div>
             <span className="text-gray-500 bold">selected path:</span>{" "}
             {JSON.stringify(selectedPath)}
           </div>
         </div>
 
-        <NodeEditor
-          index={0}
-          id={doc.rootId}
-          path={[]}
-          selectedPath={selectedPath}
-          onChangeSelectedPath={setSelectedPath}
-          onFocusNext={onFocusNext}
-          onFocusPrev={() => {}}
-        />
+        <div className="p-4 bg-white border border-gray-200">
+          <NodeEditor
+            index={0}
+            id={doc.rootId}
+            path={[]}
+            selectedPath={selectedPath}
+            onChangeSelectedPath={setSelectedPath}
+            onFocusNext={onFocusNext}
+            onFocusPrev={() => {}}
+          />
+        </div>
+
+        <div>
+          <button
+            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
+            onClick={() => createDefaultGraph(handle)}
+          >
+            Reset graph
+          </button>
+        </div>
       </div>
     </GraphContext.Provider>
   )

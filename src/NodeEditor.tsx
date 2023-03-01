@@ -150,20 +150,26 @@ export function NodeEditor({
     return <div className="text-red-500"> •️ Invalid node id {id}</div>
   }
 
+  let contentEditableView = (
+    <ContentEditable
+      innerRef={contentRef}
+      onKeyDown={(evt) => callbacksRef.current.onKeyDown(evt)}
+      html={node.value}
+      onChange={(evt) => callbacksRef.current.onChange(evt)}
+      onFocus={(evt) => callbacksRef.current.onFocus()}
+    />
+  )
+
   return (
     <div>
-      <div className="flex gap-1">
-        •️
-        <ContentEditable
-          innerRef={contentRef}
-          onKeyDown={(evt) => callbacksRef.current.onKeyDown(evt)}
-          html={node.value}
-          onChange={(evt) => callbacksRef.current.onChange(evt)}
-          onFocus={(evt) => callbacksRef.current.onFocus()}
-        />
-      </div>
+      {parentId ? (
+        <div className="flex gap-1">•️ {contentEditableView}</div>
+      ) : (
+        <div className="text-xl mb-2">{contentEditableView}</div>
+      )}
+
       {node.children.length > 0 && (
-        <div className="pl-4">
+        <div className={parentId ? "pl-4" : ""}>
           {node.children.map((childId, index) => (
             <NodeEditor
               onFocusNext={(delegated) => onChildFocusNext(index, delegated)}

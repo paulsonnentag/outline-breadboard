@@ -6,6 +6,7 @@ interface NodeEditorProps {
   id: string
   index: number
   parentId?: string
+  grandParentId?: string
   path: number[]
   selectedPath: number[]
   onFocusNext: (deferred: boolean) => void
@@ -25,6 +26,7 @@ export function NodeEditor({
   path,
   index,
   parentId,
+  grandParentId,
   selectedPath,
   onFocusPrev,
   onFocusNext,
@@ -74,10 +76,27 @@ export function NodeEditor({
       case "Tab":
         evt.preventDefault()
         evt.stopPropagation()
+        // unindent
         if (evt.shiftKey) {
-          // unindent
+          // can't unindent root or top level node
+          if (!parentId || !grandParentId) {
+            return
+          }
+
+          changeGraph((graph) => {
+            const parent = graph[parentId]
+            const parentIndex = path[path.length - 2]
+            const grandParent = graph[grandParentId]
+
+            delete parent.children[index]
+            const newIndex = parentIndex + 1
+            grandParent.children.splice(newIndex, 0, id)
+            onChangeSelectedPath(path.slice(0, -2).concat(newIndex))
+          })
         } else {
           // indent
+
+          // can't indent root or nodes that are already indented to the max
           if (index == 0 || parentId === undefined) {
             return
           }
@@ -91,7 +110,7 @@ export function NodeEditor({
             delete parent.children[index]
             prevSibling.children[newIndex] = node.id
 
-            onChangeSelectedPath(path.slice(0, -1).concat([index - 1, newIndex]))
+            onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
           })
         }
         break
@@ -178,6 +197,7 @@ export function NodeEditor({
               id={childId}
               index={index}
               parentId={id}
+              grandParentId={parentId}
               path={path.concat(index)}
               selectedPath={selectedPath}
               onChangeSelectedPath={onChangeSelectedPath}

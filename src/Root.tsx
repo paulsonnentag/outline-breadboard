@@ -62,7 +62,7 @@ export function Root({ documentId }: RootProps) {
             className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
             onClick={() => createDefaultGraph(handle)}
           >
-            Reset graph
+            Reset outline
           </button>
         </div>
       </div>

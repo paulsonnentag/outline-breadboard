@@ -1,4 +1,4 @@
-import { Graph, useGraph, useNode } from "./graph"
+import { Graph, Node, useGraph, useNode } from "./graph"
 import ContentEditable, { ContentEditableEvent } from "react-contenteditable"
 import { useCallback, useRef, KeyboardEvent, useEffect } from "react"
 import { v4 } from "uuid"
@@ -57,66 +57,102 @@ export function NodeEditor({
   }
 
   callbacksRef.current.onKeyDown = (evt: KeyboardEvent) => {
-    if (evt.key === "Enter") {
-      evt.preventDefault()
-
-      const contentElement = contentRef.current
-
-      if (!contentElement) {
-        return
-      }
-
-      changeGraph((graph) => {
-        const node = graph[id]
-
-        const caretOffset = getCaretCharacterOffsetWithin(contentElement)
-
-        const newNode = {
-          id: v4(),
-          value: node.value.slice(caretOffset),
-          children: [],
+    switch (evt.key) {
+      case "Backspace":
+        if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
+          return
         }
 
-        graph[newNode.id] = newNode
-        node.value = node.value.slice(0, caretOffset)
+        evt.preventDefault()
 
-        if (node.children.length === 0 && parentId) {
-          const parent = graph[parentId]
-          parent.children.splice(index + 1, 0, newNode.id)
-          onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
-        } else {
-          if (parentId) {
+        if (node.children.length !== 0 || !parentId) {
+          return
+        }
+
+        // if it's the first child join it with parent
+        if (index === 0) {
+          changeGraph((graph) => {
             const parent = graph[parentId]
+            delete parent.children[index]
 
-            if (caretOffset === 0) {
-              node.value = newNode.value
-              graph[newNode.id].value = ""
+            parent.value += node.value
+            onChangeSelectedPath(path.slice(0, -1))
+          })
 
-              parent.children.splice(index, 0, newNode.id)
-            } else {
-              parent.children.splice(index + 1, 0, newNode.id)
+          // ... otherwise join it with the last child of the previous sibling
+        } else {
+          changeGraph((graph) => {
+            const parent = graph[parentId]
+            const prevSibling = graph[parent.children[index - 1]]
+
+            const lastChildPath = getLastChildPath(graph, prevSibling.id)
+            const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
+
+            if (!prevNode) {
+              throw new Error("invalid state")
             }
 
-            onChangeSelectedPath(path.slice(0, -2).concat(index + 1))
-          } else {
-            node.children.unshift(newNode.id)
-            onChangeSelectedPath(path.concat(0))
-          }
+            delete parent.children[index]
+            prevNode.value += node.value
+
+            console.log(lastChildPath)
+
+            onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath))
+          })
         }
-      })
-    }
 
-    /*
-    if (this.props.onDeleteNote && evt.key === "Delete" && evt.ctrlKey) {
-      this.props.onDeleteNote();
-      evt.preventDefault();
-      return;
-    }
+        break
 
+      case "Enter": {
+        evt.preventDefault()
 
-     */
+        const contentElement = contentRef.current
 
-    switch (evt.key) {
+        if (!contentElement) {
+          return
+        }
+
+        changeGraph((graph) => {
+          const node = graph[id]
+
+          const caretOffset = getCaretCharacterOffsetWithin(contentElement)
+
+          const newNode = {
+            id: v4(),
+            value: node.value.slice(caretOffset),
+            children: [],
+          }
+
+          graph[newNode.id] = newNode
+          node.value = node.value.slice(0, caretOffset)
+
+          if (node.children.length === 0 && parentId) {
+            const parent = graph[parentId]
+            parent.children.splice(index + 1, 0, newNode.id)
+            onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
+          } else {
+            if (parentId) {
+              const parent = graph[parentId]
+
+              if (caretOffset === 0) {
+                node.value = newNode.value
+                graph[newNode.id].value = ""
+
+                parent.children.splice(index, 0, newNode.id)
+              } else {
+                parent.children.splice(index + 1, 0, newNode.id)
+              }
+
+              onChangeSelectedPath(path.slice(0, -2).concat(index + 1))
+            } else {
+              node.children.unshift(newNode.id)
+              onChangeSelectedPath(path.concat(0))
+            }
+          }
+        })
+        break
+      }
+
       case "Tab":
         evt.preventDefault()
         evt.stopPropagation()
@@ -226,7 +262,7 @@ export function NodeEditor({
   return (
     <div>
       {parentId ? (
-        <div className="flex gap-1">•️ {contentEditableView}</div>
+        <div className="flex gap-1">•️ {contentEditableView} </div>
       ) : (
         <div className="text-xl mb-2">{contentEditableView}</div>
       )}
@@ -278,6 +314,22 @@ function getLastChildPath(graph: Graph, nodeId: string, prefixPath: number[] = [
 
   const lastChild = node.children[lastIndex]
   return getLastChildPath(graph, lastChild, prefixPath.concat(lastIndex))
+}
+
+function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node | undefined {
+  let currentNode = graph[nodeId]
+
+  for (const index of path) {
+    const childId = currentNode.children[index]
+
+    if (!childId) {
+      return undefined
+    }
+
+    currentNode = graph[childId]
+  }
+
+  return currentNode
 }
 
 // adapted from: https://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022

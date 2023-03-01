@@ -55,7 +55,7 @@ export function createDefaultGraph(handle: DocHandle<GraphDoc>) {
 
     const rootNode = {
       id: v4(),
-      value: "root",
+      value: "Outline",
       children: [childA.id, childB.id],
     }
 

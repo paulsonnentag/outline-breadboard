@@ -9,9 +9,7 @@ export interface GraphDoc {
 
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
-
-  createDefaultGraph(handle)
-
+  createExampleOutline(handle)
   return handle
 }
 

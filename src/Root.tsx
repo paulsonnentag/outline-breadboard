@@ -1,6 +1,6 @@
 import { DocumentId } from "automerge-repo"
-import { useDocument, useHandle } from "automerge-repo-react-hooks"
-import { useCallback, useMemo, useState } from "react"
+import { useHandle } from "automerge-repo-react-hooks"
+import { useMemo, useState } from "react"
 import {
   createEmptyOutline,
   createExampleOutline,
@@ -10,13 +10,14 @@ import {
   GraphDoc,
 } from "./graph"
 import { NodeEditor } from "./NodeEditor"
+import { useDocumentWithHistory } from "./history"
 
 interface RootProps {
   documentId: DocumentId
 }
 
 export function Root({ documentId }: RootProps) {
-  const [doc, changeDoc] = useDocument<GraphDoc>(documentId)
+  const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
   const handle = useHandle<GraphDoc>(documentId)
 
   const [selectedPath, setSelectedPath] = useState<number[]>([])
@@ -77,6 +78,19 @@ export function Root({ documentId }: RootProps) {
           >
             Empty outline
           </button>
+
+          <button
+            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
+            onClick={() => history.undo()}
+          >
+            undo
+          </button>
+        </div>
+
+        <div>
+          {history.undoStack.map((patch) => (
+            <div>{JSON.stringify(patch)}</div>
+          ))}
         </div>
       </div>
     </GraphContext.Provider>

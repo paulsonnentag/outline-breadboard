@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext } from "react"
-import { DocHandle, Repo } from "automerge-repo"
+import { DocHandle, DocumentId, Repo } from "automerge-repo"
 import { v4 } from "uuid"
 
 export interface GraphDoc {

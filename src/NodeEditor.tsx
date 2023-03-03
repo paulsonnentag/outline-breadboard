@@ -321,7 +321,7 @@ export function NodeEditor({
   }, [isFocused])
 
   if (!node) {
-    return <div className="text-red-500"> •️ Invalid node id {id}</div>
+    return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(id)}</div>
   }
 
   let contentEditableView = (
@@ -353,7 +353,7 @@ export function NodeEditor({
           >
             •
           </span>
-          ️ {contentEditableView}{" "}
+          ️ {contentEditableView}
         </div>
       ) : (
         <div className="text-xl mb-2">{contentEditableView}</div>

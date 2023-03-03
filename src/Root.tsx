@@ -1,6 +1,6 @@
 import { DocumentId } from "automerge-repo"
 import { useHandle } from "automerge-repo-react-hooks"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   createEmptyOutline,
   createExampleOutline,
@@ -16,11 +16,31 @@ interface RootProps {
   documentId: DocumentId
 }
 
+const SHOW_HISTORY = false
+
 export function Root({ documentId }: RootProps) {
   const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
   const handle = useHandle<GraphDoc>(documentId)
 
   const [selectedPath, setSelectedPath] = useState<number[]>([])
+
+  useEffect(() => {
+    const onKeyPress = (evt: KeyboardEvent) => {
+      if (evt.key === "z" && (evt.ctrlKey || evt.metaKey)) {
+        if (evt.shiftKey) {
+          history.redo()
+        } else {
+          history.undo()
+        }
+      }
+    }
+
+    document.addEventListener("keydown", onKeyPress)
+
+    return () => {
+      document.removeEventListener("keydown", onKeyPress)
+    }
+  }, [history])
 
   const graphContext: GraphContextProps | undefined = useMemo(
     () =>
@@ -46,13 +66,6 @@ export function Root({ documentId }: RootProps) {
   return (
     <GraphContext.Provider value={graphContext}>
       <div className="p-4 bg-gray-50 w- flex flex-col gap-4 w-screen h-screen">
-        <div className="flex items-center gap-2">
-          <div>
-            <span className="text-gray-500 bold">selected path:</span>{" "}
-            {JSON.stringify(selectedPath)}
-          </div>
-        </div>
-
         <div className="p-4 bg-white border border-gray-200">
           <NodeEditor
             index={0}
@@ -93,23 +106,35 @@ export function Root({ documentId }: RootProps) {
           </button>
         </div>
 
-        <div className="flex gap-2">
+        {SHOW_HISTORY && (
           <div>
-            <b>Undo</b>
+            <div>
+              <b>Undo</b>
 
-            {history.undoStack.map((patch) => (
-              <div>{JSON.stringify(patch)}</div>
-            ))}
+              {history.undoStack.map((patches) => (
+                <div>
+                  {patches.map((patch) => (
+                    <div>{JSON.stringify(patch)}</div>
+                  ))}
+                  <hr></hr>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <b>Redo</b>
+
+              {history.redoStack.map((patches) => (
+                <div>
+                  {patches.map((patch) => (
+                    <div>{JSON.stringify(patch)}</div>
+                  ))}
+                  <hr></hr>
+                </div>
+              ))}
+            </div>
           </div>
-
-          <div>
-            <b>Redo</b>
-
-            {history.redoStack.map((patch) => (
-              <div>{JSON.stringify(patch)}</div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </GraphContext.Provider>
   )

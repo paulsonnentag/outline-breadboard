@@ -15,6 +15,41 @@ export function createGraphDoc(repo: Repo) {
 
 export function createExampleOutline(handle: DocHandle<GraphDoc>) {
   handle.change((doc) => {
+    const a = {
+      id: v4(),
+      value: "child a",
+      children: [],
+    }
+
+    const b = {
+      id: v4(),
+      value: "child b",
+      children: [],
+    }
+
+    const c = {
+      id: v4(),
+      value: "child c",
+      children: [],
+    }
+
+    const rootNode = {
+      id: v4(),
+      value: "Outline",
+      children: [a.id, b.id, c.id],
+    }
+
+    doc.rootId = rootNode.id
+    doc.graph = {
+      [rootNode.id]: rootNode,
+      [a.id]: a,
+      [b.id]: b,
+      [c.id]: c,
+    }
+  })
+
+  /*
+  handle.change((doc) => {
     const subA1 = {
       id: v4(),
       value: "sub a1",
@@ -67,7 +102,7 @@ export function createExampleOutline(handle: DocHandle<GraphDoc>) {
       [childB.id]: childB,
       [subB1.id]: subB1,
     }
-  })
+  })*/
 }
 
 export function createEmptyOutline(handle: DocHandle<GraphDoc>) {

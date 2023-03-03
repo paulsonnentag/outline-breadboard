@@ -5,8 +5,9 @@ import { RepoContext } from "automerge-repo-react-hooks"
 import "./index.css"
 import { LocalForageStorageAdapter } from "automerge-repo-storage-localforage"
 import { BrowserWebSocketClientAdapter } from "automerge-repo-network-websocket"
-import { createGraphDoc } from "./graph";
-import { Root } from "./Root";
+import { createGraphDoc } from "./graph"
+import { Root } from "./Root"
+import "material-icons/iconfont/material-icons.css"
 
 const url = "ws://67.207.88.83" // cloud sync server on DigitalOcean
 
@@ -29,7 +30,7 @@ if (!documentId) {
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <RepoContext.Provider value={repo}>
-      <Root documentId={documentId}/>
+      <Root documentId={documentId} />
     </RepoContext.Provider>
   </React.StrictMode>
 )

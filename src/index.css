@@ -5,4 +5,11 @@
 [contenteditable] {
   outline: none;
   flex: 1;
+  position: relative;
+}
+
+[contenteditable].is-untitled:before {
+  position: absolute;
+  pointer-events: none;
+  content: "Untitled";
 }

@@ -11,7 +11,7 @@ interface NodeEditorProps {
   parentIds: string[]
   isParentDragged?: boolean
   path: number[]
-  selectedPath: number[]
+  selectedPath?: number[]
   onChangeSelectedPath: (path: number[]) => void
 }
 
@@ -36,7 +36,7 @@ export function NodeEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
-  const isFocused = arePathsEqual(selectedPath, path)
+  const isFocused = selectedPath && arePathsEqual(selectedPath, path)
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
 
@@ -197,6 +197,10 @@ export function NodeEditor({
         break
 
       case "ArrowDown": {
+        if (!selectedPath) {
+          return
+        }
+
         if (node.children.length > 0) {
           onChangeSelectedPath(path.concat(0))
           return
@@ -323,6 +327,9 @@ export function NodeEditor({
 
   let contentEditableView = (
     <ContentEditable
+      className={classNames({
+        "is-untitled text-gray-300": !parentId && !node.value,
+      })}
       innerRef={contentRef}
       onKeyDown={(evt) => callbacksRef.current.onKeyDown(evt)}
       html={node.value}

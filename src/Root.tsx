@@ -11,17 +11,15 @@ import {
 } from "./graph"
 import { NodeEditor } from "./NodeEditor"
 import { useDocumentWithHistory } from "./history"
+import { IconButton } from "./IconButton"
+import { v4 } from "uuid"
 
 interface RootProps {
   documentId: DocumentId
 }
 
-const SHOW_HISTORY = false
-
 export function Root({ documentId }: RootProps) {
   const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
-  const handle = useHandle<GraphDoc>(documentId)
-
   const [selectedPath, setSelectedPath] = useState<number[]>([])
 
   useEffect(() => {
@@ -53,81 +51,60 @@ export function Root({ documentId }: RootProps) {
     [doc?.graph, changeDoc]
   )
 
+  const onCloseRootNodeAt = (index: number) => {
+    changeDoc((doc) => {
+      delete doc.rootNodeIds[index]
+    })
+  }
+
+  const onAddRootNode = () => {
+    changeDoc((doc) => {
+      const newRootNode = {
+        id: v4(),
+        value: "",
+        children: [],
+      }
+
+      doc.graph[newRootNode.id] = newRootNode
+      doc.rootNodeIds.push(newRootNode.id)
+      setSelectedPath([doc.rootNodeIds.length - 1])
+    })
+  }
+
   if (!graphContext || !doc) {
     return null
   }
 
   return (
     <GraphContext.Provider value={graphContext}>
-      <div className="p-4 bg-gray-50 w- flex flex-col gap-4 w-screen h-screen">
-        <div className="p-4 bg-white border border-gray-200">
-          <NodeEditor
-            index={0}
-            id={doc.rootId}
-            path={[]}
-            parentIds={[]}
-            selectedPath={selectedPath}
-            onChangeSelectedPath={setSelectedPath}
-          />
-        </div>
+      <div className="p-4 bg-gray-50 flex gap-4 w-screen h-screen items-middle">
+        {doc.rootNodeIds.map((rootId, index) => {
+          const selectedSubPath =
+            selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
 
-        <div className="flex gap-2">
-          <button
-            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
-            onClick={() => createExampleOutline(handle)}
-          >
-            Example outline
-          </button>
-          <button
-            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
-            onClick={() => createEmptyOutline(handle)}
-          >
-            Empty outline
-          </button>
+          return (
+            <div className="p-4 bg-white border border-gray-200 max-w-2xl flex-1 relative overflow-auto">
+              <div className="absolute top-4 right-4">
+                <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
+              </div>
 
-          <button
-            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
-            onClick={() => history.undo()}
-          >
-            undo
-          </button>
-          <button
-            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
-            onClick={() => history.redo()}
-          >
-            redo
-          </button>
-        </div>
+              <NodeEditor
+                index={0}
+                id={rootId}
+                path={[]}
+                parentIds={[]}
+                selectedPath={selectedSubPath}
+                onChangeSelectedPath={(newSelectedSubPath) => {
+                  console.log("change path", [index].concat(newSelectedSubPath))
 
-        {SHOW_HISTORY && (
-          <div>
-            <div>
-              <b>Undo</b>
-
-              {history.undoStack.map((patches) => (
-                <div>
-                  {patches.map((patch) => (
-                    <div>{JSON.stringify(patch)}</div>
-                  ))}
-                  <hr></hr>
-                </div>
-              ))}
+                  setSelectedPath([index].concat(newSelectedSubPath))
+                }}
+              />
             </div>
+          )
+        })}
 
-            <div>
-              <b>Redo</b>
-
-              {history.redoStack.map((patches) => (
-                <div>
-                  {patches.map((patch) => (
-                    <div>{JSON.stringify(patch)}</div>
-                  ))}
-                  <hr></hr>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <IconButton icon="add" onClick={onAddRootNode} />
       </div>
     </GraphContext.Provider>
   )

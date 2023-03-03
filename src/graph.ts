@@ -1,15 +1,27 @@
 import { createContext, useCallback, useContext } from "react"
-import { DocHandle, DocumentId, Repo } from "automerge-repo"
+import { DocHandle, Repo } from "automerge-repo"
 import { v4 } from "uuid"
 
 export interface GraphDoc {
-  rootId: string
+  rootNodeIds: string[]
   graph: Graph
 }
 
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
-  createExampleOutline(handle)
+  handle.change((doc) => {
+    const rootNode = {
+      id: v4(),
+      value: "",
+      children: [],
+    }
+
+    doc.graph = {
+      [rootNode.id]: rootNode,
+    }
+    doc.rootNodeIds = [rootNode.id]
+  })
+
   return handle
 }
 
@@ -91,7 +103,7 @@ export function createExampleOutline(handle: DocHandle<GraphDoc>) {
       children: [childA.id, childB.id],
     }
 
-    doc.rootId = rootNode.id
+    doc.rootNodeIds = [rootNode.id]
     doc.graph = {
       [rootNode.id]: rootNode,
       [childA.id]: childA,
@@ -100,21 +112,6 @@ export function createExampleOutline(handle: DocHandle<GraphDoc>) {
       [transcluded.id]: transcluded,
       [childB.id]: childB,
       [subB1.id]: subB1,
-    }
-  })
-}
-
-export function createEmptyOutline(handle: DocHandle<GraphDoc>) {
-  handle.change((doc) => {
-    const rootNode = {
-      id: v4(),
-      value: "Outline",
-      children: [],
-    }
-
-    doc.rootId = rootNode.id
-    doc.graph = {
-      [rootNode.id]: rootNode,
     }
   })
 }

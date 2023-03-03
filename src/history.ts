@@ -11,6 +11,7 @@ interface DocHistory {
   redo: () => void
 }
 
+// this hook contains some GraphDoc specific logic and doesn't work for the generic case
 export function useDocumentWithHistory<T>(
   documentId: DocumentId
 ): [doc: Doc<T> | undefined, changeFn: Change<T>, history: DocHistory] {
@@ -42,6 +43,10 @@ export function useDocumentWithHistory<T>(
 
     handle.change(changeFunction, {
       patchCallback: (patch, prevDoc) => {
+        if (patch.path[0] !== "graph") {
+          return
+        }
+
         inversePatches.unshift(getInversePatch(patch, prevDoc))
       },
     })
@@ -169,6 +174,20 @@ function applyPatch<T>(doc: Doc<T>, patch: Patch) {
 
     case "del": {
       const { path } = patch
+      // never delete nodes, in case they are still referenced somewhere
+      if (path.length === 2 && path[0] === "graph") {
+        return
+      }
+
+      // never delete nodes value, children or id
+      if (
+        path.length === 3 &&
+        path[0] === "graph" &&
+        (path[2] === "id" || path[2] == "value" || path[2] === "children")
+      ) {
+        return
+      }
+
       const key = last(path)
       const parent = lookupPath(doc, path.slice(0, -1))
       delete parent[key]

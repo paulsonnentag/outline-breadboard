@@ -84,7 +84,7 @@ export function Root({ documentId }: RootProps) {
 
           return (
             <div className="p-4 bg-white border border-gray-200 max-w-2xl flex-1 relative overflow-auto">
-              <div className="absolute top-4 right-4">
+              <div className="absolute top-4 right-4 z-50">
                 <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
               </div>
 

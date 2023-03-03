@@ -14,7 +14,7 @@ export function createGraphDoc(repo: Repo) {
 }
 
 export function createExampleOutline(handle: DocHandle<GraphDoc>) {
-  handle.change((doc) => {
+  /*handle.change((doc) => {
     const a = {
       id: v4(),
       value: "child a",
@@ -46,9 +46,8 @@ export function createExampleOutline(handle: DocHandle<GraphDoc>) {
       [b.id]: b,
       [c.id]: c,
     }
-  })
+  })*/
 
-  /*
   handle.change((doc) => {
     const subA1 = {
       id: v4(),
@@ -102,7 +101,7 @@ export function createExampleOutline(handle: DocHandle<GraphDoc>) {
       [childB.id]: childB,
       [subB1.id]: subB1,
     }
-  })*/
+  })
 }
 
 export function createEmptyOutline(handle: DocHandle<GraphDoc>) {
@@ -128,6 +127,7 @@ export interface Node {
   id: string
   children: string[]
   value: string
+  view?: string
 }
 
 export interface GraphContextProps {

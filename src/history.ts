@@ -159,12 +159,12 @@ function applyPatch<T>(doc: Doc<T>, patch: Patch) {
       const key = last(path)
       const parent = lookupPath(doc, path.slice(0, -1))
 
+      // todo: fix this
+      // for some reason if I use the generic line below, automerge throws and error
       // parent.splice(parent, key, 0, JSON.parse(JSON.stringify(values)))
 
-      // todo: fix this
-
       const [g, id, c, index] = path
-      doc[g][id][c].splice(index, 0, ...JSON.parse(JSON.stringify(values)))
+      ;(doc as any)[g][id][c].splice(index, 0, ...JSON.parse(JSON.stringify(values)))
       return
 
     case "del": {

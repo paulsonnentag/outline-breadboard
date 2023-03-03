@@ -53,12 +53,6 @@ export function Root({ documentId }: RootProps) {
     [doc?.graph, changeDoc]
   )
 
-  const onFocusNext = () => {
-    if (selectedPath.length === 0) {
-      setSelectedPath([0])
-    }
-  }
-
   if (!graphContext || !doc) {
     return null
   }
@@ -71,10 +65,9 @@ export function Root({ documentId }: RootProps) {
             index={0}
             id={doc.rootId}
             path={[]}
+            parentIds={[]}
             selectedPath={selectedPath}
             onChangeSelectedPath={setSelectedPath}
-            onFocusNext={onFocusNext}
-            onFocusPrev={() => {}}
           />
         </div>
 

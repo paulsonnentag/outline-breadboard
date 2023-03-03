@@ -3,17 +3,15 @@ import ContentEditable, { ContentEditableEvent } from "react-contenteditable"
 import { useCallback, useRef, KeyboardEvent, useEffect, DragEvent, useState } from "react"
 import { v4 } from "uuid"
 import classNames from "classnames"
+import { last } from "./utils"
 
 interface NodeEditorProps {
   id: string
   index: number
-  parentId?: string
+  parentIds: string[]
   isParentDragged?: boolean
-  grandParentId?: string
   path: number[]
   selectedPath: number[]
-  onFocusNext: (deferred: boolean) => void
-  onFocusPrev: (deferred: boolean) => void
   onChangeSelectedPath: (path: number[]) => void
 }
 
@@ -28,12 +26,9 @@ export function NodeEditor({
   id,
   path,
   index,
-  parentId,
+  parentIds,
   isParentDragged,
-  grandParentId,
   selectedPath,
-  onFocusPrev,
-  onFocusNext,
   onChangeSelectedPath,
 }: NodeEditorProps) {
   const { node, changeNode } = useNode(id)
@@ -42,6 +37,8 @@ export function NodeEditor({
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
   const isFocused = arePathsEqual(selectedPath, path)
+  const parentId = last(parentIds)
+  const grandParentId = parentIds[parentIds.length - 2]
 
   // ugly hack because content editable doesn't handle updating event handler functions
   const callbacksRef = useRef<ContentEditableCallbacks>({
@@ -199,43 +196,43 @@ export function NodeEditor({
         }
         break
 
-      case "ArrowDown":
-        onFocusNext(false)
+      case "ArrowDown": {
+        if (node.children.length > 0) {
+          onChangeSelectedPath(path.concat(0))
+          return
+        }
+
+        const nextPath = getNextPath(graph, selectedPath, node, parentIds)
+
+        if (nextPath) {
+          onChangeSelectedPath(nextPath)
+        }
         evt.preventDefault()
         break
-
-      case "ArrowUp":
-        onFocusPrev(false)
-        evt.preventDefault()
-        break
-    }
-  }
-
-  const onChildFocusNext = (index: number, delegated: boolean) => {
-    const currentlyFocusedNode = graph[node.children[index]]
-
-    // if node has children, select first child
-    if (!delegated && currentlyFocusedNode.children.length > 0) {
-      onChangeSelectedPath(path.concat([index, 0]))
-
-      // if node has next siblings, select next sibling
-    } else if (index + 1 < node.children.length) {
-      if (currentlyFocusedNode) {
-        onChangeSelectedPath(path.concat(index + 1))
       }
 
-      // ... otherwise delegate to parent
-    } else {
-      onFocusNext(true)
-    }
-  }
+      case "ArrowUp": {
+        // can't go up if node has no parent
+        if (!parentId) {
+          return
+        }
 
-  const onChildFocusPrev = (index: number) => {
-    if (index === 0) {
-      onChangeSelectedPath(path)
-    } else {
-      const prevSibling = graph[node.children[index - 1]]
-      onChangeSelectedPath(getLastChildPath(graph, prevSibling.id, path.concat(index - 1)))
+        // if first child go up to parent
+        if (index === 0) {
+          onChangeSelectedPath(path.slice(0, -1))
+          return
+        }
+
+        // ... otherwise pick last child of previous sibling
+        const parent = graph[parentId]
+        const prevSibling = graph[parent.children[index - 1]]
+        onChangeSelectedPath(
+          getLastChildPath(graph, prevSibling.id, path.slice(0, -1).concat(index - 1))
+        )
+
+        evt.preventDefault()
+        break
+      }
     }
   }
 
@@ -376,13 +373,10 @@ export function NodeEditor({
           {node.children.map((childId, index) => (
             <NodeEditor
               isParentDragged={isBeingDragged}
-              onFocusNext={(delegated) => onChildFocusNext(index, delegated)}
-              onFocusPrev={(delegated) => onChildFocusPrev(index)}
               key={index}
               id={childId}
               index={index}
-              parentId={id}
-              grandParentId={parentId}
+              parentIds={parentIds.concat(id)}
               path={path.concat(index)}
               selectedPath={selectedPath}
               onChangeSelectedPath={onChangeSelectedPath}
@@ -460,4 +454,26 @@ function getCaretCharacterOffsetWithin(element: HTMLElement) {
     caretOffset = preCaretTextRange.text.length
   }
   return caretOffset
+}
+
+function getNextPath(
+  graph: Graph,
+  selectedPath: number[],
+  node: Node,
+  parentIds: string[]
+): number[] | undefined {
+  const parentId = last(parentIds)
+
+  if (!parentId) {
+    return undefined
+  }
+
+  const parent = graph[parentId]
+  const index = last(selectedPath)
+
+  if (index + 1 < parent.children.length) {
+    return selectedPath.slice(0, -1).concat(index + 1)
+  }
+
+  return getNextPath(graph, selectedPath.slice(0, -1), parent, parentIds.slice(0, -1))
 }

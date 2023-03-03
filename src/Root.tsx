@@ -85,12 +85,30 @@ export function Root({ documentId }: RootProps) {
           >
             undo
           </button>
+          <button
+            className="shadow border bg-white border-gray-200 rounded px-2 py-1 w-fit hover:bg-blue-500 hover:text-white"
+            onClick={() => history.redo()}
+          >
+            redo
+          </button>
         </div>
 
-        <div>
-          {history.undoStack.map((patch) => (
-            <div>{JSON.stringify(patch)}</div>
-          ))}
+        <div className="flex gap-2">
+          <div>
+            <b>Undo</b>
+
+            {history.undoStack.map((patch) => (
+              <div>{JSON.stringify(patch)}</div>
+            ))}
+          </div>
+
+          <div>
+            <b>Redo</b>
+
+            {history.redoStack.map((patch) => (
+              <div>{JSON.stringify(patch)}</div>
+            ))}
+          </div>
         </div>
       </div>
     </GraphContext.Provider>

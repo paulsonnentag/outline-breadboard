@@ -7,7 +7,9 @@ import { Value } from "@automerge/automerge-wasm"
 
 interface DocHistory {
   undoStack: Patch[]
+  redoStack: Patch[]
   undo: () => void
+  redo: () => void
 }
 
 export function useDocumentWithHistory<T>(
@@ -17,6 +19,7 @@ export function useDocumentWithHistory<T>(
   const repo = useRepo()
   const handle = documentId ? repo.find<T>(documentId) : null
   const [undoStack, setUndoStack] = useState<Patch[]>([])
+  const [redoStack, setRedoStack] = useState<Patch[]>([])
 
   useEffect(() => {
     if (!handle) {
@@ -41,6 +44,7 @@ export function useDocumentWithHistory<T>(
           return
         }
 
+        setRedoStack([])
         setUndoStack((undoStack) => undoStack.concat(getInversePatch(patch, prevDoc)))
       },
     })
@@ -52,14 +56,28 @@ export function useDocumentWithHistory<T>(
 
   const history: DocHistory = {
     undoStack,
+    redoStack,
     undo: () => {
-      if (undoStack.length === 0) {
+      if (undoStack.length === 0 || !doc) {
         return
       }
 
       const patch = last(undoStack)
+      setRedoStack((redoStack) => redoStack.concat(getInversePatch(patch, doc)))
       _changeDoc((doc) => applyPatch<T>(doc, patch), true)
       setUndoStack((undoStack) => undoStack.slice(0, -1))
+    },
+
+    redo: () => {
+      if (redoStack.length === 0 || !doc) {
+        return
+      }
+
+      const patch = last(redoStack)
+
+      setUndoStack((undoStack) => undoStack.concat(getInversePatch(patch, doc)))
+      _changeDoc((doc) => applyPatch<T>(doc, patch), true)
+      setRedoStack((redoStack) => redoStack.slice(0, -1))
     },
   }
 

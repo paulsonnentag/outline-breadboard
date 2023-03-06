@@ -2,11 +2,14 @@ import { NodeViewProps } from "./index"
 import { GOOGLE_MAPS_API_KEY } from "../api-keys"
 
 import { Loader } from "@googlemaps/js-api-loader"
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react"
-import { Graph, useGraph } from "../graph"
-import LatLngLiteral = google.maps.LatLngLiteral
+import { useEffect, useId, useRef, useState } from "react"
+import { useGraph } from "../graph"
 import { NodeData, Property, readChildrenWithProperties } from "../property"
 import classNames from "classnames"
+import { v4 } from "uuid"
+import { useStaticCallback } from "../hooks"
+import debounce from "lodash.debounce"
+import { list } from "postcss"
 
 const loader = new Loader({
   apiKey: GOOGLE_MAPS_API_KEY,
@@ -30,7 +33,7 @@ function useGoogleApi() {
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
-const LatLongProperty = new Property<LatLngLiteral>("position", (value) => {
+const LatLongProperty = new Property<google.maps.LatLngLiteral>("position", (value) => {
   const match = value.match(LAT_LONG_REGEX)
 
   if (!match) {
@@ -48,14 +51,78 @@ const LatLongProperty = new Property<LatLngLiteral>("position", (value) => {
   return { lat, lng }
 })
 
+const ZoomProperty = new Property<number>("zoom", (value) => {
+  const parsedValue = parseInt(value, 10)
+
+  return isNaN(parsedValue) ? undefined : parsedValue
+})
+
 export function MapNodeView({ node, innerRef }: NodeViewProps) {
-  const { graph } = useGraph()
+  const { graph, changeGraph } = useGraph()
 
   const google = useGoogleApi()
   const mapId = useId()
   const mapRef = useRef<google.maps.Map>()
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+
+  const onChangeMapView = useStaticCallback(
+    debounce(() => {
+      const currentMap = mapRef.current
+
+      if (!currentMap) {
+        return
+      }
+
+      const center = currentMap.getCenter()
+      const zoom = currentMap.getZoom()
+
+      const { id } = node
+
+      const latLongChildIndex = LatLongProperty.getChildIndexesOfNode(graph, id)[0]
+      const zoomChildIndex = ZoomProperty.getChildIndexesOfNode(graph, id)[0]
+
+      changeGraph((graph) => {
+        const node = graph[id]
+
+        const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
+
+        if (latLongChildIndex !== undefined) {
+          graph[node.children[latLongChildIndex]].value = latLongValue
+        } else {
+          const latLngPropertyNode = {
+            id: v4(),
+            value: latLongValue,
+            children: [],
+          }
+
+          graph[latLngPropertyNode.id] = latLngPropertyNode
+          node.children.push(latLngPropertyNode.id)
+        }
+
+        const zoomValue = `zoom: ${zoom}`
+
+        if (zoomChildIndex !== undefined) {
+          const zoomPropertyNode = graph[node.children[zoomChildIndex]]
+          if (zoomPropertyNode.value !== zoomValue) {
+            zoomPropertyNode.value = zoomValue
+          }
+        } else {
+          const zoomPropertyNode = {
+            id: v4(),
+            value: zoomValue,
+            children: [],
+          }
+
+          graph[zoomPropertyNode.id] = zoomPropertyNode
+          node.children.push(zoomPropertyNode.id)
+        }
+      })
+    })
+  )
+
+  // mount map
 
   useEffect(() => {
     const currentContainer = innerRef.current
@@ -63,26 +130,60 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
       return
     }
 
-    mapRef.current = new google.maps.Map(currentContainer, {
+    const currentMap = (mapRef.current = new google.maps.Map(currentContainer, {
       mapId,
       zoom: 11,
+      center: { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
-      gestureHandling: "node",
-    })
+      gestureHandling: "greedy",
+    }))
+
+    const centerChangedListener = currentMap.addListener("center_changed", onChangeMapView)
+    const zoomChangedListener = currentMap.addListener("zoom_changed", onChangeMapView)
+
+    markersRef.current = []
+    listenersRef.current.forEach((listener) => listener.remove())
+    listenersRef.current = []
+
+    return () => {
+      centerChangedListener.remove()
+      zoomChangedListener.remove()
+    }
   }, [innerRef.current])
 
   const childNodesWithLatLng = readChildrenWithProperties(graph, node.id, [LatLongProperty])
+  const zoom = ZoomProperty.readValueOfNode(graph, node.id)[0]
+  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, node.id)[0]
 
-  // adapt view to contain all points
+  // update bounds and zoom level if underlying data changes
+
   useEffect(() => {
     const currentMap = mapRef.current
-    if (!currentMap || !google || childNodesWithLatLng.length === 0) {
+    if (!currentMap || !google || childNodesWithLatLng.length === 0 || isDragging) {
       return
     }
 
+    // if there is a manual zoom and center value is set use that
+
+    if (zoom !== undefined && center !== undefined) {
+      if (currentMap.getZoom() !== zoom) {
+        currentMap.setZoom(zoom)
+      }
+
+      if (!currentMap.getCenter()?.equals(new google.maps.LatLng(center))) {
+        currentMap.setCenter(center)
+      }
+
+      return
+    }
+
+    // ... otherwise zoom to the bounds that include all points on the map
+
     const bounds = new google.maps.LatLngBounds()
     for (const childNode of childNodesWithLatLng) {
-      const position: LatLngLiteral = (childNode.data.position as LatLngLiteral[])[0]
+      const position: google.maps.LatLngLiteral = (
+        childNode.data.position as google.maps.LatLngLiteral[]
+      )[0]
       bounds.extend(position)
     }
 
@@ -92,10 +193,12 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
       if (childNodesWithLatLng.length === 1) {
         currentMap.setZoom(11)
       }
-    }, 200) // todo: hacky
-  }, [childNodesWithLatLng, google])
+    }, 200) // todo: this is not very nice
+    // but if we don't have this delay the zoom is not set correctly on initial load
+  }, [childNodesWithLatLng, google, isDragging])
 
-  // render nodes
+  // render markers on map
+
   useEffect(() => {
     if (!mapRef.current || !google) {
       return
@@ -123,7 +226,7 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
     for (let i = 0; i < childNodesWithLatLng.length; i++) {
       const childNodeWithLatLng: NodeData = childNodesWithLatLng[i]
       const latLng = new google.maps.LatLng(
-        (childNodeWithLatLng.data.position as LatLngLiteral[])[0]
+        (childNodeWithLatLng.data.position as google.maps.LatLngLiteral[])[0]
       )
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
@@ -173,9 +276,15 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
 
   return (
     <div
+      draggable
+      onDragStartCapture={(evt) => {
+        evt.stopPropagation()
+        evt.preventDefault()
+        setIsDragging(true)
+      }}
+      onMouseUp={() => setIsDragging(false)}
       ref={innerRef}
-      onDrag={(evt) => evt.stopPropagation()}
-      onDragStartCapture={(evt) => evt.stopPropagation()}
+      onDragStart={(evt) => evt.stopPropagation()}
       className="w-full h-[400px] border border-gray-200"
     ></div>
   )

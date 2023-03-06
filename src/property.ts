@@ -47,6 +47,21 @@ export class Property<T> {
     return this.parser(content)
   }
 
+  getChildIndexesOfNode(graph: Graph, nodeId: string): number[] {
+    const indexes: number[] = []
+
+    const node = graph[nodeId]
+
+    for (let i = 0; i < node.children.length; i++) {
+      const childNode = graph[node.children[i]]
+      if (this.matchesValue(childNode.value)) {
+        indexes.push(i)
+      }
+    }
+
+    return indexes
+  }
+
   readValueOfNode(graph: Graph, nodeId: string): T[] {
     const values = []
 

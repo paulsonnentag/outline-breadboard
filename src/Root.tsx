@@ -98,8 +98,6 @@ export function Root({ documentId }: RootProps) {
                 parentIds={[]}
                 selectedPath={selectedSubPath}
                 onChangeSelectedPath={(newSelectedSubPath) => {
-                  console.log("change path", [index].concat(newSelectedSubPath))
-
                   setSelectedPath([index].concat(newSelectedSubPath))
                 }}
               />

@@ -13,6 +13,7 @@ import {
 import { v4 } from "uuid"
 import classNames from "classnames"
 import { last } from "./utils"
+import { NodeView } from "./views"
 
 interface NodeEditorProps {
   id: string
@@ -474,65 +475,4 @@ function getNextPath(
   }
 
   return getNextPath(graph, selectedPath.slice(0, -1), parent, parentIds.slice(0, -1))
-}
-
-interface NodeViewProps {
-  node: Node
-  innerRef: RefObject<HTMLElement>
-  onChangeValue: (value: string) => void
-  isFocused: boolean
-  isRoot: boolean // todo: get rid of this flag
-}
-
-function NodeView(props: NodeViewProps) {
-  const { isRoot, node } = props
-
-  if (isRoot) {
-    return <RootNodeView {...props} />
-  }
-
-  if (node.value === "/map") {
-    return <MapBulletView {...props} />
-  }
-
-  return <BulletNodeView {...props} />
-}
-
-function MapBulletView({ innerRef }: NodeViewProps) {
-  return (
-    <div
-      ref={innerRef}
-      className="w-full h-[400px] bg-white shadow-xl border border-gray-200 rounded"
-    ></div>
-  )
-}
-
-function BulletNodeView({ innerRef, node, onChangeValue, isFocused }: NodeViewProps) {
-  return (
-    <div className="w-full">
-      <div className="flex gap-2">
-        <span className={classNames({ invisible: !isFocused && node.value == "" })}>•</span>
-        <ContentEditable
-          innerRef={innerRef}
-          html={node.value}
-          onChange={(evt) => onChangeValue(evt.target.value)}
-        />
-      </div>
-    </div>
-  )
-}
-
-function RootNodeView({ innerRef, node, onChangeValue }: NodeViewProps) {
-  return (
-    <div className="w-full">
-      <ContentEditable
-        className={classNames("mb-2 text-xl", {
-          "is-untitled text-gray-300": !node.value,
-        })}
-        innerRef={innerRef}
-        html={node.value}
-        onChange={(evt) => onChangeValue(evt.target.value)}
-      />
-    </div>
-  )
 }

@@ -23,4 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 
-src/api-keys.js
+src/api-keys.ts

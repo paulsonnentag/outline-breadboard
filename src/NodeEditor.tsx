@@ -1,6 +1,15 @@
 import { Graph, Node, useGraph, useNode } from "./graph"
 import ContentEditable, { ContentEditableEvent } from "react-contenteditable"
-import { useCallback, useRef, KeyboardEvent, useEffect, DragEvent, useState } from "react"
+import {
+  useCallback,
+  useRef,
+  KeyboardEvent,
+  useEffect,
+  DragEvent,
+  useState,
+  RefObject,
+  FocusEvent,
+} from "react"
 import { v4 } from "uuid"
 import classNames from "classnames"
 import { last } from "./utils"
@@ -36,30 +45,27 @@ export function NodeEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
-  const isFocused = selectedPath && arePathsEqual(selectedPath, path)
+  const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
 
-  // ugly hack because content editable doesn't handle updating event handler functions
-  const callbacksRef = useRef<ContentEditableCallbacks>({
-    onChange: () => {},
-    onFocus: () => {},
-    onKeyDown: () => {},
-    onBlur: () => {},
-  })
-
-  callbacksRef.current.onChange = useCallback(
-    (evt: ContentEditableEvent) => {
-      changeNode((node) => (node.value = evt.target.value))
+  const onChange = useCallback(
+    (value: string) => {
+      changeNode((node) => (node.value = value))
     },
     [changeNode]
   )
 
-  callbacksRef.current.onFocus = () => {
-    onChangeSelectedPath(path)
-  }
+  const onFocus = useCallback(
+    (evt: FocusEvent) => {
+      evt.stopPropagation()
 
-  callbacksRef.current.onKeyDown = (evt: KeyboardEvent) => {
+      onChangeSelectedPath(path)
+    },
+    [onChangeSelectedPath]
+  )
+
+  const onKeyDown = (evt: KeyboardEvent) => {
     switch (evt.key) {
       case "Backspace":
         if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
@@ -67,6 +73,7 @@ export function NodeEditor({
         }
 
         evt.preventDefault()
+        evt.stopPropagation()
 
         if (node.children.length !== 0 || !parentId) {
           return
@@ -106,6 +113,7 @@ export function NodeEditor({
 
       case "Enter": {
         evt.preventDefault()
+        evt.stopPropagation()
 
         const contentElement = contentRef.current
 
@@ -211,7 +219,9 @@ export function NodeEditor({
         if (nextPath) {
           onChangeSelectedPath(nextPath)
         }
+
         evt.preventDefault()
+        evt.stopPropagation()
         break
       }
 
@@ -234,6 +244,7 @@ export function NodeEditor({
           getLastChildPath(graph, prevSibling.id, path.slice(0, -1).concat(index - 1))
         )
 
+        evt.stopPropagation()
         evt.preventDefault()
         break
       }
@@ -325,72 +336,52 @@ export function NodeEditor({
     return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(id)}</div>
   }
 
-  let contentEditableView = (
-    <ContentEditable
-      className={classNames({
-        "is-untitled text-gray-300": !parentId && !node.value,
-      })}
-      innerRef={contentRef}
-      onKeyDown={(evt) => callbacksRef.current.onKeyDown(evt)}
-      html={node.value}
-      onChange={(evt) => callbacksRef.current.onChange(evt)}
-      onFocus={(evt) => callbacksRef.current.onFocus()}
-    />
-  )
-
   return (
     <div draggable={parentId !== undefined} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-      {parentId ? (
-        <div
-          className={classNames("flex flex-1 gap-1", {
-            "text-gray-300": isBeingDragged || isParentDragged,
-          })}
-          onDragOver={onDragOver}
-          onDragEnter={onDragEnter}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-        >
-          <span
-            className={classNames({
-              invisible: !isFocused && node.value === "",
-            })}
-          >
-            •
-          </span>
-          ️ {contentEditableView}
-        </div>
-      ) : (
-        <div className="text-xl mb-2">{contentEditableView}</div>
-      )}
-
-      {parentId && (
-        <div
-          className={classNames(
-            "w-full border-b-2",
-            {
-              "ml-4": node.children.length,
-            },
-            isDraggedOver ? "border-blue-500" : "border-white"
-          )}
+      <div
+        className={classNames("flex flex-1 gap-1", {
+          "text-gray-300": isBeingDragged || isParentDragged,
+        })}
+        onDragOver={onDragOver}
+        onDragEnter={onDragEnter}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onKeyDown={onKeyDown}
+        onFocus={onFocus}
+      >
+        <NodeView
+          node={node}
+          innerRef={contentRef}
+          onChangeValue={onChange}
+          isRoot={parentIds.length == 0}
+          isFocused={isFocused}
         />
-      )}
+      </div>
 
-      {node.children.length > 0 && (
-        <div className={classNames("w-full", parentId ? "pl-4" : "")}>
-          {node.children.map((childId, index) => (
-            <NodeEditor
-              isParentDragged={isBeingDragged}
-              key={index}
-              id={childId}
-              index={index}
-              parentIds={parentIds.concat(id)}
-              path={path.concat(index)}
-              selectedPath={selectedPath}
-              onChangeSelectedPath={onChangeSelectedPath}
-            />
-          ))}
-        </div>
-      )}
+      <div
+        className={classNames(
+          "w-full border-b-2",
+          {
+            "ml-4": node.children.length,
+          },
+          isDraggedOver ? "border-blue-500" : "border-white"
+        )}
+      />
+
+      <div className={classNames("w-full", parentIds.length !== 0 ? "pl-4" : "")}>
+        {node.children.map((childId, index) => (
+          <NodeEditor
+            isParentDragged={isBeingDragged}
+            key={index}
+            id={childId}
+            index={index}
+            parentIds={parentIds.concat(node.id)}
+            path={path.concat(index)}
+            selectedPath={selectedPath}
+            onChangeSelectedPath={onChangeSelectedPath}
+          />
+        ))}
+      </div>
     </div>
   )
 }
@@ -483,4 +474,65 @@ function getNextPath(
   }
 
   return getNextPath(graph, selectedPath.slice(0, -1), parent, parentIds.slice(0, -1))
+}
+
+interface NodeViewProps {
+  node: Node
+  innerRef: RefObject<HTMLElement>
+  onChangeValue: (value: string) => void
+  isFocused: boolean
+  isRoot: boolean // todo: get rid of this flag
+}
+
+function NodeView(props: NodeViewProps) {
+  const { isRoot, node } = props
+
+  if (isRoot) {
+    return <RootNodeView {...props} />
+  }
+
+  if (node.value === "/map") {
+    return <MapBulletView {...props} />
+  }
+
+  return <BulletNodeView {...props} />
+}
+
+function MapBulletView({ innerRef }: NodeViewProps) {
+  return (
+    <div
+      ref={innerRef}
+      className="w-full h-[400px] bg-white shadow-xl border border-gray-200 rounded"
+    ></div>
+  )
+}
+
+function BulletNodeView({ innerRef, node, onChangeValue, isFocused }: NodeViewProps) {
+  return (
+    <div className="w-full">
+      <div className="flex gap-2">
+        <span className={classNames({ invisible: !isFocused && node.value == "" })}>•</span>
+        <ContentEditable
+          innerRef={innerRef}
+          html={node.value}
+          onChange={(evt) => onChangeValue(evt.target.value)}
+        />
+      </div>
+    </div>
+  )
+}
+
+function RootNodeView({ innerRef, node, onChangeValue }: NodeViewProps) {
+  return (
+    <div className="w-full">
+      <ContentEditable
+        className={classNames("mb-2 text-xl", {
+          "is-untitled text-gray-300": !node.value,
+        })}
+        innerRef={innerRef}
+        html={node.value}
+        onChange={(evt) => onChangeValue(evt.target.value)}
+      />
+    </div>
+  )
 }

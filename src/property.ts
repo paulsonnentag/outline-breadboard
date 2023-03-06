@@ -1,6 +1,6 @@
 import { Graph } from "./graph"
 
-interface NodeData {
+export interface NodeData {
   id: string
   data: { [key: string]: unknown[] }
 }

@@ -11,7 +11,6 @@ import { useStaticCallback } from "../hooks"
 import debounce from "lodash.debounce"
 import { NodeEditor } from "../NodeEditor"
 import { createRoot } from "react-dom/client"
-import LatLngLiteral = google.maps.LatLngLiteral
 
 const loader = new Loader({
   apiKey: GOOGLE_MAPS_API_KEY,
@@ -89,8 +88,8 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
     const currentMap = (mapRef.current = new google.maps.Map(currentContainer, {
       mapId,
       zoom: 11,
-      // center,
-      center: { lat: 50.775555, lng: 6.083611 },
+      center,
+      //center: { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
       gestureHandling: "greedy",
     }))
@@ -227,6 +226,10 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
           currentPopOver.show()
           currentPopOver.draw()
           currentPopOver.render(graphContext)
+
+          if (position) {
+            mapRef.current?.panTo(position)
+          }
         }
       )
     } else {
@@ -237,6 +240,7 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
       currentPopOver.show()
       currentPopOver.draw()
       currentPopOver.render(graphContext)
+      mapRef.current?.panTo(position)
     }
   })
 

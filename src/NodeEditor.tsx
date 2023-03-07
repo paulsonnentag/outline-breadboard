@@ -24,13 +24,6 @@ interface NodeEditorProps {
   onChangeSelectedPath: (path: number[]) => void
 }
 
-interface ContentEditableCallbacks {
-  onFocus: () => void
-  onBlur: () => void
-  onChange: (evt: ContentEditableEvent) => void
-  onKeyDown: (evt: KeyboardEvent) => void
-}
-
 export function NodeEditor({
   id,
   path,
@@ -337,7 +330,14 @@ export function NodeEditor({
   }
 
   return (
-    <div draggable={parentId !== undefined} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <div
+      draggable={parentId !== undefined}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onMouseDown={() => {
+        console.log("on mouse down")
+      }}
+    >
       <div
         className={classNames("flex flex-1 gap-1", {
           "text-gray-300": isBeingDragged || isParentDragged,

@@ -1,14 +1,13 @@
 import { Graph, Node, useGraph, useNode } from "./graph"
-import ContentEditable, { ContentEditableEvent } from "react-contenteditable"
+import { ContentEditableEvent } from "react-contenteditable"
 import {
-  useCallback,
-  useRef,
-  KeyboardEvent,
-  useEffect,
   DragEvent,
-  useState,
-  RefObject,
   FocusEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
 } from "react"
 import { v4 } from "uuid"
 import classNames from "classnames"

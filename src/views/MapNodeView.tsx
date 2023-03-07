@@ -461,6 +461,12 @@ function createPopoverOutline(position?: google.maps.LatLngLiteral): PopoverOutl
       }
 
       const divPosition = this.getProjection().fromLatLngToDivPixel(this.position)
+
+      // if marker is still rendered (any zoom level above 11) shift up a bit that it doesn't cover the marker
+      if (this.getMap().getZoom() > 11) {
+        divPosition!.y = divPosition!.y - 30
+      }
+
       // Hide the popup when it is far out of view.
       const display =
         Math.abs(divPosition!.x) < 4000 && Math.abs(divPosition!.y) < 4000 ? "block" : "none"

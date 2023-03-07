@@ -22,7 +22,10 @@ export function NodeView(props: NodeViewProps) {
   }
 
   if (node.value === "/map") {
-    return <MapNodeView {...props} />
+    return <div className="w-full">
+      <BulletNodeView {...props} />
+      <MapNodeView {...props} />
+    </div>
   }
 
   if (node.value === "/weather-averages") {

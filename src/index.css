@@ -23,11 +23,11 @@
   transform: translate(-50%, -100%);
   /* Style the bubble. */
   background-color: white;
-  padding: 5px;
+  padding: 16px;
   border-radius: 5px;
-  font-family: sans-serif;
   overflow-y: auto;
-  max-height: 60px;
+  max-height: 175px;
+  font-size: 16px;
   box-shadow: 0px 2px 10px 1px rgba(0, 0, 0, 0.5);
 }
 
@@ -63,7 +63,7 @@
   height: 0;
   position: absolute;
   /* The max width of the info window. */
-  width: 200px;
+  width: 300px;
 }
 
 .gm-style-cc { display:none; }

@@ -127,6 +127,46 @@ export interface Node {
   view?: string
 }
 
+interface RecordDef {
+  id?: string
+  name: string
+  props: { [key: string]: string | undefined }
+}
+
+export function createRecordNode(graph: Graph, { id = v4(), name, props }: RecordDef): Node {
+  const recordNode = createNode(graph, { id, value: name })
+
+  for (const [key, value] of Object.entries(props)) {
+    // skip undefined values
+    if (value === undefined) {
+      continue
+    }
+
+    const propertyNode = createNode(graph, { value: `${key}: ${value}` })
+    recordNode.children.push(propertyNode.id)
+  }
+
+  return recordNode
+}
+
+interface NodeDef {
+  id?: string
+  value: string
+  children?: string[]
+}
+
+export function createNode(graph: Graph, { id = v4(), value, children = [] }: NodeDef): Node {
+  const node = {
+    id,
+    value,
+    children,
+  }
+
+  graph[node.id] = node
+
+  return graph[node.id] // need to lookup the node again to get a mutable version
+}
+
 export interface GraphContextProps {
   graph: Graph
   changeGraph: (fn: (graph: Graph) => void) => void

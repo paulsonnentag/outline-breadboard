@@ -2,13 +2,16 @@ import { NodeViewProps } from "./index"
 import { GOOGLE_MAPS_API_KEY } from "../api-keys"
 
 import { Loader } from "@googlemaps/js-api-loader"
-import { useEffect, useId, useRef, useState } from "react"
-import { useGraph } from "../graph"
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { createRecordNode, Graph, GraphContext, GraphContextProps, useGraph } from "../graph"
 import { NodeData, Property, readChildrenWithProperties } from "../property"
 import classNames from "classnames"
 import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
 import debounce from "lodash.debounce"
+import { NodeEditor } from "../NodeEditor"
+import { createRoot } from "react-dom/client"
+import LatLngLiteral = google.maps.LatLngLiteral
 
 const loader = new Loader({
   apiKey: GOOGLE_MAPS_API_KEY,
@@ -57,18 +60,60 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
 })
 
 export function MapNodeView({ node, innerRef }: NodeViewProps) {
-  const { graph, changeGraph } = useGraph()
+  const graphContext = useGraph()
+  const { graph, changeGraph } = graphContext
 
   const google = useGoogleApi()
   const mapId = useId()
   const mapRef = useRef<google.maps.Map>()
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
+  const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
   const childNodesWithLatLng = readChildrenWithProperties(graph, node.id, [LatLongProperty])
   const zoom = ZoomProperty.readValueOfNode(graph, node.id)[0]
   const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, node.id)[0]
+  const placesService = useMemo(() => {
+    return google ? new google.maps.places.PlacesService(document.createElement("div")) : undefined
+  }, [google])
+
+  // mount map
+
+  useEffect(() => {
+    const currentContainer = innerRef.current
+    if (!currentContainer || !google) {
+      return
+    }
+
+    const currentMap = (mapRef.current = new google.maps.Map(currentContainer, {
+      mapId,
+      zoom: 11,
+      // center,
+      center: { lat: 50.775555, lng: 6.083611 },
+      disableDefaultUI: true,
+      gestureHandling: "greedy",
+    }))
+
+    const popup = (popOverRef.current = createPopoverOutline())
+
+    popup.setMap(currentMap)
+    popup.hide()
+
+    const centerChangedListener = currentMap.addListener("center_changed", onChangeMapView)
+    const zoomChangedListener = currentMap.addListener("zoom_changed", onChangeMapView)
+    const clickListener = currentMap.addListener("click", onClickMap)
+
+    markersRef.current = []
+    listenersRef.current.forEach((listener) => listener.remove())
+    listenersRef.current = []
+
+    return () => {
+      centerChangedListener.remove()
+      zoomChangedListener.remove()
+      clickListener.remove()
+    }
+  }, [innerRef.current])
 
   const onChangeMapView = useStaticCallback(
     debounce(() => {
@@ -125,39 +170,75 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
     })
   )
 
-  // mount map
-
-  useEffect(() => {
-    const currentContainer = innerRef.current
-    if (!currentContainer || !google) {
+  const onClickMap = useStaticCallback((evt: any) => {
+    const currentPopOver = popOverRef.current
+    if (!currentPopOver || !placesService) {
       return
     }
 
-    const currentMap = (mapRef.current = new google.maps.Map(currentContainer, {
-      mapId,
-      zoom: 11,
-      // center,
-      center: { lat: 50.775555, lng: 6.083611 },
-      disableDefaultUI: true,
-      gestureHandling: "greedy",
-    }))
-
-    const popup = createOutlinePopup({ lat: 50.775555, lng: 6.083611 })
-
-    popup.setMap(currentMap)
-
-    const centerChangedListener = currentMap.addListener("center_changed", onChangeMapView)
-    const zoomChangedListener = currentMap.addListener("zoom_changed", onChangeMapView)
-
-    markersRef.current = []
-    listenersRef.current.forEach((listener) => listener.remove())
-    listenersRef.current = []
-
-    return () => {
-      centerChangedListener.remove()
-      zoomChangedListener.remove()
+    const placeId: string = evt.placeId
+    if (!placeId) {
+      currentPopOver.hide()
+      currentPopOver.position = undefined
+      return
     }
-  }, [innerRef.current])
+
+    evt.stop()
+    evt.cancelBubble = true
+
+    if (!graph[placeId]) {
+      placesService?.getDetails(
+        {
+          placeId,
+          fields: [
+            "name",
+            "rating",
+            "photos",
+            "website",
+            "formatted_phone_number",
+            "formatted_address",
+            "geometry",
+          ],
+        },
+        (result) => {
+          const name = result?.name ?? "Unnamed"
+          const website = result?.website
+          const address = result?.formatted_address
+          const phone = result?.formatted_phone_number
+          const rating = result?.rating?.toString()
+          const position = result?.geometry?.location
+
+          changeGraph((graph) => {
+            const node = createRecordNode(graph, {
+              id: placeId,
+              name,
+              props: {
+                rating,
+                address,
+                phone,
+                website,
+                position: position ? `${position.lat()}, ${position.lng()}` : undefined,
+              },
+            })
+          })
+
+          currentPopOver.position = position?.toJSON()
+          currentPopOver.rootId = placeId
+          currentPopOver.show()
+          currentPopOver.draw()
+          currentPopOver.render(graphContext)
+        }
+      )
+    } else {
+      const position = LatLongProperty.readValueOfNode(graph, placeId)[0]
+
+      currentPopOver.position = position
+      currentPopOver.rootId = placeId
+      currentPopOver.show()
+      currentPopOver.draw()
+      currentPopOver.render(graphContext)
+    }
+  })
 
   // update bounds and zoom level if underlying data changes
 
@@ -278,6 +359,12 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
     }
   }, [childNodesWithLatLng, mapRef.current])
 
+  useEffect(() => {
+    if (popOverRef.current) {
+      popOverRef.current.render(graphContext)
+    }
+  }, [Math.random()])
+
   return (
     <div
       draggable
@@ -294,22 +381,37 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
   )
 }
 
+interface PopoverOutline {
+  render: (graph: GraphContextProps) => void
+  position?: google.maps.LatLngLiteral
+  rootId: string | undefined
+  hide: () => void
+  show: () => void
+  draw: () => void
+  setMap: (map: google.maps.Map) => void
+}
+
 // we have to construct the class lazily, because the google maps library is loaded async
 // that means google.maps.OverlayView is only defined once the library is loaded
-function createOutlinePopup(position: google.maps.LatLngLiteral) {
-  class OutlinePopup extends google.maps.OverlayView {
-    position
-    containerDiv
+function createPopoverOutline(position?: google.maps.LatLngLiteral): PopoverOutline {
+  class PopoverOutline extends google.maps.OverlayView {
+    public position
+    private containerDiv
+    private root
+    public rootId: string | undefined
 
-    constructor(position: google.maps.LatLngLiteral) {
+    constructor(position?: google.maps.LatLngLiteral) {
       super()
       this.position = position
 
       const element = document.createElement("div")
 
-      element.innerText = "hello world"
+      const container = document.createElement("div")
+      element.appendChild(container)
 
-      element.classList.add("popup-bubble")
+      this.root = createRoot(container)
+
+      element.className = "popup-bubble"
 
       // This zero-height div is positioned at the bottom of the bubble.
       const bubbleAnchor = document.createElement("div")
@@ -321,7 +423,7 @@ function createOutlinePopup(position: google.maps.LatLngLiteral) {
       this.containerDiv.classList.add("popup-container")
       this.containerDiv.appendChild(bubbleAnchor)
       // Optionally stop clicks, etc., from bubbling up to the map.
-      OutlinePopup.preventMapHitsAndGesturesFrom(this.containerDiv)
+      PopoverOutline.preventMapHitsAndGesturesFrom(this.containerDiv)
     }
 
     /** Called when the popup is added to the map. */
@@ -336,8 +438,28 @@ function createOutlinePopup(position: google.maps.LatLngLiteral) {
       }
     }
 
+    hide() {
+      this.containerDiv.style.display = "none"
+    }
+
+    show() {
+      this.containerDiv.style.display = "inherit"
+    }
+
+    render(graphContext: GraphContextProps) {
+      if (!this.rootId) {
+        return
+      }
+
+      this.root.render(<PopoverOutlineView graphContext={graphContext} rootId={this.rootId} />)
+    }
+
     /** Called each frame when the popup needs to draw itself. */
     draw() {
+      if (!this.position) {
+        return
+      }
+
       const divPosition = this.getProjection().fromLatLngToDivPixel(this.position)
       // Hide the popup when it is far out of view.
       const display =
@@ -354,5 +476,27 @@ function createOutlinePopup(position: google.maps.LatLngLiteral) {
     }
   }
 
-  return new OutlinePopup(position)
+  return new PopoverOutline(position)
+}
+
+interface PopoverOutlineViewProps {
+  graphContext: GraphContextProps
+  rootId: string
+}
+
+function PopoverOutlineView({ graphContext, rootId }: PopoverOutlineViewProps) {
+  const [selectedPath, setSelectedPath] = useState<number[]>([])
+
+  return (
+    <GraphContext.Provider value={graphContext}>
+      <NodeEditor
+        index={0}
+        id={rootId}
+        path={[]}
+        parentIds={[]}
+        selectedPath={selectedPath}
+        onChangeSelectedPath={setSelectedPath}
+      />
+    </GraphContext.Provider>
+  )
 }

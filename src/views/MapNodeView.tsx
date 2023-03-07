@@ -3,13 +3,21 @@ import { GOOGLE_MAPS_API_KEY } from "../api-keys"
 
 import { Loader } from "@googlemaps/js-api-loader"
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { createRecordNode, Graph, GraphContext, GraphContextProps, useGraph } from "../graph"
+import {
+  createRecordNode,
+  getNode,
+  Graph,
+  GraphContext,
+  GraphContextProps,
+  useGraph,
+  ValueNode,
+} from "../graph"
 import { NodeData, Property, readChildrenWithProperties } from "../property"
 import classNames from "classnames"
 import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
 import debounce from "lodash.debounce"
-import { NodeEditor } from "../NodeEditor"
+import { OutlineEditor } from "../OutlineEditor"
 import { createRoot } from "react-dom/client"
 
 const loader = new Loader({
@@ -131,15 +139,16 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
       const zoomChildIndex = ZoomProperty.getChildIndexesOfNode(graph, id)[0]
 
       changeGraph((graph) => {
-        const node = graph[id]
+        const node = getNode(graph, id)
 
         const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
 
         if (latLongChildIndex !== undefined) {
-          graph[node.children[latLongChildIndex]].value = latLongValue
+          getNode(graph, node.children[latLongChildIndex]).value = latLongValue
         } else {
-          const latLngPropertyNode = {
+          const latLngPropertyNode: ValueNode = {
             id: v4(),
+            type: "value",
             value: latLongValue,
             children: [],
           }
@@ -151,13 +160,14 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
         const zoomValue = `zoom: ${zoom}`
 
         if (zoomChildIndex !== undefined) {
-          const zoomPropertyNode = graph[node.children[zoomChildIndex]]
+          const zoomPropertyNode = getNode(graph, node.children[zoomChildIndex])
           if (zoomPropertyNode.value !== zoomValue) {
             zoomPropertyNode.value = zoomValue
           }
         } else {
-          const zoomPropertyNode = {
+          const zoomPropertyNode: ValueNode = {
             id: v4(),
+            type: "value",
             value: zoomValue,
             children: [],
           }
@@ -500,9 +510,9 @@ function PopoverOutlineView({ graphContext, rootId }: PopoverOutlineViewProps) {
 
   return (
     <GraphContext.Provider value={graphContext}>
-      <NodeEditor
+      <OutlineEditor
+        nodeId={rootId}
         index={0}
-        id={rootId}
         path={[]}
         parentIds={[]}
         selectedPath={selectedPath}

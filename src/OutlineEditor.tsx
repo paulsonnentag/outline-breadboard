@@ -1,5 +1,4 @@
-import { Graph, Node, useGraph, useNode } from "./graph"
-import { ContentEditableEvent } from "react-contenteditable"
+import { createNode, getNode, Graph, isReferenceNodeId, Node, useGraph, ValueNode } from "./graph"
 import {
   DragEvent,
   FocusEvent,
@@ -14,8 +13,8 @@ import classNames from "classnames"
 import { last } from "./utils"
 import { NodeView } from "./views"
 
-interface NodeEditorProps {
-  id: string
+interface OutlineEditorProps {
+  nodeId: string
   index: number
   parentIds: string[]
   isParentDragged?: boolean
@@ -24,29 +23,32 @@ interface NodeEditorProps {
   onChangeSelectedPath: (path: number[]) => void
 }
 
-export function NodeEditor({
-  id,
+export function OutlineEditor({
+  nodeId,
   path,
   index,
   parentIds,
   isParentDragged,
   selectedPath,
   onChangeSelectedPath,
-}: NodeEditorProps) {
-  const { node, changeNode } = useNode(id)
+}: OutlineEditorProps) {
   const { graph, changeGraph } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
+  const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
 
   const onChange = useCallback(
     (value: string) => {
-      changeNode((node) => (node.value = value))
+      changeGraph((graph) => {
+        const node = getNode(graph, nodeId)
+        node.value = value
+      })
     },
-    [changeNode]
+    [changeGraph]
   )
 
   const onFocus = useCallback(
@@ -75,7 +77,7 @@ export function NodeEditor({
         // if it's the first child join it with parent
         if (index === 0) {
           changeGraph((graph) => {
-            const parent = graph[parentId]
+            const parent = getNode(graph, parentId)
             delete parent.children[index]
 
             parent.value += node.value
@@ -85,8 +87,8 @@ export function NodeEditor({
           // ... otherwise join it with the last child of the previous sibling
         } else {
           changeGraph((graph) => {
-            const parent = graph[parentId]
-            const prevSibling = graph[parent.children[index - 1]]
+            const parent = getNode(graph, parentId)
+            const prevSibling = getNode(graph, parent.children[index - 1])
 
             const lastChildPath = getLastChildPath(graph, prevSibling.id)
             const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
@@ -115,30 +117,27 @@ export function NodeEditor({
         }
 
         changeGraph((graph) => {
-          const node = graph[id]
+          const node = getNode(graph, nodeId)
 
           const caretOffset = getCaretCharacterOffsetWithin(contentElement)
 
-          const newNode = {
-            id: v4(),
+          const newNode = createNode(graph, {
             value: node.value.slice(caretOffset),
-            children: [],
-          }
+          })
 
-          graph[newNode.id] = newNode
           node.value = node.value.slice(0, caretOffset)
 
           if (node.children.length === 0 && parentId) {
-            const parent = graph[parentId]
+            const parent = getNode(graph, parentId)
             parent.children.splice(index + 1, 0, newNode.id)
             onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
           } else {
             if (parentId) {
-              const parent = graph[parentId]
+              const parent = getNode(graph, parentId)
 
               if (caretOffset === 0) {
                 node.value = newNode.value
-                graph[newNode.id].value = ""
+                newNode.value = ""
 
                 parent.children.splice(index, 0, newNode.id)
               } else {
@@ -166,13 +165,13 @@ export function NodeEditor({
           }
 
           changeGraph((graph) => {
-            const parent = graph[parentId]
+            const parent = getNode(graph, parentId)
             const parentIndex = path[path.length - 2]
-            const grandParent = graph[grandParentId]
+            const grandParent = getNode(graph, grandParentId)
 
             delete parent.children[index]
             const newIndex = parentIndex + 1
-            grandParent.children.splice(newIndex, 0, id)
+            grandParent.children.splice(newIndex, 0, nodeId)
             onChangeSelectedPath(path.slice(0, -2).concat(newIndex))
           })
         } else {
@@ -184,8 +183,8 @@ export function NodeEditor({
           }
 
           changeGraph((graph) => {
-            const parent = graph[parentId]
-            const prevSibling = graph[parent.children[index - 1]]
+            const parent = getNode(graph, parentId)
+            const prevSibling = getNode(graph, parent.children[index - 1])
 
             const newIndex = prevSibling.children.length
 
@@ -231,8 +230,8 @@ export function NodeEditor({
         }
 
         // ... otherwise pick last child of previous sibling
-        const parent = graph[parentId]
-        const prevSibling = graph[parent.children[index - 1]]
+        const parent = getNode(graph, parentId)
+        const prevSibling = getNode(graph, parent.children[index - 1])
         onChangeSelectedPath(
           getLastChildPath(graph, prevSibling.id, path.slice(0, -1).concat(index - 1))
         )
@@ -258,7 +257,7 @@ export function NodeEditor({
     })
 
     evt.dataTransfer.setDragImage(elem, -10, -10)
-    evt.dataTransfer.setData("application/node", JSON.stringify({ id, parentId, index }))
+    evt.dataTransfer.setData("application/node", JSON.stringify({ id: nodeId, parentId, index }))
     setIsBeingDragged(true)
   }
 
@@ -304,16 +303,17 @@ export function NodeEditor({
     } = JSON.parse(evt.dataTransfer.getData("application/node"))
 
     changeGraph((graph) => {
-      const sourceParent = graph[sourceParentId]
+      const node = getNode(graph, nodeId)
+      const sourceParent = getNode(graph, sourceParentId)
       delete sourceParent.children[sourceIndex]
 
       if (node.children.length !== 0) {
         // important to get node from mutable graph
-        graph[node.id].children.unshift(sourceId)
+        node.children.unshift(sourceId)
       } else if (parentId) {
         const insertIndex = parentId === sourceParentId && sourceIndex < index ? index : index + 1
 
-        const parent = graph[parentId]
+        const parent = getNode(graph, parentId)
         parent.children.splice(insertIndex, 0, sourceId)
       }
     })
@@ -326,7 +326,7 @@ export function NodeEditor({
   }, [isFocused])
 
   if (!node) {
-    return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(id)}</div>
+    return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
   }
 
   return (
@@ -350,6 +350,7 @@ export function NodeEditor({
         onFocus={onFocus}
       >
         <NodeView
+          isReference={isReferenceNodeId(graph, nodeId)}
           node={node}
           innerRef={contentRef}
           onChangeValue={onChange}
@@ -370,10 +371,10 @@ export function NodeEditor({
 
       <div className={classNames("w-full", parentIds.length !== 0 ? "pl-4" : "")}>
         {node.children.map((childId, index) => (
-          <NodeEditor
+          <OutlineEditor
             isParentDragged={isBeingDragged}
             key={index}
-            id={childId}
+            nodeId={childId}
             index={index}
             parentIds={parentIds.concat(node.id)}
             path={path.concat(index)}
@@ -401,7 +402,7 @@ function arePathsEqual(path1: number[], path2: number[]) {
 }
 
 function getLastChildPath(graph: Graph, nodeId: string, prefixPath: number[] = []): number[] {
-  const node = graph[nodeId]
+  const node = getNode(graph, nodeId)
 
   const lastIndex = node.children.length - 1
 
@@ -413,8 +414,8 @@ function getLastChildPath(graph: Graph, nodeId: string, prefixPath: number[] = [
   return getLastChildPath(graph, lastChild, prefixPath.concat(lastIndex))
 }
 
-function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node | undefined {
-  let currentNode = graph[nodeId]
+function getNodeAt(graph: Graph, nodeId: string, path: number[]): ValueNode | undefined {
+  let currentNode = getNode(graph, nodeId)
 
   for (const index of path) {
     const childId = currentNode.children[index]
@@ -423,7 +424,7 @@ function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node | undefin
       return undefined
     }
 
-    currentNode = graph[childId]
+    currentNode = getNode(graph, childId)
   }
 
   return currentNode
@@ -466,7 +467,7 @@ function getNextPath(
     return undefined
   }
 
-  const parent = graph[parentId]
+  const parent = getNode(graph, parentId)
   const index = last(selectedPath)
 
   if (index + 1 < parent.children.length) {

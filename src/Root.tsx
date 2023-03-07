@@ -1,7 +1,7 @@
 import { DocumentId } from "automerge-repo"
 import { useEffect, useMemo, useState } from "react"
-import { Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
-import { NodeEditor } from "./NodeEditor"
+import { createNode, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
+import { OutlineEditor } from "./OutlineEditor"
 import { useDocumentWithHistory } from "./history"
 import { IconButton } from "./IconButton"
 import { v4 } from "uuid"
@@ -51,13 +51,10 @@ export function Root({ documentId }: RootProps) {
 
   const onAddRootNode = () => {
     changeDoc((doc) => {
-      const newRootNode = {
-        id: v4(),
+      const newRootNode = createNode(doc.graph, {
         value: "",
-        children: [],
-      }
+      })
 
-      doc.graph[newRootNode.id] = newRootNode
       doc.rootNodeIds.push(newRootNode.id)
       setSelectedPath([doc.rootNodeIds.length - 1])
     })
@@ -83,9 +80,9 @@ export function Root({ documentId }: RootProps) {
                 <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
               </div>
 
-              <NodeEditor
+              <OutlineEditor
                 index={0}
-                id={rootId}
+                nodeId={rootId}
                 path={[]}
                 parentIds={[]}
                 selectedPath={selectedSubPath}

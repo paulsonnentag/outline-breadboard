@@ -1,4 +1,4 @@
-import { Graph } from "./graph"
+import { getNode, Graph } from "./graph"
 
 export interface NodeData {
   id: string
@@ -10,7 +10,7 @@ export function readChildrenWithProperties(
   nodeId: string,
   properties: Property<unknown>[]
 ): NodeData[] {
-  const node = graph[nodeId]
+  const node = getNode(graph, nodeId)
 
   return node.children.flatMap((childId) => {
     const result: NodeData = { id: childId, data: {} }
@@ -48,10 +48,10 @@ export class Property<T> {
   getChildIndexesOfNode(graph: Graph, nodeId: string): number[] {
     const indexes: number[] = []
 
-    const node = graph[nodeId]
+    const node = getNode(graph, nodeId)
 
     for (let i = 0; i < node.children.length; i++) {
-      const childNode = graph[node.children[i]]
+      const childNode = getNode(graph, node.children[i])
       if (this.matchesValue(childNode.value)) {
         indexes.push(i)
       }
@@ -63,9 +63,9 @@ export class Property<T> {
   readValueOfNode(graph: Graph, nodeId: string): T[] {
     const values = []
 
-    const node = graph[nodeId]
+    const node = getNode(graph, nodeId)
     for (const childId of node.children) {
-      const childNode = graph[childId]
+      const childNode = getNode(graph, childId)
 
       if (!this.matchesValue(childNode.value)) {
         continue

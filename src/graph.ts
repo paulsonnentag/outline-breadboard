@@ -10,8 +10,9 @@ export interface GraphDoc {
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
   handle.change((doc) => {
-    const rootNode = {
+    const rootNode: ValueNode = {
       id: v4(),
+      type: "value",
       value: "",
       children: [],
     }
@@ -25,107 +26,26 @@ export function createGraphDoc(repo: Repo) {
   return handle
 }
 
-export function createExampleOutline(handle: DocHandle<GraphDoc>) {
-  /*handle.change((doc) => {
-    const a = {
-      id: v4(),
-      value: "child a",
-      children: [],
-    }
-
-    const b = {
-      id: v4(),
-      value: "child b",
-      children: [],
-    }
-
-    const c = {
-      id: v4(),
-      value: "child c",
-      children: [],
-    }
-
-    const rootNode = {
-      id: v4(),
-      value: "Outline",
-      children: [a.id, b.id, c.id],
-    }
-
-    doc.rootId = rootNode.id
-    doc.graph = {
-      [rootNode.id]: rootNode,
-      [a.id]: a,
-      [b.id]: b,
-      [c.id]: c,
-    }
-  })*/
-
-  handle.change((doc) => {
-    const subA1 = {
-      id: v4(),
-      value: "sub a1",
-      children: [],
-    }
-
-    const subA2 = {
-      id: v4(),
-      value: "sub a2",
-      children: [],
-    }
-
-    const transcluded = {
-      id: v4(),
-      value: "transcluded",
-      children: [],
-    }
-
-    const childA = {
-      id: v4(),
-      value: "child a",
-      children: [subA1.id, subA2.id, transcluded.id],
-    }
-
-    const subB1 = {
-      id: v4(),
-      value: "sub b1",
-      children: [],
-    }
-
-    const childB = {
-      id: v4(),
-      value: "child b",
-      children: [subB1.id, transcluded.id],
-    }
-
-    const rootNode = {
-      id: v4(),
-      value: "Outline",
-      children: [childA.id, childB.id],
-    }
-
-    doc.rootNodeIds = [rootNode.id]
-    doc.graph = {
-      [rootNode.id]: rootNode,
-      [childA.id]: childA,
-      [subA1.id]: subA1,
-      [subA2.id]: subA2,
-      [transcluded.id]: transcluded,
-      [childB.id]: childB,
-      [subB1.id]: subB1,
-    }
-  })
-}
-
 export interface Graph {
   [id: string]: Node
 }
 
-export interface Node {
+export interface ValueNode {
+  type: "value"
   id: string
   children: string[]
   value: string
   view?: string
 }
+
+export interface RefNode {
+  type: "ref"
+  id: string
+  refId: string
+  view?: string
+}
+
+export type Node = ValueNode | RefNode
 
 interface RecordDef {
   id?: string
@@ -155,8 +75,9 @@ interface NodeDef {
   children?: string[]
 }
 
-export function createNode(graph: Graph, { id = v4(), value, children = [] }: NodeDef): Node {
-  const node = {
+export function createNode(graph: Graph, { id = v4(), value, children = [] }: NodeDef): ValueNode {
+  const node: ValueNode = {
+    type: "value",
     id,
     value,
     children,
@@ -164,7 +85,7 @@ export function createNode(graph: Graph, { id = v4(), value, children = [] }: No
 
   graph[node.id] = node
 
-  return graph[node.id] // need to lookup the node again to get a mutable version
+  return getNode(graph, node.id) as ValueNode // need to lookup the node again to get a mutable version
 }
 
 export interface GraphContextProps {
@@ -174,39 +95,6 @@ export interface GraphContextProps {
 
 export const GraphContext = createContext<GraphContextProps | undefined>(undefined)
 
-export interface NodeContextProps {
-  node: Node
-  changeNode: (fn: (node: Node) => void) => void
-  deleteNode: () => void
-}
-
-export function useNode(id: string): NodeContextProps {
-  const context = useContext(GraphContext)
-
-  if (!context) {
-    throw new Error("missing graph context")
-  }
-
-  const { graph, changeGraph } = context
-
-  const node = graph[id]
-
-  const changeNode = useCallback(
-    (fn: (node: Node) => void) => {
-      changeGraph((graph) => {
-        fn(graph[id])
-      })
-    },
-    [changeGraph, id]
-  )
-
-  const deleteNode = useCallback(() => {
-    changeGraph((graph) => delete graph[id])
-  }, [id])
-
-  return { node, changeNode, deleteNode }
-}
-
 export function useGraph(): GraphContextProps {
   const context = useContext(GraphContext)
 
@@ -215,4 +103,27 @@ export function useGraph(): GraphContextProps {
   }
 
   return context
+}
+
+// todo: this assumes that you don't have cycles in your graph
+export function getNode(graph: Graph, nodeId: string): ValueNode {
+  const node = graph[nodeId]
+
+  if (node.type === "value") {
+    return node
+  }
+
+  return getNode(graph, node.refId)
+}
+
+export function isReferenceNodeId(graph: Graph, nodeId: string): boolean {
+  return graph[nodeId].type === "ref"
+}
+
+export function resolveNode(graph: Graph, node: Node): ValueNode {
+  if (node.type === "value") {
+    return node
+  }
+
+  return getNode(graph, node.refId)
 }

@@ -1,11 +1,12 @@
-import { Node } from "../graph"
+import { ValueNode } from "../graph"
 import { RefObject } from "react"
 import { MapNodeView } from "./MapNodeView"
 import { BulletNodeView } from "./BulletNodeView"
 import { RootNodeView } from "./RootNodeView"
 
 export interface NodeViewProps {
-  node: Node
+  node: ValueNode
+  isReference: boolean
   innerRef: RefObject<HTMLElement>
   onChangeValue: (value: string) => void
   isFocused: boolean

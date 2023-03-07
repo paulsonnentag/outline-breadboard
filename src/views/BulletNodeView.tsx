@@ -10,7 +10,9 @@ export function BulletNodeView({ innerRef, node, onChangeValue, isFocused }: Nod
         <ContentEditable
           innerRef={innerRef}
           html={node.value}
-          onChange={(evt) => onChangeValue(evt.target.value)}
+          onChange={() => {
+            onChangeValue(innerRef.current!.innerText)
+          }}
         />
       </div>
     </div>

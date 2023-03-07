@@ -11,7 +11,9 @@ export function RootNodeView({ innerRef, node, onChangeValue }: NodeViewProps) {
         })}
         innerRef={innerRef}
         html={node.value}
-        onChange={(evt) => onChangeValue(evt.target.value)}
+        onChange={() => {
+          onChangeValue(innerRef.current!.innerText)
+        }}
       />
     </div>
   )

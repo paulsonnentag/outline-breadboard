@@ -67,6 +67,10 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
+  const childNodesWithLatLng = readChildrenWithProperties(graph, node.id, [LatLongProperty])
+  const zoom = ZoomProperty.readValueOfNode(graph, node.id)[0]
+  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, node.id)[0]
+
   const onChangeMapView = useStaticCallback(
     debounce(() => {
       const currentMap = mapRef.current
@@ -133,7 +137,8 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
     const currentMap = (mapRef.current = new google.maps.Map(currentContainer, {
       mapId,
       zoom: 11,
-      center: { lat: 50.775555, lng: 6.083611 },
+      center,
+      // center: { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
       gestureHandling: "greedy",
     }))
@@ -150,10 +155,6 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
       zoomChangedListener.remove()
     }
   }, [innerRef.current])
-
-  const childNodesWithLatLng = readChildrenWithProperties(graph, node.id, [LatLongProperty])
-  const zoom = ZoomProperty.readValueOfNode(graph, node.id)[0]
-  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, node.id)[0]
 
   // update bounds and zoom level if underlying data changes
 
@@ -188,7 +189,7 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
     }
 
     setTimeout(() => {
-      currentMap.fitBounds(bounds, 50)
+      currentMap.fitBounds(bounds, 25)
 
       if (childNodesWithLatLng.length === 1) {
         currentMap.setZoom(11)

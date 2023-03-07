@@ -13,9 +13,7 @@ export function readChildrenWithProperties(
   const node = graph[nodeId]
 
   return node.children.flatMap((childId) => {
-    const childNode = graph[childId]
-
-    const result = { id: childId, data: {} }
+    const result: NodeData = { id: childId, data: {} }
 
     for (const property of properties) {
       const values = property.readValueOfNode(graph, childId)

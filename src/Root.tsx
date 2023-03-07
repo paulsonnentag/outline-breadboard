@@ -1,14 +1,6 @@
 import { DocumentId } from "automerge-repo"
-import { useHandle } from "automerge-repo-react-hooks"
 import { useEffect, useMemo, useState } from "react"
-import {
-  createEmptyOutline,
-  createExampleOutline,
-  Graph,
-  GraphContext,
-  GraphContextProps,
-  GraphDoc,
-} from "./graph"
+import { Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
 import { NodeEditor } from "./NodeEditor"
 import { useDocumentWithHistory } from "./history"
 import { IconButton } from "./IconButton"

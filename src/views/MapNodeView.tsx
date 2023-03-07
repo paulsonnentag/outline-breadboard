@@ -374,7 +374,7 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
         setIsDragging(true)
       }}
       onMouseUp={() => setIsDragging(false)}
-      ref={innerRef}
+      ref={innerRef as any}
       onDragStart={(evt) => evt.stopPropagation()}
       className="w-full h-[400px] border border-gray-200"
     ></div>
@@ -463,7 +463,8 @@ function createPopoverOutline(position?: google.maps.LatLngLiteral): PopoverOutl
       const divPosition = this.getProjection().fromLatLngToDivPixel(this.position)
 
       // if marker is still rendered (any zoom level above 11) shift up a bit that it doesn't cover the marker
-      if (this.getMap().getZoom() > 11) {
+      const zoom = this.getMap()?.getZoom()
+      if (zoom && zoom > 11) {
         divPosition!.y = divPosition!.y - 30
       }
 

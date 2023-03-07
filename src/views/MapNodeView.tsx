@@ -42,7 +42,7 @@ function useGoogleApi() {
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
-const LatLongProperty = new Property<google.maps.LatLngLiteral>("position", (value) => {
+export const LatLongProperty = new Property<google.maps.LatLngLiteral>("position", (value) => {
   const match = value.match(LAT_LONG_REGEX)
 
   if (!match) {

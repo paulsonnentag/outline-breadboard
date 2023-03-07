@@ -3,6 +3,7 @@ import { RefObject } from "react"
 import { MapNodeView } from "./MapNodeView"
 import { BulletNodeView } from "./BulletNodeView"
 import { RootNodeView } from "./RootNodeView"
+import { WeatherAveragesNodeView } from "./WeatherAveragesNodeView"
 
 export interface NodeViewProps {
   node: ValueNode
@@ -22,6 +23,10 @@ export function NodeView(props: NodeViewProps) {
 
   if (node.value === "/map") {
     return <MapNodeView {...props} />
+  }
+
+  if (node.value === "/weather-averages") {
+    return <WeatherAveragesNodeView {...props} />
   }
 
   return <BulletNodeView {...props} />

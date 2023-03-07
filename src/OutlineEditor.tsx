@@ -64,6 +64,7 @@ export function OutlineEditor({
     switch (evt.key) {
       case "Backspace":
         if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
+          console.log("ignore backspace")
           return
         }
 
@@ -318,6 +319,8 @@ export function OutlineEditor({
       }
     })
   }
+
+  // focus contenteditable
 
   useEffect(() => {
     if (contentRef.current && isFocused && document.activeElement !== contentRef.current) {

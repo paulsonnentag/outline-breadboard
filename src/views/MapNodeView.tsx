@@ -97,7 +97,6 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
       mapId,
       zoom: 11,
       center,
-      //center: { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
       gestureHandling: "greedy",
     }))

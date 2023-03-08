@@ -1,10 +1,6 @@
 import { NodeViewProps } from "./index"
 import { LatLongProperty } from "./MapNodeView"
 import { createNode, createRecordNode, getNode, Graph, useGraph, ValueNode } from "../graph"
-import stations from "../data/stations.json"
-import { parse } from "csv-parse/browser/esm"
-import * as turf from "@turf/helpers"
-import nearestPoint from "@turf/nearest-point"
 import { useEffect } from "react"
 import { Property } from "../property"
 
@@ -20,7 +16,7 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
       return
     }
 
-    getForecastItemAt(location.lat, location.lng).then((normals: any) => {
+    getYearlyWeatherAt(location.lat, location.lng).then((yearlyWeather: YearlyWeather) => {
       changeGraph((graph) => {
         const node = getNode(graph, nodeId)
 
@@ -32,30 +28,13 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
 
         const output = createNode(graph, { value: "output:" })
 
-        console.log(normals)
-
-        for (let x = 0; x < normals.length; x++) {
-          const normal = normals[x]
-
+        for (const normal of yearlyWeather.normals) {
           output.children.push(
             createRecordNode(graph, {
-              name: [
-                "Jan",
-                "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun",
-                "Jul",
-                "Aug",
-                "Sep",
-                "Oct",
-                "Nov",
-                "Dec",
-              ][x],
+              name: monthToName(normal.month),
               props: {
-                high: parseFloat(normal["MLY-TMAX-NORMAL"]).toString(),
-                low: parseFloat(normal["MLY-TMIN-NORMAL"]).toString(),
+                high: normal.tempMax?.toString(),
+                low: normal.tempMin?.toString(),
               },
             }).id
           )
@@ -87,30 +66,30 @@ function getInputNode(graph: Graph, nodeId: string): ValueNode | undefined {
   return undefined
 }
 
-function getForecastItemAt(lat: number, long: number) {
-  // const closestStationId = "AQW00061705" //getClosestStationId(lat, long)
-  const closestStationId = getClosestStationId(lat, long)
-
-  return fetch(
-    `https://www.ncei.noaa.gov/data/normals-monthly/2006-2020/access/${closestStationId}.csv`
-  )
-    .then((res) => res.text())
-    .then(
-      (res) =>
-        new Promise((resolve) => {
-          parse(res, { columns: true }, (err, records) => resolve(records))
-        })
-    )
+interface WeatherNormal {
+  month: number
+  tempMin?: number
+  tempMax?: number
+  totalPrecipation?: number
+  averageWindSpeed?: number
+  averagePressure?: number
+  totalSunshine?: number // in hours
 }
 
-const stationPointsCollection = turf.featureCollection(
-  stations.map((station) => {
-    return turf.point([station.lat, station.long], { name: station.name })
-  })
-)
+interface YearlyWeather {
+  station: any
+  distance: number
+  normals: WeatherNormal[]
+}
 
-function getClosestStationId(lat: number, long: number) {
-  const nearestStationPoint = nearestPoint(turf.point([lat, long]), stationPointsCollection)
+function getYearlyWeatherAt(lat: number, lng: number): Promise<YearlyWeather> {
+  return fetch(`http://localhost:3000/weather/averages?lat=${lat}&lng=${lng}`).then(
+    (res) => res.json() as Promise<YearlyWeather>
+  )
+}
 
-  return nearestStationPoint.properties.name
+function monthToName(month: number) {
+  return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][
+    month - 1
+  ]
 }

@@ -1,4 +1,13 @@
-import { createNode, getNode, Graph, Node, useGraph, ValueNode, isReferenceNodeId, createRefNode } from "./graph"
+import {
+  createNode,
+  getNode,
+  Graph,
+  Node,
+  useGraph,
+  ValueNode,
+  isReferenceNodeId,
+  createRefNode,
+} from "./graph"
 import {
   DragEvent,
   FocusEvent,
@@ -47,57 +56,72 @@ export function OutlineEditor({
   const isRoot = parentId === undefined
   const isReferenceNode = isReferenceNodeId(graph, nodeId)
 
-  const commandQuery = isFocused && node.value.split(" ").reverse().find(token => token.startsWith("/"))?.slice(1)
+  const commandQuery =
+    isFocused &&
+    node.value
+      .split(" ")
+      .reverse()
+      .find((token) => token.startsWith("/"))
+      ?.slice(1)
 
   // Future: A schema for commands. Until we know its shape in more cases, hardcoding.
-  const commands = [{
-    title: "Use map view",
-    action: () => {
-      changeGraph((graph) => {
-        const node = getNode(graph, nodeId)
+  const commands = [
+    {
+      title: "Use map view",
+      action: () => {
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
 
-        // This logic should be elsewhere; starting here until we can see a clear protocol
-        // It should also be made generic; action could simply state expected inputs
+          // This logic should be elsewhere; starting here until we can see a clear protocol
+          // It should also be made generic; action could simply state expected inputs
 
-        const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
+          const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
-        if (indexOfInput === undefined) {
-          const input = createNode(graph, { value: "input:" })
+          if (indexOfInput === undefined) {
+            const input = createNode(graph, { value: "input:" })
 
-          input.children.push(createNode(graph, {
-            value: "position: 37.2296, -80.4139"
-          }).id)
+            input.children.push(
+              createNode(graph, {
+                value: "position: 37.2296, -80.4139",
+              }).id
+            )
 
-          node.children.push(input.id)
-        }
+            node.children.push(input.id)
+          }
 
-        node.view = "map"
-        node.value = node.value
-          .split(" ").filter(token => !token.startsWith("/")).join(" ")
-      })
+          node.view = "map"
+          node.value = node.value
+            .split(" ")
+            .filter((token) => !token.startsWith("/"))
+            .join(" ")
+        })
+      },
     },
-  }, {
-    title: "Insert weather averages",
-    action: () => {
-      changeGraph((graph) => {
-        const node = getNode(graph, nodeId)
+    {
+      title: "Insert weather averages",
+      action: () => {
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
 
-        node.value = "/weather-averages"
+          node.value = "/weather-averages"
 
-        const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
+          const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
-        if (indexOfInput === undefined) {
-          const input = createNode(graph, { value: "input:" })
+          if (indexOfInput === undefined) {
+            const input = createNode(graph, { value: "input:" })
 
-          input.children.push(createNode(graph, {
-            value: "position: 37.2296, -80.4139"
-          }).id)
+            input.children.push(
+              createNode(graph, {
+                value: "position: 37.2296, -80.4139",
+              }).id
+            )
 
-          node.children.push(input.id)
-        }
-      })
+            node.children.push(input.id)
+          }
+        })
+      },
     },
-  }].filter(c => commandQuery ? c.title.includes(commandQuery) : true)
+  ].filter((c) => (commandQuery ? c.title.includes(commandQuery) : true))
 
   const commandSelection = Math.min(selectedMenuIndex, commands.length - 1)
 
@@ -129,10 +153,17 @@ export function OutlineEditor({
     [onChangeSelectedPath]
   )
 
+  const onRemoveView = () => {
+    changeGraph((graph) => {
+      delete graph[nodeId].view
+    })
+  }
+
   const onKeyDown = (evt: ReactKeyboardEvent) => {
     switch (evt.key) {
       case "Backspace":
-        if (isMenuOpen && node.value.split(" ").reverse()[0] === "/") { // hacky
+        if (isMenuOpen && node.value.split(" ").reverse()[0] === "/") {
+          // hacky
           setIsMenuOpen(false)
         }
 
@@ -488,13 +519,20 @@ export function OutlineEditor({
                 circle
               </span>
             )}
+            <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
+
             {node.view !== undefined && (
-              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5">
-                {node.view}
+              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5 flex items-middle">
+                <div>{node.view}</div>
+                <button
+                  className="material-icons"
+                  style={{ fontSize: "16px" }}
+                  onClick={onRemoveView}
+                >
+                  close
+                </button>
               </div>
             )}
-
-            <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
           </div>
           <div className={classNames({ "pl-4": !isRoot })}>
             <NodeView node={node} isFocused={isFocused} />
@@ -506,10 +544,16 @@ export function OutlineEditor({
         // Command menu
         <div className="absolute z-30 rounded p-1 bg-slate-100 shadow-md w-56 text-sm">
           {commands.map((command, i) => {
-            return <div
-              key={command.title}
-              className={classNames("py-1 px-2 rounded-sm", {"bg-slate-300": commandSelection === i})}
-            >{command.title}</div>
+            return (
+              <div
+                key={command.title}
+                className={classNames("py-1 px-2 rounded-sm", {
+                  "bg-slate-300": commandSelection === i,
+                })}
+              >
+                {command.title}
+              </div>
+            )
           })}
         </div>
       )}

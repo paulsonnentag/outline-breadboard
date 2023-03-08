@@ -4,7 +4,7 @@
 
 [contenteditable] {
   outline: none;
-  flex: 1;
+  width: fit-content;
   position: relative;
 }
 

@@ -38,6 +38,7 @@ export function OutlineEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [selectedMenuIndex, setSelectedMenuIndex] = useState(0)
   const contentRef = useRef<HTMLElement>(null)
   const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
@@ -97,7 +98,7 @@ export function OutlineEditor({
     },
   }].filter(c => commandQuery ? c.title.includes(commandQuery) : true)
 
-  const commandSelection = 0
+  const commandSelection = Math.min(selectedMenuIndex, commands.length - 1)
 
   const onChange = useCallback(() => {
     const currentContent = contentRef.current
@@ -130,6 +131,10 @@ export function OutlineEditor({
   const onKeyDown = (evt: KeyboardEvent) => {
     switch (evt.key) {
       case "Backspace":
+        if (isMenuOpen && node.value.split(" ").reverse()[0] === "/") { // hacky
+          setIsMenuOpen(false)
+        }
+
         if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
           return
         }
@@ -178,11 +183,11 @@ export function OutlineEditor({
         evt.stopPropagation()
 
         if (isMenuOpen) {
-          setIsMenuOpen(false)
-
           const command = commands[commandSelection]
           command.action()
 
+          setIsMenuOpen(false)
+          setSelectedMenuIndex(0)
           return
         }
 
@@ -273,6 +278,13 @@ export function OutlineEditor({
         break
 
       case "ArrowDown": {
+        if (isMenuOpen) {
+          setSelectedMenuIndex(Math.min(selectedMenuIndex + 1, commands.length - 1))
+          evt.preventDefault()
+          evt.stopPropagation()
+          return
+        }
+
         if (!selectedPath) {
           return
         }
@@ -294,6 +306,13 @@ export function OutlineEditor({
       }
 
       case "ArrowUp": {
+        if (isMenuOpen) {
+          setSelectedMenuIndex(Math.max(selectedMenuIndex - 1, 0))
+          evt.preventDefault()
+          evt.stopPropagation()
+          return
+        }
+
         // can't go up if node has no parent
         if (!parentId) {
           return

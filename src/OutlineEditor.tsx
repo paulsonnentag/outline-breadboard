@@ -1,4 +1,4 @@
-import { createNode, getNode, Graph, Node, useGraph, ValueNode } from "./graph"
+import { createNode, createRecordNode, getNode, Graph, Node, useGraph, ValueNode } from "./graph"
 import {
   DragEvent,
   FocusEvent,
@@ -12,6 +12,8 @@ import classNames from "classnames"
 import { last } from "./utils"
 import ContentEditable from "react-contenteditable"
 import { NodeView } from "./views"
+import { Property } from "./property"
+import { InputProperty } from "./views/MapNodeView"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -35,12 +37,67 @@ export function OutlineEditor({
   const { graph, changeGraph } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
   const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
   const isRoot = parentId === undefined
+
+  const commandQuery = isFocused && node.value.split(" ").reverse().find(token => token.startsWith("/"))?.slice(1)
+
+  // Future: A schema for commands. Until we know its shape in more cases, hardcoding.
+  const commands = [{
+    title: "Use map view",
+    action: () => {
+      changeGraph((graph) => {
+        const node = getNode(graph, nodeId)
+        
+        // This logic should be elsewhere; starting here until we can see a clear protocol
+        // It should also be made generic; action could simply state expected inputs
+        
+        const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
+
+        if (indexOfInput === undefined) {
+          const input = createNode(graph, { value: "input:" })
+
+          input.children.push(createNode(graph, {
+            value: "position: 37.2296, -80.4139"
+          }).id)
+
+          node.children.push(input.id)
+        }
+
+        node.view = "map"
+        node.value = node.value
+          .split(" ").filter(token => !token.startsWith("/")).join(" ")
+      })
+    },
+  }, {
+    title: "Insert weather averages",
+    action: () => {
+      changeGraph((graph) => {
+        const node = getNode(graph, nodeId)
+
+        node.value = "/weather-averages"
+
+        const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
+
+        if (indexOfInput === undefined) {
+          const input = createNode(graph, { value: "input:" })
+
+          input.children.push(createNode(graph, {
+            value: "position: 37.2296, -80.4139"
+          }).id)
+
+          node.children.push(input.id)
+        }
+      })
+    },
+  }].filter(c => commandQuery ? c.title.includes(commandQuery) : true)
+
+  const commandSelection = 0
 
   const onChange = useCallback(() => {
     const currentContent = contentRef.current
@@ -119,6 +176,15 @@ export function OutlineEditor({
       case "Enter": {
         evt.preventDefault()
         evt.stopPropagation()
+
+        if (isMenuOpen) {
+          setIsMenuOpen(false)
+
+          const command = commands[commandSelection]
+          command.action()
+
+          return
+        }
 
         const contentElement = contentRef.current
 
@@ -250,6 +316,19 @@ export function OutlineEditor({
         evt.preventDefault()
         break
       }
+
+      case "/": {
+        if (!isMenuOpen) {
+          setIsMenuOpen(true)
+          break
+        }
+      }
+
+      case "Escape": {
+        if (isMenuOpen) {
+          setIsMenuOpen(false)
+        }
+      }
     }
   }
 
@@ -373,12 +452,18 @@ export function OutlineEditor({
                   fontSize: "8px",
                 }}
                 className={classNames("material-icons text-gray-500", {
-                  invisible: !isFocused && node.value == "",
+                  invisible: !isFocused && node.value == "" && node.view === undefined,
                 })}
               >
                 circle
               </span>
             )}
+            {node.view !== undefined && (
+              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5">
+                {node.view}
+              </div>
+            )}
+
             <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
           </div>
           <div className={classNames({ "pl-4": !isRoot })}>
@@ -386,6 +471,18 @@ export function OutlineEditor({
           </div>
         </div>
       </div>
+
+      {isMenuOpen && isFocused && (
+        // Command menu
+        <div className="absolute z-30 rounded p-1 bg-slate-100 shadow-md w-56 text-sm">
+          {commands.map((command, i) => {
+            return <div 
+              key={command.title}
+              className={classNames("py-1 px-2 rounded-sm", {"bg-slate-300": commandSelection === i})}
+            >{command.title}</div>
+          })}
+        </div>
+      )}
 
       <div
         className={classNames(

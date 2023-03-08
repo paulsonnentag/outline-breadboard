@@ -85,7 +85,7 @@ export function MapNodeView({ node }: NodeViewProps) {
   const indexOfInput = InputProperty.getChildIndexesOfNode(graph, node.id)[0]
 
   if (indexOfInput === undefined) {
-    console.log("No inputs")
+    console.log("No map inputs")
     return <></>
   }
 

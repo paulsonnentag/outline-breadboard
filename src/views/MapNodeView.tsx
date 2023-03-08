@@ -41,6 +41,10 @@ function useGoogleApi() {
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
+export const InputProperty = new Property("input", () => {
+  return true
+})
+
 export const LatLongProperty = new Property<google.maps.LatLngLiteral>("position", (value) => {
   const match = value.match(LAT_LONG_REGEX)
 
@@ -78,9 +82,18 @@ export function MapNodeView({ node }: NodeViewProps) {
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
+  const indexOfInput = InputProperty.getChildIndexesOfNode(graph, node.id)[0]
+
+  if (indexOfInput === undefined) {
+    console.log("No inputs")
+    return <></>
+  }
+
+  const inputsNodeId = node.children[indexOfInput]
+
   const childNodesWithLatLng = readChildrenWithProperties(graph, node.id, [LatLongProperty])
-  const zoom = ZoomProperty.readValueOfNode(graph, node.id)[0]
-  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, node.id)[0]
+  const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
+  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
   const placesService = useMemo(() => {
     return google ? new google.maps.places.PlacesService(document.createElement("div")) : undefined
   }, [google])
@@ -132,18 +145,16 @@ export function MapNodeView({ node }: NodeViewProps) {
       const center = currentMap.getCenter()
       const zoom = currentMap.getZoom()
 
-      const { id } = node
-
-      const latLongChildIndex = LatLongProperty.getChildIndexesOfNode(graph, id)[0]
-      const zoomChildIndex = ZoomProperty.getChildIndexesOfNode(graph, id)[0]
+      const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
+      const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
 
       changeGraph((graph) => {
-        const node = getNode(graph, id)
+        const node = getNode(graph, inputsNodeId)
 
         const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
 
-        if (latLongChildIndex !== undefined) {
-          getNode(graph, node.children[latLongChildIndex]).value = latLongValue
+        if (latLongInputIndex !== undefined) {
+          getNode(graph, node.children[latLongInputIndex]).value = latLongValue
         } else {
           const latLngPropertyNode: ValueNode = {
             id: v4(),
@@ -158,8 +169,8 @@ export function MapNodeView({ node }: NodeViewProps) {
 
         const zoomValue = `zoom: ${zoom}`
 
-        if (zoomChildIndex !== undefined) {
-          const zoomPropertyNode = getNode(graph, node.children[zoomChildIndex])
+        if (zoomInputIndex !== undefined) {
+          const zoomPropertyNode = getNode(graph, node.children[zoomInputIndex])
           if (zoomPropertyNode.value !== zoomValue) {
             zoomPropertyNode.value = zoomValue
           }

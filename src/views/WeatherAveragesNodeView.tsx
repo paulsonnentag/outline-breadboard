@@ -3,6 +3,7 @@ import { LatLongProperty } from "./MapNodeView"
 import { createNode, createRecordNode, getNode, Graph, useGraph, ValueNode } from "../graph"
 import { useEffect } from "react"
 import { Property } from "../property"
+import useDebounce from "../hooks"
 
 export function WeatherAveragesNodeView({ node }: NodeViewProps) {
   const { graph, changeGraph } = useGraph()
@@ -10,11 +11,14 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
   const nodeId = node.id
   const inputNode = getInputNode(graph, node.id)
   const location = inputNode ? LatLongProperty.readValueOfNode(graph, inputNode.id)[0] : undefined
+  const debouncedLocation = useDebounce(location, 500)
 
   useEffect(() => {
     if (!location) {
       return
     }
+
+    console.log("fetch weather")
 
     getYearlyWeatherAt(location.lat, location.lng).then((yearlyWeather: YearlyWeather) => {
       changeGraph((graph) => {
@@ -43,7 +47,7 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
         node.children.push(output.id)
       })
     })
-  }, [location?.lat, location?.lng])
+  }, [debouncedLocation?.lat, debouncedLocation?.lng])
 
   return null
 }

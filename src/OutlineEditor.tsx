@@ -1,8 +1,8 @@
-import { createNode, createRecordNode, getNode, Graph, Node, useGraph, ValueNode } from "./graph"
+import { createNode, getNode, Graph, Node, useGraph, ValueNode, isReferenceNodeId, createRefNode } from "./graph"
 import {
   DragEvent,
   FocusEvent,
-  KeyboardEvent,
+  KeyboardEvent as ReactKeyboardEvent,
   useCallback,
   useEffect,
   useRef,
@@ -45,6 +45,7 @@ export function OutlineEditor({
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
   const isRoot = parentId === undefined
+  const isReferenceNode = isReferenceNodeId(graph, nodeId)
 
   const commandQuery = isFocused && node.value.split(" ").reverse().find(token => token.startsWith("/"))?.slice(1)
 
@@ -54,10 +55,10 @@ export function OutlineEditor({
     action: () => {
       changeGraph((graph) => {
         const node = getNode(graph, nodeId)
-        
+
         // This logic should be elsewhere; starting here until we can see a clear protocol
         // It should also be made generic; action could simply state expected inputs
-        
+
         const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
         if (indexOfInput === undefined) {
@@ -128,7 +129,7 @@ export function OutlineEditor({
     [onChangeSelectedPath]
   )
 
-  const onKeyDown = (evt: KeyboardEvent) => {
+  const onKeyDown = (evt: ReactKeyboardEvent) => {
     switch (evt.key) {
       case "Backspace":
         if (isMenuOpen && node.value.split(" ").reverse()[0] === "/") { // hacky
@@ -270,7 +271,7 @@ export function OutlineEditor({
             const newIndex = prevSibling.children.length
 
             delete parent.children[index]
-            prevSibling.children[newIndex] = node.id
+            prevSibling.children[newIndex] = nodeId
 
             onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
           })
@@ -364,6 +365,7 @@ export function OutlineEditor({
       elem.remove()
     })
 
+    evt.dataTransfer.effectAllowed = "move"
     evt.dataTransfer.setDragImage(elem, -10, -10)
     evt.dataTransfer.setData("application/node", JSON.stringify({ id: nodeId, parentId, index }))
     setIsBeingDragged(true)
@@ -410,19 +412,31 @@ export function OutlineEditor({
       index: sourceIndex,
     } = JSON.parse(evt.dataTransfer.getData("application/node"))
 
+    const isLinkModeEnabled = evt.shiftKey
+
     changeGraph((graph) => {
       const node = getNode(graph, nodeId)
-      const sourceParent = getNode(graph, sourceParentId)
-      delete sourceParent.children[sourceIndex]
+
+      let nodeIdToInsert: string = sourceId
+
+      if (!isLinkModeEnabled) {
+        const sourceParent = getNode(graph, sourceParentId)
+        delete sourceParent.children[sourceIndex]
+      } else {
+        nodeIdToInsert = createRefNode(graph, sourceId).id
+      }
 
       if (node.children.length !== 0 || !parentId) {
         // important to get node from mutable graph
-        node.children.unshift(sourceId)
+        node.children.unshift(nodeIdToInsert)
       } else {
-        const insertIndex = parentId === sourceParentId && sourceIndex < index ? index : index + 1
+        const insertIndex =
+          ((parentId === sourceParentId && sourceIndex) || isLinkModeEnabled) < index
+            ? index
+            : index + 1
 
         const parent = getNode(graph, parentId)
-        parent.children.splice(insertIndex, 0, sourceId)
+        parent.children.splice(insertIndex, 0, nodeIdToInsert)
       }
     })
   }
@@ -440,14 +454,7 @@ export function OutlineEditor({
   }
 
   return (
-    <div
-      draggable={parentId !== undefined}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onMouseDown={() => {
-        console.log("on mouse down")
-      }}
-    >
+    <div draggable={parentId !== undefined} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div
         className={classNames("flex flex-1 gap-1", {
           "text-gray-300": isBeingDragged || isParentDragged,
@@ -461,18 +468,22 @@ export function OutlineEditor({
       >
         <div className="w-full">
           <div
-            className={classNames("flex gap-2 items-center", {
+            className={classNames("flex gap-2 items-baseline", {
               "text-xl": isRoot,
             })}
           >
             {!isRoot && (
               <span
                 style={{
-                  fontSize: "8px",
+                  fontSize: "10px",
                 }}
-                className={classNames("material-icons text-gray-500", {
-                  invisible: !isFocused && node.value == "" && node.view === undefined,
-                })}
+                className={classNames(
+                  "text-gray-500 material",
+                  isReferenceNode ? "material-icons-outlined" : "material-icons",
+                  {
+                    invisible: !isFocused && node.value == "" && node.view === undefined,
+                  }
+                )}
               >
                 circle
               </span>
@@ -495,7 +506,7 @@ export function OutlineEditor({
         // Command menu
         <div className="absolute z-30 rounded p-1 bg-slate-100 shadow-md w-56 text-sm">
           {commands.map((command, i) => {
-            return <div 
+            return <div
               key={command.title}
               className={classNames("py-1 px-2 rounded-sm", {"bg-slate-300": commandSelection === i})}
             >{command.title}</div>
@@ -507,7 +518,7 @@ export function OutlineEditor({
         className={classNames(
           "w-full border-b-2",
           {
-            "ml-4": node.children.length,
+            "ml-4": node.children.length && !isRoot,
           },
           isDraggedOver ? "border-blue-500" : "border-white"
         )}

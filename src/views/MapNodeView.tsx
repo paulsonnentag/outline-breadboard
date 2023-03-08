@@ -15,7 +15,6 @@ import { NodeData, Property, readChildrenWithProperties } from "../property"
 import classNames from "classnames"
 import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
-import debounce from "lodash.debounce"
 import { OutlineEditor } from "../OutlineEditor"
 import { createRoot } from "react-dom/client"
 
@@ -134,60 +133,58 @@ export function MapNodeView({ node }: NodeViewProps) {
     }
   }, [mapElementRef.current])
 
-  const onChangeMapView = useStaticCallback(
-    debounce(() => {
-      const currentMap = mapRef.current
+  const onChangeMapView = useStaticCallback(() => {
+    const currentMap = mapRef.current
 
-      if (!currentMap) {
-        return
+    if (!currentMap) {
+      return
+    }
+
+    const center = currentMap.getCenter()
+    const zoom = currentMap.getZoom()
+
+    const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
+    const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
+
+    changeGraph((graph) => {
+      const node = getNode(graph, inputsNodeId)
+
+      const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
+
+      if (latLongInputIndex !== undefined) {
+        getNode(graph, node.children[latLongInputIndex]).value = latLongValue
+      } else {
+        const latLngPropertyNode: ValueNode = {
+          id: v4(),
+          type: "value",
+          value: latLongValue,
+          children: [],
+        }
+
+        graph[latLngPropertyNode.id] = latLngPropertyNode
+        node.children.push(latLngPropertyNode.id)
       }
 
-      const center = currentMap.getCenter()
-      const zoom = currentMap.getZoom()
+      const zoomValue = `zoom: ${zoom}`
 
-      const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-      const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-
-      changeGraph((graph) => {
-        const node = getNode(graph, inputsNodeId)
-
-        const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
-
-        if (latLongInputIndex !== undefined) {
-          getNode(graph, node.children[latLongInputIndex]).value = latLongValue
-        } else {
-          const latLngPropertyNode: ValueNode = {
-            id: v4(),
-            type: "value",
-            value: latLongValue,
-            children: [],
-          }
-
-          graph[latLngPropertyNode.id] = latLngPropertyNode
-          node.children.push(latLngPropertyNode.id)
+      if (zoomInputIndex !== undefined) {
+        const zoomPropertyNode = getNode(graph, node.children[zoomInputIndex])
+        if (zoomPropertyNode.value !== zoomValue) {
+          zoomPropertyNode.value = zoomValue
+        }
+      } else {
+        const zoomPropertyNode: ValueNode = {
+          id: v4(),
+          type: "value",
+          value: zoomValue,
+          children: [],
         }
 
-        const zoomValue = `zoom: ${zoom}`
-
-        if (zoomInputIndex !== undefined) {
-          const zoomPropertyNode = getNode(graph, node.children[zoomInputIndex])
-          if (zoomPropertyNode.value !== zoomValue) {
-            zoomPropertyNode.value = zoomValue
-          }
-        } else {
-          const zoomPropertyNode: ValueNode = {
-            id: v4(),
-            type: "value",
-            value: zoomValue,
-            children: [],
-          }
-
-          graph[zoomPropertyNode.id] = zoomPropertyNode
-          node.children.push(zoomPropertyNode.id)
-        }
-      })
+        graph[zoomPropertyNode.id] = zoomPropertyNode
+        node.children.push(zoomPropertyNode.id)
+      }
     })
-  )
+  })
 
   const onClickMap = useStaticCallback((evt: any) => {
     const currentPopOver = popOverRef.current

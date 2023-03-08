@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext } from "react"
-import { DocHandle, Repo } from "automerge-repo"
+import { createContext, useContext } from "react"
+import { Repo } from "automerge-repo"
 import { v4 } from "uuid"
 
 export interface GraphDoc {
@@ -51,6 +51,17 @@ interface RecordDef {
   id?: string
   name: string
   props: { [key: string]: string | undefined }
+}
+
+export function createRefNode(graph: Graph, refId: string): RefNode {
+  const node: RefNode = {
+    type: "ref",
+    id: v4(),
+    refId,
+  }
+
+  graph[node.id] = node
+  return graph[node.id] as RefNode
 }
 
 export function createRecordNode(graph: Graph, { id = v4(), name, props }: RecordDef): Node {

@@ -20,7 +20,6 @@
     "classnames": "^2.3.2",
     "csv-parse": "^5.3.6",
     "debug": "^4.3.4",
-    "lodash.debounce": "^4.0.8",
     "material-icons": "^1.13.2",
     "react": "^18.2.0",
     "react-big-calendar": "^1.6.3",
@@ -32,7 +31,6 @@
   "devDependencies": {
     "@types/debug": "^4.1.7",
     "@types/google.maps": "^3.52.1",
-    "@types/lodash.debounce": "^4.0.7",
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",

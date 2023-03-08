@@ -2,11 +2,10 @@ import { NodeViewProps } from "./index"
 import { GOOGLE_MAPS_API_KEY } from "../api-keys"
 
 import { Loader } from "@googlemaps/js-api-loader"
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import {
   createRecordNode,
   getNode,
-  Graph,
   GraphContext,
   GraphContextProps,
   useGraph,

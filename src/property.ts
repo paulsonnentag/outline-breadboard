@@ -13,20 +13,35 @@ export function readChildrenWithProperties(
   const node = getNode(graph, nodeId)
 
   return node.children.flatMap((childId) => {
-    const result: NodeData = { id: childId, data: {} }
+    const childNode = getNode(graph, childId)
+    const nodeData = readNodeWithProperties(graph, childId, properties)
 
-    for (const property of properties) {
-      const values = property.readValueOfNode(graph, childId)
+    return (nodeData ? [nodeData] : []).concat(
+      childNode.children
+        .map((id) => readNodeWithProperties(graph, id, properties))
+        .filter((r) => r !== undefined) as NodeData[]
+    )
+  })
+}
 
-      if (values.length === 0) {
-        return []
-      }
+function readNodeWithProperties(
+  graph: Graph,
+  nodeId: string,
+  properties: Property<unknown>[]
+): NodeData | undefined {
+  const result: NodeData = { id: nodeId, data: {} }
 
-      result.data[property.key] = values
+  for (const property of properties) {
+    const values = property.readValueOfNode(graph, nodeId)
+
+    if (values.length === 0) {
+      return undefined
     }
 
-    return result
-  })
+    result.data[property.key] = values
+  }
+
+  return result
 }
 
 export class Property<T> {

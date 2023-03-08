@@ -317,10 +317,10 @@ export function OutlineEditor({
       const sourceParent = getNode(graph, sourceParentId)
       delete sourceParent.children[sourceIndex]
 
-      if (node.children.length !== 0) {
+      if (node.children.length !== 0 || !parentId) {
         // important to get node from mutable graph
         node.children.unshift(sourceId)
-      } else if (parentId) {
+      } else {
         const insertIndex = parentId === sourceParentId && sourceIndex < index ? index : index + 1
 
         const parent = getNode(graph, parentId)
@@ -381,6 +381,9 @@ export function OutlineEditor({
             )}
             <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
           </div>
+          <div className={classNames({ "pl-4": !isRoot })}>
+            <NodeView node={node} isFocused={isFocused} />
+          </div>
         </div>
       </div>
 
@@ -395,8 +398,6 @@ export function OutlineEditor({
       />
 
       <div className={classNames("w-full", !isRoot ? "pl-4" : "")}>
-        <NodeView node={node} isFocused={isFocused} />
-
         {node.children.map((childId, index) => (
           <OutlineEditor
             isParentDragged={isBeingDragged}

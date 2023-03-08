@@ -66,13 +66,14 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
   return isNaN(parsedValue) ? undefined : parsedValue
 })
 
-export function MapNodeView({ node, innerRef }: NodeViewProps) {
+export function MapNodeView({ node }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
   const google = useGoogleApi()
   const mapId = useId()
   const mapRef = useRef<google.maps.Map>()
+  const mapElementRef = useRef<HTMLDivElement>(null)
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
   const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
@@ -88,12 +89,12 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
   // mount map
 
   useEffect(() => {
-    const currentContainer = innerRef.current
-    if (!currentContainer || !google) {
+    const currentMapElement = mapElementRef.current
+    if (!currentMapElement || !google) {
       return
     }
 
-    const currentMap = (mapRef.current = new google.maps.Map(currentContainer, {
+    const currentMap = (mapRef.current = new google.maps.Map(currentMapElement, {
       mapId,
       zoom: 11,
       center,
@@ -119,7 +120,7 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
       zoomChangedListener.remove()
       clickListener.remove()
     }
-  }, [innerRef.current])
+  }, [mapElementRef.current])
 
   const onChangeMapView = useStaticCallback(
     debounce(() => {
@@ -387,7 +388,7 @@ export function MapNodeView({ node, innerRef }: NodeViewProps) {
         setIsDragging(true)
       }}
       onMouseUp={() => setIsDragging(false)}
-      ref={innerRef as any}
+      ref={mapElementRef}
       onDragStart={(evt) => evt.stopPropagation()}
       className="w-full h-[400px] border border-gray-200"
     ></div>

@@ -1,5 +1,4 @@
 import { NodeViewProps } from "./index"
-import { BulletNodeView } from "./BulletNodeView"
 import { LatLongProperty } from "./MapNodeView"
 import { createNode, createRecordNode, getNode, Graph, useGraph, ValueNode } from "../graph"
 import stations from "../data/stations.json"
@@ -9,17 +8,11 @@ import nearestPoint from "@turf/nearest-point"
 import { useEffect } from "react"
 import { Property } from "../property"
 
-export function WeatherAveragesNodeView(props: NodeViewProps) {
+export function WeatherAveragesNodeView({ node }: NodeViewProps) {
   const { graph, changeGraph } = useGraph()
 
-  const { innerRef, node, onChangeValue, isFocused } = props
-
-  // LatLongProperty.readValueOfNode()
-
   const nodeId = node.id
-
   const inputNode = getInputNode(graph, node.id)
-
   const location = inputNode ? LatLongProperty.readValueOfNode(graph, inputNode.id)[0] : undefined
 
   useEffect(() => {
@@ -39,16 +32,33 @@ export function WeatherAveragesNodeView(props: NodeViewProps) {
 
         const output = createNode(graph, { value: "output:" })
 
+        console.log(normals)
+
         for (let x = 0; x < normals.length; x++) {
           const normal = normals[x]
 
-          output.children.push(createRecordNode(graph, {
-            name: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][x],
-            props: {
-              "high": parseFloat(normal["MLY-TMAX-NORMAL"]).toString(),
-              "low": parseFloat(normal["MLY-TMIN-NORMAL"]).toString(),
-            },
-          }).id)
+          output.children.push(
+            createRecordNode(graph, {
+              name: [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+              ][x],
+              props: {
+                high: parseFloat(normal["MLY-TMAX-NORMAL"]).toString(),
+                low: parseFloat(normal["MLY-TMIN-NORMAL"]).toString(),
+              },
+            }).id
+          )
         }
 
         node.children.push(output.id)
@@ -56,10 +66,12 @@ export function WeatherAveragesNodeView(props: NodeViewProps) {
     })
   }, [location?.lat, location?.lng])
 
-  return <BulletNodeView {...props} />
+  return null
 }
 
-const outputProperty = new Property("output", () => { return true })
+const outputProperty = new Property("output", () => {
+  return true
+})
 
 function getInputNode(graph: Graph, nodeId: string): ValueNode | undefined {
   const node = getNode(graph, nodeId)
@@ -79,23 +91,16 @@ function getForecastItemAt(lat: number, long: number) {
   // const closestStationId = "AQW00061705" //getClosestStationId(lat, long)
   const closestStationId = getClosestStationId(lat, long)
 
-  return (
-    fetch(`https://www.ncei.noaa.gov/data/normals-monthly/2006-2020/access/${closestStationId}.csv`)
-      .then((res) => res.text())
-      .then(
-        (res) =>
-          new Promise((resolve) => {
-            parse(res, { columns: true }, (err, records) => resolve(records))
-          })
-      )
-
-      // for documentation see https://open-meteo.com/en/docs
-
-      .then((normals) => {
-        console.log(normals)
-        return normals
-      })
+  return fetch(
+    `https://www.ncei.noaa.gov/data/normals-monthly/2006-2020/access/${closestStationId}.csv`
   )
+    .then((res) => res.text())
+    .then(
+      (res) =>
+        new Promise((resolve) => {
+          parse(res, { columns: true }, (err, records) => resolve(records))
+        })
+    )
 }
 
 const stationPointsCollection = turf.featureCollection(

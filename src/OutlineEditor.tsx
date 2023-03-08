@@ -1,4 +1,4 @@
-import { createNode, getNode, Graph, isReferenceNodeId, Node, useGraph, ValueNode } from "./graph"
+import { createNode, getNode, Graph, Node, useGraph, ValueNode } from "./graph"
 import {
   DragEvent,
   FocusEvent,
@@ -8,9 +8,9 @@ import {
   useRef,
   useState,
 } from "react"
-import { v4 } from "uuid"
 import classNames from "classnames"
 import { last } from "./utils"
+import ContentEditable from "react-contenteditable"
 import { NodeView } from "./views"
 
 interface OutlineEditorProps {
@@ -40,16 +40,26 @@ export function OutlineEditor({
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
+  const isRoot = parentId === undefined
 
-  const onChange = useCallback(
-    (value: string) => {
+  const onChange = useCallback(() => {
+    const currentContent = contentRef.current
+
+    if (!currentContent) {
+      return
+    }
+
+    // todo: this is aweful, but for some reason if you read the content on the same frame it's empty ¯\_(ツ)_/¯
+    setTimeout(() => {
       changeGraph((graph) => {
         const node = getNode(graph, nodeId)
-        node.value = value
+
+        console.log(graph)
+
+        node.value = currentContent.innerText
       })
-    },
-    [changeGraph]
-  )
+    })
+  }, [changeGraph])
 
   const onFocus = useCallback(
     (evt: FocusEvent) => {
@@ -64,7 +74,6 @@ export function OutlineEditor({
     switch (evt.key) {
       case "Backspace":
         if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
-          console.log("ignore backspace")
           return
         }
 
@@ -352,14 +361,27 @@ export function OutlineEditor({
         onKeyDown={onKeyDown}
         onFocus={onFocus}
       >
-        <NodeView
-          isReference={isReferenceNodeId(graph, nodeId)}
-          node={node}
-          innerRef={contentRef}
-          onChangeValue={onChange}
-          isRoot={parentIds.length == 0}
-          isFocused={isFocused}
-        />
+        <div className="w-full">
+          <div
+            className={classNames("flex gap-2 items-center", {
+              "text-xl": isRoot,
+            })}
+          >
+            {!isRoot && (
+              <span
+                style={{
+                  fontSize: "8px",
+                }}
+                className={classNames("material-icons text-gray-500", {
+                  invisible: !isFocused && node.value == "",
+                })}
+              >
+                circle
+              </span>
+            )}
+            <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
+          </div>
+        </div>
       </div>
 
       <div
@@ -372,7 +394,9 @@ export function OutlineEditor({
         )}
       />
 
-      <div className={classNames("w-full", parentIds.length !== 0 ? "pl-4" : "")}>
+      <div className={classNames("w-full", !isRoot ? "pl-4" : "")}>
+        <NodeView node={node} isFocused={isFocused} />
+
         {node.children.map((childId, index) => (
           <OutlineEditor
             isParentDragged={isBeingDragged}

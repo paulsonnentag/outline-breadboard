@@ -31,17 +31,22 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
         }
 
         const output = createNode(graph, { value: "output:" })
+        output.view = "table"
+        output.isCollapsed = true
 
         for (const normal of yearlyWeather.normals) {
-          output.children.push(
-            createRecordNode(graph, {
-              name: monthToName(normal.month),
-              props: {
-                high: normal.tempMax?.toString(),
-                low: normal.tempMin?.toString(),
-              },
-            }).id
-          )
+          const child = createRecordNode(graph, {
+            name: monthToName(normal.month),
+            props: {
+              high: normal.tempMax?.toString(),
+              low: normal.tempMin?.toString(),
+            },
+          })
+
+          child.view = "table"
+          child.isCollapsed = true
+
+          output.children.push(child.id)
         }
 
         node.children.push(output.id)

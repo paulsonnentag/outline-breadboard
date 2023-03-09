@@ -145,7 +145,7 @@ export function OutlineEditor({
           let tokens = node.value.split(" ")
           tokens[tokens.length - 1] = "/poi"
 
-          node.value = tokens.join(" ")
+          node.value = tokens.join(" ") + " " // TODO: space is getting trimmed
         })
       },
     }
@@ -359,6 +359,12 @@ export function OutlineEditor({
       case "Tab":
         evt.preventDefault()
         evt.stopPropagation()
+
+        if (isMenuOpen) {
+          commands[commandSelection]?.tabAction?.()
+          return
+        }
+
         // unindent
         if (evt.shiftKey) {
           // can't unindent root or top level node

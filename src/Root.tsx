@@ -79,7 +79,7 @@ export function Root({ documentId }: RootProps) {
 
           return (
             <div
-              className="p-4 bg-white border border-gray-200 max-w-2xl flex-1 relative overflow-auto"
+              className="p-4 pl-2 bg-white border border-gray-200 max-w-2xl flex-1 relative overflow-auto"
               key={index}
             >
               <div className="absolute top-2 right-2 z-50">

@@ -552,7 +552,7 @@ function PopoverOutlineView({
   rootId,
   onOpenNodeInNewPane,
 }: PopoverOutlineViewProps) {
-  const [selectedPath, setSelectedPath] = useState<number[]>([])
+  const [selectedPath, setSelectedPath] = useState<number[] | undefined>([])
 
   return (
     <GraphContext.Provider value={graphContext}>

@@ -69,3 +69,37 @@
 
 .gm-style-cc { display:none; }
 
+
+/* bullet */
+.bullet {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.bullet:after {
+  content: "";
+  border-radius: 100%;
+  background: gray;
+  width: 8px;
+  height: 8px;
+  cursor: pointer;
+}
+
+.bullet:hover:after {
+  width: 10px;
+  height: 10px;
+}
+
+
+.bullet.is-collapsed {
+  border: 1px solid #e5e7eb;
+  background: #e5e7eb;
+}
+
+.bullet.is-transcluded {
+  border: 1px dashed gray;
+}

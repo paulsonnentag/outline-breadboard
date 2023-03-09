@@ -15,6 +15,7 @@ export function createGraphDoc(repo: Repo) {
       type: "value",
       value: "",
       children: [],
+      isCollapsed: false,
     }
 
     doc.graph = {
@@ -36,6 +37,7 @@ export interface ValueNode {
   children: string[]
   value: string
   view?: string
+  isCollapsed: boolean
 }
 
 export interface RefNode {
@@ -43,6 +45,7 @@ export interface RefNode {
   id: string
   refId: string
   view?: string
+  isCollapsed: boolean
 }
 
 export type Node = ValueNode | RefNode
@@ -57,6 +60,7 @@ export function createRefNode(graph: Graph, refId: string): RefNode {
   const node: RefNode = {
     type: "ref",
     id: v4(),
+    isCollapsed: false,
     refId,
   }
 
@@ -92,6 +96,7 @@ export function createNode(graph: Graph, { id = v4(), value, children = [] }: No
     id,
     value,
     children,
+    isCollapsed: false,
   }
 
   graph[node.id] = node
@@ -129,6 +134,10 @@ export function getNode(graph: Graph, nodeId: string): ValueNode {
 
 export function isReferenceNodeId(graph: Graph, nodeId: string): boolean {
   return graph[nodeId].type === "ref"
+}
+
+export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
+  return graph[nodeId].isCollapsed
 }
 
 export function resolveNode(graph: Graph, node: Node): ValueNode {

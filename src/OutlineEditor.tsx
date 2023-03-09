@@ -3,6 +3,7 @@ import {
   createRefNode,
   getNode,
   Graph,
+  isNodeCollapsed,
   isReferenceNodeId,
   Node,
   useGraph,
@@ -48,6 +49,7 @@ export function OutlineEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
   const [selectedMenuIndex, setSelectedMenuIndex] = useState(0)
   const contentRef = useRef<HTMLElement>(null)
   const node = getNode(graph, nodeId)
@@ -56,6 +58,7 @@ export function OutlineEditor({
   const grandParentId = parentIds[parentIds.length - 2]
   const isRoot = parentId === undefined
   const isReferenceNode = isReferenceNodeId(graph, nodeId)
+  const isCollapsed = isNodeCollapsed(graph, nodeId)
 
   const commandQuery =
     isFocused &&
@@ -139,6 +142,14 @@ export function OutlineEditor({
         const node = getNode(graph, nodeId)
         node.value = currentContent.innerText
       })
+    })
+  }, [changeGraph])
+
+  const onToggleIsCollapsed = useCallback(() => {
+    changeGraph((graph) => {
+      const node = graph[nodeId]
+
+      node.isCollapsed = !node.isCollapsed
     })
   }, [changeGraph])
 
@@ -496,36 +507,43 @@ export function OutlineEditor({
       >
         <div className="w-full flex cursor-text items-center">
           <div
-            className={classNames("flex items-baseline w-full", {
+            className={classNames("flex items-start w-full", {
               "text-xl": isRoot,
             })}
             onClick={() => {
-              console.log("change selected path")
-
               onChangeSelectedPath(path)
             }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
-            <div
-              style={{
-                fontSize: "10px",
-              }}
-              className={classNames(
-                "text-gray-500 material cursor-pointer",
-                isReferenceNode ? "material-icons-outlined" : "material-icons",
-                {
+            <div className={classNames("flex items-center", isRoot ? "mt-[2px]" : "mt-[1px]")}>
+              <div
+                className={classNames("material-icons cursor-pointer text-gray-500", {
+                  invisible: !isHovered,
+                })}
+                style={{
+                  transform: isCollapsed ? "" : "rotate(90deg)",
+                }}
+                onClick={onToggleIsCollapsed}
+              >
+                chevron_right
+              </div>
+
+              <div
+                className={classNames("bullet", {
+                  "is-transcluded": isReferenceNode,
+                  "is-collapsed": isCollapsed,
                   invisible:
                     !isFocused &&
                     node.value == "" &&
                     node.view === undefined &&
                     node.children.length === 0,
-                }
-              )}
-              onClick={(evt) => {
-                evt.stopPropagation()
-                onOpenNodeInNewPane(node.id)
-              }}
-            >
-              circle
+                })}
+                onClick={(evt) => {
+                  evt.stopPropagation()
+                  onOpenNodeInNewPane(node.id)
+                }}
+              />
             </div>
             <div
               className={classNames("pr-2 w-fit", {
@@ -597,21 +615,23 @@ export function OutlineEditor({
         )}
       />
 
-      <div className={classNames("w-full pl-4")}>
-        {node.children.map((childId, index) => (
-          <OutlineEditor
-            isParentDragged={isBeingDragged}
-            key={index}
-            nodeId={childId}
-            index={index}
-            parentIds={parentIds.concat(node.id)}
-            path={path.concat(index)}
-            selectedPath={selectedPath}
-            onChangeSelectedPath={onChangeSelectedPath}
-            onOpenNodeInNewPane={onOpenNodeInNewPane}
-          />
-        ))}
-      </div>
+      {!isCollapsed && (
+        <div className={classNames("w-full pl-4")}>
+          {node.children.map((childId, index) => (
+            <OutlineEditor
+              isParentDragged={isBeingDragged}
+              key={index}
+              nodeId={childId}
+              index={index}
+              parentIds={parentIds.concat(node.id)}
+              path={path.concat(index)}
+              selectedPath={selectedPath}
+              onChangeSelectedPath={onChangeSelectedPath}
+              onOpenNodeInNewPane={onOpenNodeInNewPane}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -705,3 +725,5 @@ function getNextPath(
 
   return getNextPath(graph, selectedPath.slice(0, -1), parent, parentIds.slice(0, -1))
 }
+
+function Bullet() {}

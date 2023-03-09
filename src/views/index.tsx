@@ -10,11 +10,15 @@ export interface NodeViewProps {
 export function NodeView(props: NodeViewProps) {
   const { node } = props
 
-  return (<>
-    {/* Views */}
-    {node.view === "map" && <MapNodeView {...props} />}
+  return (
+    <>
+      {/* Views */}
+      {node.view === "map" && <MapNodeView {...props} />}
 
-    {/* Computations */}
-    {node.value.split(" ").includes("/weather-averages") && <WeatherAveragesNodeView {...props} />}
-  </>)
+      {/* Computations */}
+      {node.value.split(" ").includes("/weather-averages") && (
+        <WeatherAveragesNodeView {...props} />
+      )}
+    </>
+  )
 }

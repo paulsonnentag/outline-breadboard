@@ -1,12 +1,12 @@
 import {
   createNode,
+  createRefNode,
   getNode,
   Graph,
+  isReferenceNodeId,
   Node,
   useGraph,
   ValueNode,
-  isReferenceNodeId,
-  createRefNode,
 } from "./graph"
 import {
   DragEvent,
@@ -21,7 +21,6 @@ import classNames from "classnames"
 import { last } from "./utils"
 import ContentEditable from "react-contenteditable"
 import { NodeView } from "./views"
-import { Property } from "./property"
 import { InputProperty } from "./views/MapNodeView"
 
 interface OutlineEditorProps {
@@ -487,7 +486,7 @@ export function OutlineEditor({
   return (
     <div draggable={parentId !== undefined} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div
-        className={classNames("flex flex-1 gap-1", {
+        className={classNames({
           "text-gray-300": isBeingDragged || isParentDragged,
         })}
         onDragOver={onDragOver}
@@ -497,9 +496,9 @@ export function OutlineEditor({
         onKeyDown={onKeyDown}
         onFocus={onFocus}
       >
-        <div className="w-full">
+        <div className="w-full flex cursor-text" onClick={() => onChangeSelectedPath(path)}>
           <div
-            className={classNames("flex gap-2 items-baseline", {
+            className={classNames("flex items-baseline w-full", {
               "text-xl": isRoot,
             })}
           >
@@ -519,10 +518,14 @@ export function OutlineEditor({
                 circle
               </span>
             )}
-            <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
+            <div
+              className={classNames({ "flex-1": isFocused || node.value !== "", "pl-2": !isRoot })}
+            >
+              <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
+            </div>
 
             {node.view !== undefined && (
-              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5 flex items-middle">
+              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1">
                 <div>{node.view}</div>
                 <button
                   className="material-icons"
@@ -534,9 +537,9 @@ export function OutlineEditor({
               </div>
             )}
           </div>
-          <div className={classNames({ "pl-4": !isRoot })}>
-            <NodeView node={node} isFocused={isFocused} />
-          </div>
+        </div>
+        <div className={classNames({ "pl-4": !isRoot })}>
+          <NodeView node={node} isFocused={isFocused} />
         </div>
       </div>
 

@@ -4,8 +4,8 @@
 
 [contenteditable] {
   outline: none;
-  width: fit-content;
   position: relative;
+  width: 100%;
 }
 
 [contenteditable].is-untitled:before {

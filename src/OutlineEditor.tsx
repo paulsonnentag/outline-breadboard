@@ -129,7 +129,11 @@ export function OutlineEditor({
         changeGraph((graph) => {
           const node = getNode(graph, nodeId)
 
-          node.value = node.value.split(" ").filter(t => !t.startsWith("/")).join(" ") + " /weather-averages"
+          node.computations = (node.computations ?? []).concat(["weather-averages"])
+          node.value = node.value
+            .split(" ")
+            .filter((token) => !token.startsWith("/"))
+            .join(" ")
 
           const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
@@ -681,7 +685,7 @@ export function OutlineEditor({
             </div>
 
             {node.view !== undefined && (
-              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1">
+              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1 mr-1">
                 <div>{node.view}</div>
                 <button
                   className="material-icons"
@@ -692,6 +696,25 @@ export function OutlineEditor({
                 </button>
               </div>
             )}
+
+            {node.computations?.map(computation => (
+              <div key={computation} className="rounded-sm bg-blue-200 text-blue-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1 mr-1">
+                <div>{computation}</div>
+                <button
+                  className="material-icons"
+                  style={{ fontSize: "16px" }}
+                  onClick={() => changeGraph((graph) => {
+                    const node = getNode(graph, nodeId)
+                    node.computations = node.computations?.filter(c => c != computation)
+                    if (node.value.length === 0) {
+                      node.value = computation.split("-").map(t => t[0].toUpperCase() + t.substring(1)).join(" ")
+                    }
+                  })}
+                >
+                  close
+                </button>
+              </div>
+            ))}
           </div>
         </div>
         <div className="pl-6">

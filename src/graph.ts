@@ -37,6 +37,7 @@ export interface ValueNode {
   children: string[]
   value: string
   view?: string
+  computations?: string[]
   isCollapsed: boolean
 }
 

@@ -19,7 +19,7 @@ export function NodeView(props: NodeViewProps) {
       {node.view?.startsWith("table") && <TableNodeView {...props} />}
 
       {/* Computations */}
-      {node.value.split(" ").includes("/weather-averages") && (
+      {node.computations?.includes("weather-averages") && (
         <WeatherAveragesNodeView {...props} />
       )}
     </>

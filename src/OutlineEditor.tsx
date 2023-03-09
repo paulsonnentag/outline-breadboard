@@ -30,6 +30,7 @@ interface OutlineEditorProps {
   isParentDragged?: boolean
   path: number[]
   selectedPath?: number[]
+  onOpenNodeInNewPane: (nodeId: string) => void
   onChangeSelectedPath: (path: number[]) => void
 }
 
@@ -41,6 +42,7 @@ export function OutlineEditor({
   isParentDragged,
   selectedPath,
   onChangeSelectedPath,
+  onOpenNodeInNewPane,
 }: OutlineEditorProps) {
   const { graph, changeGraph } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
@@ -484,7 +486,7 @@ export function OutlineEditor({
   }
 
   return (
-    <div draggable={parentId !== undefined} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <div draggable onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div
         className={classNames({
           "text-gray-300": isBeingDragged || isParentDragged,
@@ -496,30 +498,41 @@ export function OutlineEditor({
         onKeyDown={onKeyDown}
         onFocus={onFocus}
       >
-        <div className="w-full flex cursor-text" onClick={() => onChangeSelectedPath(path)}>
+        <div
+          className="w-full flex cursor-text items-center"
+          onClick={() => onChangeSelectedPath(path)}
+        >
           <div
             className={classNames("flex items-baseline w-full", {
               "text-xl": isRoot,
             })}
           >
-            {!isRoot && (
-              <span
-                style={{
-                  fontSize: "10px",
-                }}
-                className={classNames(
-                  "text-gray-500 material",
-                  isReferenceNode ? "material-icons-outlined" : "material-icons",
-                  {
-                    invisible: !isFocused && node.value == "" && node.view === undefined,
-                  }
-                )}
-              >
-                circle
-              </span>
-            )}
             <div
-              className={classNames({ "flex-1": isFocused || node.value !== "", "pl-2": !isRoot })}
+              style={{
+                fontSize: "10px",
+              }}
+              className={classNames(
+                "text-gray-500 material cursor-pointer",
+                isReferenceNode ? "material-icons-outlined" : "material-icons",
+                {
+                  invisible:
+                    !isFocused &&
+                    node.value == "" &&
+                    node.view === undefined &&
+                    node.children.length === 0,
+                }
+              )}
+              onClick={(evt) => {
+                evt.stopPropagation()
+                onOpenNodeInNewPane(node.id)
+              }}
+            >
+              circle
+            </div>
+            <div
+              className={classNames("pr-2", {
+                "pl-2": isFocused || node.value !== "",
+              })}
             >
               <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
             </div>
@@ -538,8 +551,8 @@ export function OutlineEditor({
             )}
           </div>
         </div>
-        <div className={classNames({ "pl-4": !isRoot })}>
-          <NodeView node={node} isFocused={isFocused} />
+        <div className={classNames({ "pl-4": true })}>
+          <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
         </div>
       </div>
 
@@ -565,13 +578,13 @@ export function OutlineEditor({
         className={classNames(
           "w-full border-b-2",
           {
-            "ml-4": node.children.length && !isRoot,
+            "ml-4": node.children.length,
           },
           isDraggedOver ? "border-blue-500" : "border-white"
         )}
       />
 
-      <div className={classNames("w-full", !isRoot ? "pl-4" : "")}>
+      <div className={classNames("w-full pl-4")}>
         {node.children.map((childId, index) => (
           <OutlineEditor
             isParentDragged={isBeingDragged}
@@ -582,6 +595,7 @@ export function OutlineEditor({
             path={path.concat(index)}
             selectedPath={selectedPath}
             onChangeSelectedPath={onChangeSelectedPath}
+            onOpenNodeInNewPane={onOpenNodeInNewPane}
           />
         ))}
       </div>

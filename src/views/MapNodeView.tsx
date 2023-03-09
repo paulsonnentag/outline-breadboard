@@ -68,7 +68,7 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
   return isNaN(parsedValue) ? undefined : parsedValue
 })
 
-export function MapNodeView({ node }: NodeViewProps) {
+export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
@@ -242,7 +242,7 @@ export function MapNodeView({ node }: NodeViewProps) {
           currentPopOver.rootId = placeId
           currentPopOver.show()
           currentPopOver.draw()
-          currentPopOver.render(graphContext)
+          currentPopOver.render({ graphContext, onOpenNodeInNewPane })
 
           if (position) {
             mapRef.current?.panTo(position)
@@ -256,7 +256,7 @@ export function MapNodeView({ node }: NodeViewProps) {
       currentPopOver.rootId = placeId
       currentPopOver.show()
       currentPopOver.draw()
-      currentPopOver.render(graphContext)
+      currentPopOver.render({ graphContext, onOpenNodeInNewPane })
       mapRef.current?.panTo(position)
     }
   })
@@ -382,7 +382,7 @@ export function MapNodeView({ node }: NodeViewProps) {
 
   useEffect(() => {
     if (popOverRef.current) {
-      popOverRef.current.render(graphContext)
+      popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
     }
   }, [Math.random()])
 
@@ -403,7 +403,10 @@ export function MapNodeView({ node }: NodeViewProps) {
 }
 
 interface PopoverOutline {
-  render: (graph: GraphContextProps) => void
+  render: (props: {
+    graphContext: GraphContextProps
+    onOpenNodeInNewPane: (nodeId: string) => void
+  }) => void
   position?: google.maps.LatLngLiteral
   rootId: string | undefined
   hide: () => void
@@ -412,7 +415,7 @@ interface PopoverOutline {
   setMap: (map: google.maps.Map) => void
 }
 
-// we have to construct the class lazily, because the google maps library is loaded async
+// we have to construct the class lazily, because the Google Maps library is loaded async
 // that means google.maps.OverlayView is only defined once the library is loaded
 function createPopoverOutline(position?: google.maps.LatLngLiteral): PopoverOutline {
   class PopoverOutline extends google.maps.OverlayView {
@@ -467,12 +470,24 @@ function createPopoverOutline(position?: google.maps.LatLngLiteral): PopoverOutl
       this.containerDiv.style.display = "inherit"
     }
 
-    render(graphContext: GraphContextProps) {
+    render({
+      graphContext,
+      onOpenNodeInNewPane,
+    }: {
+      graphContext: GraphContextProps
+      onOpenNodeInNewPane: (nodeId: string) => void
+    }) {
       if (!this.rootId) {
         return
       }
 
-      this.root.render(<PopoverOutlineView graphContext={graphContext} rootId={this.rootId} />)
+      this.root.render(
+        <PopoverOutlineView
+          graphContext={graphContext}
+          rootId={this.rootId}
+          onOpenNodeInNewPane={onOpenNodeInNewPane}
+        />
+      )
     }
 
     /** Called each frame when the popup needs to draw itself. */
@@ -510,9 +525,14 @@ function createPopoverOutline(position?: google.maps.LatLngLiteral): PopoverOutl
 interface PopoverOutlineViewProps {
   graphContext: GraphContextProps
   rootId: string
+  onOpenNodeInNewPane: (nodeId: string) => void
 }
 
-function PopoverOutlineView({ graphContext, rootId }: PopoverOutlineViewProps) {
+function PopoverOutlineView({
+  graphContext,
+  rootId,
+  onOpenNodeInNewPane,
+}: PopoverOutlineViewProps) {
   const [selectedPath, setSelectedPath] = useState<number[]>([])
 
   return (
@@ -524,6 +544,7 @@ function PopoverOutlineView({ graphContext, rootId }: PopoverOutlineViewProps) {
         parentIds={[]}
         selectedPath={selectedPath}
         onChangeSelectedPath={setSelectedPath}
+        onOpenNodeInNewPane={onOpenNodeInNewPane}
       />
     </GraphContext.Provider>
   )

@@ -5,6 +5,7 @@ import { WeatherAveragesNodeView } from "./WeatherAveragesNodeView"
 export interface NodeViewProps {
   node: ValueNode
   isFocused: boolean
+  onOpenNodeInNewPane: (nodeId: string) => void
 }
 
 export function NodeView(props: NodeViewProps) {

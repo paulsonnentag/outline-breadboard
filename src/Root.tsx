@@ -60,6 +60,13 @@ export function Root({ documentId }: RootProps) {
     })
   }
 
+  const onOpenNodeInNewPane = (nodeId: string) => {
+    changeDoc((doc) => {
+      doc.rootNodeIds.push(nodeId)
+      setSelectedPath([doc.rootNodeIds.length - 1])
+    })
+  }
+
   if (!graphContext || !doc) {
     return null
   }
@@ -76,7 +83,7 @@ export function Root({ documentId }: RootProps) {
               className="p-4 bg-white border border-gray-200 max-w-2xl flex-1 relative overflow-auto"
               key={index}
             >
-              <div className="absolute top-4 right-4 z-50">
+              <div className="absolute top-2 right-2 z-50">
                 <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
               </div>
 
@@ -89,6 +96,7 @@ export function Root({ documentId }: RootProps) {
                 onChangeSelectedPath={(newSelectedSubPath) => {
                   setSelectedPath([index].concat(newSelectedSubPath))
                 }}
+                onOpenNodeInNewPane={onOpenNodeInNewPane}
               />
             </div>
           )

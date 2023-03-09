@@ -494,16 +494,16 @@ export function OutlineEditor({
         onKeyDown={onKeyDown}
         onFocus={onFocus}
       >
-        <div
-          className="w-full flex cursor-text items-center"
-          onClick={() => {
-            onChangeSelectedPath(path)
-          }}
-        >
+        <div className="w-full flex cursor-text items-center">
           <div
             className={classNames("flex items-baseline w-full", {
               "text-xl": isRoot,
             })}
+            onClick={() => {
+              console.log("change selected path")
+
+              onChangeSelectedPath(path)
+            }}
           >
             <div
               style={{

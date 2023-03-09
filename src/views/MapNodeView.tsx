@@ -388,6 +388,9 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
   return (
     <div
+      onFocus={(event) => {
+        event.stopPropagation()
+      }}
       draggable
       onDragStartCapture={(evt) => {
         if (isPopupBubble(evt.target as HTMLElement)) {

@@ -69,7 +69,14 @@ export function OutlineEditor({
       ?.slice(1)
 
   // Future: A schema for commands. Until we know its shape in more cases, hardcoding.
-  const commands = [
+  interface Command {
+    title: string
+    subtitle?: string,
+    action: () => void
+    tabAction?: () => void
+  }
+
+  let commands: Command[] = [
     {
       title: "Use map view",
       action: () => {
@@ -107,7 +114,7 @@ export function OutlineEditor({
         changeGraph((graph) => {
           const node = getNode(graph, nodeId)
 
-          node.value = "/weather-averages"
+          node.value = node.value.split(" ").filter(t => !t.startsWith("/")).join(" ") + " /weather-averages"
 
           const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
@@ -125,7 +132,80 @@ export function OutlineEditor({
         })
       },
     },
-  ].filter((c) => (commandQuery ? c.title.includes(commandQuery) : true))
+    {
+      title: "Search for points of interest",
+      subtitle: "",
+      action: () => {
+        
+      },
+      tabAction: () => {
+        changeGraph(graph => {
+          const node = getNode(graph, nodeId)
+
+          let tokens = node.value.split(" ")
+          tokens[tokens.length - 1] = "/poi"
+
+          node.value = tokens.join(" ")
+        })
+      },
+    }
+  ].filter((c) => (commandQuery ? c.title.toLowerCase().includes(commandQuery.toLowerCase()) : true))
+
+  // this is not how this should work - just doing this for now
+  //  in the future, we should come up w/ a way for searches to be run
+  //  in-document or in the command menu with just one primitive
+  const tokens = node.value.split(" ")
+  const poiIndex = tokens.indexOf("/poi")
+  
+  if (poiIndex >= 0) {
+    const query = tokens.slice(poiIndex + 1).join(" ")
+
+    // Run the search with query
+
+    let set: Command[] = [{
+      title: "Gros Ventre Campground",
+      subtitle: "100 Gros Ventre Campground Rd, Kelly, WY 83011",
+      action: () => {
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
+
+          node.value = "Gros Ventre Campground"
+
+          const input = createNode(graph, { value: "input:" })
+
+          input.children.push(
+            createNode(graph, {
+              value: "position: 43.6163222, -110.6668727",
+            }).id
+          )
+
+          node.children.push(input.id)
+        })
+      }
+    }, {
+      title: "Headwaters Campground and RV Park",
+      subtitle: "101 Grassy Lake Road, Moran, WY 83013",
+      action: () => {
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
+
+          node.value = "Headwaters Campground and RV Park"
+
+          const input = createNode(graph, { value: "input:" })
+
+          input.children.push(
+            createNode(graph, {
+              value: "position: 44.10406650, -110.67592620",
+            }).id
+          )
+
+          node.children.push(input.id)
+        })
+      }
+    }]
+
+    commands = commands.concat(set.filter((c) => (query ? c.title.toLowerCase().includes(query.toLowerCase()) : false)))
+  }
 
   const commandSelection = Math.min(selectedMenuIndex, commands.length - 1)
 
@@ -606,6 +686,10 @@ export function OutlineEditor({
                 })}
               >
                 {command.title}
+
+                {command.subtitle && (
+                  <p className="text-xs">{command.subtitle}</p>
+                )}
               </div>
             )
           })}

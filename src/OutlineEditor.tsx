@@ -31,7 +31,7 @@ interface OutlineEditorProps {
   path: number[]
   selectedPath?: number[]
   onOpenNodeInNewPane: (nodeId: string) => void
-  onChangeSelectedPath: (path: number[]) => void
+  onChangeSelectedPath: (path: number[] | undefined) => void
 }
 
 export function OutlineEditor({
@@ -496,7 +496,9 @@ export function OutlineEditor({
       >
         <div
           className="w-full flex cursor-text items-center"
-          onClick={() => onChangeSelectedPath(path)}
+          onClick={() => {
+            onChangeSelectedPath(path)
+          }}
         >
           <div
             className={classNames("flex items-baseline w-full", {
@@ -526,11 +528,26 @@ export function OutlineEditor({
               circle
             </div>
             <div
-              className={classNames("pr-2", {
+              className={classNames("pr-2 w-fit", {
                 "pl-2": isFocused || node.value !== "",
               })}
             >
-              <ContentEditable innerRef={contentRef} html={node.value} onChange={onChange} />
+              <ContentEditable
+                innerRef={contentRef}
+                html={node.value}
+                onChange={onChange}
+                style={
+                  isFocused && node.value === ""
+                    ? {
+                        minWidth: "5px",
+                      }
+                    : undefined
+                }
+                onBlur={() => {
+                  console.log("on blur")
+                  onChangeSelectedPath(undefined)
+                }}
+              />
             </div>
 
             {node.view !== undefined && (

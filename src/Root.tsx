@@ -4,7 +4,6 @@ import { createNode, Graph, GraphContext, GraphContextProps, GraphDoc } from "./
 import { OutlineEditor } from "./OutlineEditor"
 import { useDocumentWithHistory } from "./history"
 import { IconButton } from "./IconButton"
-import { v4 } from "uuid"
 
 interface RootProps {
   documentId: DocumentId
@@ -12,7 +11,7 @@ interface RootProps {
 
 export function Root({ documentId }: RootProps) {
   const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
-  const [selectedPath, setSelectedPath] = useState<number[]>([])
+  const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
 
   useEffect(() => {
     const onKeyPress = (evt: KeyboardEvent) => {
@@ -94,7 +93,13 @@ export function Root({ documentId }: RootProps) {
                 parentIds={[]}
                 selectedPath={selectedSubPath}
                 onChangeSelectedPath={(newSelectedSubPath) => {
-                  setSelectedPath([index].concat(newSelectedSubPath))
+                  const newPath = newSelectedSubPath
+                    ? [index].concat(newSelectedSubPath)
+                    : undefined
+
+                  console.log(newPath)
+
+                  setSelectedPath(newPath)
                 }}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
               />

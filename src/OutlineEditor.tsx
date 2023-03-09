@@ -58,7 +58,8 @@ export function OutlineEditor({
   const grandParentId = parentIds[parentIds.length - 2]
   const isRoot = parentId === undefined
   const isReferenceNode = isReferenceNodeId(graph, nodeId)
-  const isCollapsed = isNodeCollapsed(graph, nodeId)
+  const isCollapsed = isNodeCollapsed(graph, nodeId) && !isRoot
+  const isCollapsable = node.children.length > 0
 
   const commandQuery =
     isFocused &&
@@ -611,18 +612,20 @@ export function OutlineEditor({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <div className={classNames("flex items-center", isRoot ? "mt-[2px]" : "mt-[1px]")}>
-              <div
-                className={classNames("material-icons cursor-pointer text-gray-500", {
-                  invisible: !isHovered || !node.children.length,
-                })}
-                style={{
-                  transform: isCollapsed ? "" : "rotate(90deg)",
-                }}
-                onClick={onToggleIsCollapsed}
-              >
-                chevron_right
-              </div>
+            <div className={classNames("flex items-center", isRoot ? "mt-[6px]" : "mt-[1px]")}>
+              {!isRoot && (
+                <div
+                  className={classNames("material-icons cursor-pointer text-gray-500", {
+                    invisible: !isHovered || !isCollapsable,
+                  })}
+                  style={{
+                    transform: isCollapsed ? "" : "rotate(90deg)",
+                  }}
+                  onClick={onToggleIsCollapsed}
+                >
+                  chevron_right
+                </div>
+              )}
 
               <div
                 className={classNames("bullet", {
@@ -677,7 +680,7 @@ export function OutlineEditor({
             )}
           </div>
         </div>
-        <div className={classNames({ "pl-4": true })}>
+        <div className="pl-6">
           <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
         </div>
       </div>

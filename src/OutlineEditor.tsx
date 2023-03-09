@@ -110,6 +110,20 @@ export function OutlineEditor({
       },
     },
     {
+      title: "Use table view",
+      action: () => {
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
+
+          node.view = "table"
+          node.value = node.value
+            .split(" ")
+            .filter((token) => !token.startsWith("/"))
+            .join(" ")
+        })
+      },
+    },
+    {
       title: "Insert weather averages",
       action: () => {
         changeGraph((graph) => {

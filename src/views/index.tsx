@@ -1,5 +1,6 @@
 import { ValueNode } from "../graph"
 import { MapNodeView } from "./MapNodeView"
+import { TableNodeView } from "./TableNodeView"
 import { WeatherAveragesNodeView } from "./WeatherAveragesNodeView"
 
 export interface NodeViewProps {
@@ -15,6 +16,7 @@ export function NodeView(props: NodeViewProps) {
     <>
       {/* Views */}
       {node.view === "map" && <MapNodeView {...props} />}
+      {node.view?.startsWith("table") && <TableNodeView {...props} />}
 
       {/* Computations */}
       {node.value.split(" ").includes("/weather-averages") && (

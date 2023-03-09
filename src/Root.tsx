@@ -1,9 +1,10 @@
 import { DocumentId } from "automerge-repo"
 import { useEffect, useMemo, useState } from "react"
-import { createNode, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
+import { createNode, getNode, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
 import { OutlineEditor } from "./OutlineEditor"
 import { useDocumentWithHistory } from "./history"
 import { IconButton } from "./IconButton"
+import classNames from "classnames"
 
 interface RootProps {
   documentId: DocumentId
@@ -12,6 +13,8 @@ interface RootProps {
 export function Root({ documentId }: RootProps) {
   const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isDraggedOverDelete, setIsDraggedOverDelete] = useState(false)
 
   useEffect(() => {
     const onKeyPress = (evt: KeyboardEvent) => {
@@ -37,6 +40,7 @@ export function Root({ documentId }: RootProps) {
         ? {
             graph: doc?.graph,
             changeGraph: (fn: (graph: Graph) => void) => changeDoc((doc) => fn(doc.graph)),
+            setIsDragging,
           }
         : undefined,
     [doc?.graph, changeDoc]
@@ -72,7 +76,7 @@ export function Root({ documentId }: RootProps) {
 
   return (
     <GraphContext.Provider value={graphContext}>
-      <div className="p-4 bg-gray-50 flex gap-4 w-screen h-screen items-middle">
+      <div className="p-4 bg-gray-50 flex gap-4 w-screen h-screen items-middle relative">
         {doc.rootNodeIds.map((rootId, index) => {
           const selectedSubPath =
             selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
@@ -108,6 +112,42 @@ export function Root({ documentId }: RootProps) {
         })}
 
         <IconButton icon="add" onClick={onAddRootNode} />
+
+        {isDragging && (
+          <div
+            className={classNames(
+              "flex border border-dashed px-4 py-2 absolute bottom-4 right-4 rounded",
+              isDraggedOverDelete ? "border-red-500 text-red-500" : "border-gray-500"
+            )}
+            onDragOver={(evt) => {
+              evt.stopPropagation()
+              evt.preventDefault()
+            }}
+            onDragEnter={(evt) => {
+              evt.stopPropagation()
+              evt.preventDefault()
+              setIsDraggedOverDelete(true)
+            }}
+            onDragLeave={() => {
+              setIsDraggedOverDelete(false)
+            }}
+            onDrop={(evt) => {
+              const { parentId, index } = JSON.parse(evt.dataTransfer.getData("application/node"))
+
+              // todo: we are not deleting the node itself here in case it's still linked somewhere else
+              // these leads to dangling nodes
+
+              graphContext?.changeGraph((graph) => {
+                const parent = getNode(graph, parentId)
+
+                delete parent.children[index]
+              })
+            }}
+          >
+            <div className="material-icons">delete</div>
+            delete
+          </div>
+        )}
       </div>
     </GraphContext.Provider>
   )

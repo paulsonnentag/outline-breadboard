@@ -45,7 +45,7 @@ export function OutlineEditor({
   onChangeSelectedPath,
   onOpenNodeInNewPane,
 }: OutlineEditorProps) {
-  const { graph, changeGraph } = useGraph()
+  const { graph, changeGraph, setIsDragging } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -501,10 +501,12 @@ export function OutlineEditor({
     evt.dataTransfer.setDragImage(elem, -10, -10)
     evt.dataTransfer.setData("application/node", JSON.stringify({ id: nodeId, parentId, index }))
     setIsBeingDragged(true)
+    setIsDragging(true)
   }
 
   const onDragEnd = () => {
     setIsBeingDragged(false)
+    setIsDragging(false)
   }
 
   const onDragOver = (evt: DragEvent) => {
@@ -822,5 +824,3 @@ function getNextPath(
 
   return getNextPath(graph, selectedPath.slice(0, -1), parent, parentIds.slice(0, -1))
 }
-
-function Bullet() {}

@@ -107,6 +107,7 @@ export function createNode(graph: Graph, { id = v4(), value, children = [] }: No
 export interface GraphContextProps {
   graph: Graph
   changeGraph: (fn: (graph: Graph) => void) => void
+  setIsDragging: (isDragging: boolean) => void
 }
 
 export const GraphContext = createContext<GraphContextProps | undefined>(undefined)

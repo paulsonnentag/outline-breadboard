@@ -159,6 +159,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
           type: "value",
           value: latLongValue,
           children: [],
+          isCollapsed: false,
         }
 
         graph[latLngPropertyNode.id] = latLngPropertyNode
@@ -178,6 +179,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
           type: "value",
           value: zoomValue,
           children: [],
+          isCollapsed: false,
         }
 
         graph[zoomPropertyNode.id] = zoomPropertyNode

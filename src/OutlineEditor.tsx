@@ -330,7 +330,7 @@ export function OutlineEditor({
           return
         }
 
-        if (node.children.length > 0) {
+        if (node.children.length > 0 && !isCollapsed) {
           onChangeSelectedPath(path.concat(0))
           return
         }
@@ -365,11 +365,18 @@ export function OutlineEditor({
           return
         }
 
-        // ... otherwise pick last child of previous sibling
         const parent = getNode(graph, parentId)
-        const prevSibling = getNode(graph, parent.children[index - 1])
+        const prevSiblingId = parent.children[index - 1]
+
+        // if previous sibling is collapsed pick it directly
+        if (isNodeCollapsed(graph, prevSiblingId)) {
+          onChangeSelectedPath(path.slice(0, -1).concat(index - 1))
+          return
+        }
+
+        // ... otherwise pick last child of previous sibling
         onChangeSelectedPath(
-          getLastChildPath(graph, prevSibling.id, path.slice(0, -1).concat(index - 1))
+          getLastChildPath(graph, prevSiblingId, path.slice(0, -1).concat(index - 1))
         )
 
         evt.stopPropagation()
@@ -519,7 +526,7 @@ export function OutlineEditor({
             <div className={classNames("flex items-center", isRoot ? "mt-[2px]" : "mt-[1px]")}>
               <div
                 className={classNames("material-icons cursor-pointer text-gray-500", {
-                  invisible: !isHovered,
+                  invisible: !isHovered || !node.children.length,
                 })}
                 style={{
                   transform: isCollapsed ? "" : "rotate(90deg)",

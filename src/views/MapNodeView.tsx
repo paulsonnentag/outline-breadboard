@@ -390,6 +390,10 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
     <div
       draggable
       onDragStartCapture={(evt) => {
+        if (isPopupBubble(evt.target as HTMLElement)) {
+          return
+        }
+
         evt.stopPropagation()
         evt.preventDefault()
         setIsDragging(true)
@@ -400,6 +404,18 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       className="w-full h-[400px] border border-gray-200"
     ></div>
   )
+}
+
+function isPopupBubble(element: HTMLElement): boolean {
+  if (element.classList.contains("popup-bubble")) {
+    return true
+  }
+
+  if (!element.parentElement) {
+    return false
+  }
+
+  return isPopupBubble(element.parentElement)
 }
 
 interface PopoverOutline {

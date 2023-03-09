@@ -137,9 +137,6 @@ export function OutlineEditor({
     setTimeout(() => {
       changeGraph((graph) => {
         const node = getNode(graph, nodeId)
-
-        console.log(graph)
-
         node.value = currentContent.innerText
       })
     })
@@ -369,12 +366,11 @@ export function OutlineEditor({
         break
       }
 
-      case "/": {
+      case "/":
         if (!isMenuOpen) {
           setIsMenuOpen(true)
-          break
         }
-      }
+        break
 
       case "Escape": {
         if (isMenuOpen) {

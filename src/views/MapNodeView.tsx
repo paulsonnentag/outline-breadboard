@@ -23,6 +23,18 @@ import debounce from "lodash.debounce"
 import LatLngLiteral = google.maps.LatLngLiteral
 import LatLngBounds = google.maps.LatLngBounds
 
+// this is necessary for tailwind to include the css classes
+const COLORS = [
+  "border-blue-700",
+  "border-green-700",
+  "border-yellow-700",
+  "border-red-700",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-yellow-500",
+  "bg-red-500",
+]
+
 const loader = new Loader({
   apiKey: GOOGLE_MAPS_API_KEY,
   version: "beta",
@@ -73,6 +85,8 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
   return isNaN(parsedValue) ? undefined : parsedValue
 })
 
+const ColorProperty = new Property<string>("color", (value) => value.trim())
+
 export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
@@ -93,9 +107,11 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
-  const minBounds = getMinBounds(
-    childNodesWithLatLng.map((child) => child.data.position[0] as google.maps.LatLngLiteral)
-  )
+  const minBounds =
+    google &&
+    getMinBounds(
+      childNodesWithLatLng.map((child) => child.data.position[0] as google.maps.LatLngLiteral)
+    )
 
   if (indexOfInput === undefined) {
     console.log("No map inputs")
@@ -185,13 +201,17 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       await createPlaceNode(changeGraph, placeId)
     }
 
-    const position = LatLongProperty.readValueOfNode(graph, placeId)[0]
+    // todo: hacky, we don't mutate the graph here, we just use the mutation function to reference the new update graph
+    // the graph in the current scope contains still the old data
+    changeGraph((graph) => {
+      const position = LatLongProperty.readValueOfNode(graph, placeId)[0]
 
-    currentPopOver.position = position
-    currentPopOver.rootId = placeId
-    currentPopOver.show()
-    currentPopOver.draw()
-    currentPopOver.render({ graphContext, onOpenNodeInNewPane })
+      currentPopOver.position = position
+      currentPopOver.rootId = placeId
+      currentPopOver.show()
+      currentPopOver.draw()
+      currentPopOver.render({ graphContext, onOpenNodeInNewPane })
+    })
   })
 
   // update bounds and zoom level if underlying data changes
@@ -250,6 +270,8 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
         (childNodeWithLatLng.data.position as google.maps.LatLngLiteral[])[0]
       )
 
+      const color = ColorProperty.readValueOfNode(graph, childNodeWithLatLng.id)[0] ?? "blue"
+
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
       if (!mapsMarker) {
@@ -267,7 +289,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       const markerContent = mapsMarker.content as HTMLDivElement
 
       markerContent.className = classNames(
-        `w-[16px] h-[16px] rounded-full cursor-pointer border bg-red-500 border-red-700`
+        `w-[16px] h-[16px] rounded-full cursor-pointer border bg-${color}-500 border-${color}-700`
         // hoveredItemId === poiResult.id ? "bg-lime-500 border-lime-700" : "bg-red-500 border-red-700"
       )
 

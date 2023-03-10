@@ -273,6 +273,19 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
       markerContent.style.transform = `translate(0, 8px)`
 
+      listenersRef.current.push(
+        mapsMarker.addListener("click", () => {
+          changeGraph((graph) => {
+            const node = getNode(graph, childNodeWithLatLng.id)
+
+            node.isCollapsed = false
+          })
+
+          mapRef.current?.panTo(latLng)
+          mapRef.current?.setZoom(15)
+        })
+      )
+
       /*
       markerContent.className = `w-[16px] h-[16px] rounded-full shadow cursor-pointer ${
         geoMarker.entity.data.isHovered ? "bg-red-500" : "bg-blue-500"

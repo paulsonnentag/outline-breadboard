@@ -271,6 +271,8 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
         // hoveredItemId === poiResult.id ? "bg-lime-500 border-lime-700" : "bg-red-500 border-red-700"
       )
 
+      markerContent.style.transform = `translate(0, 8px)`
+
       /*
       markerContent.className = `w-[16px] h-[16px] rounded-full shadow cursor-pointer ${
         geoMarker.entity.data.isHovered ? "bg-red-500" : "bg-blue-500"

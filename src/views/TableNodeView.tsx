@@ -1,12 +1,9 @@
 import { NodeViewProps } from "./index"
-import { LatLongProperty } from "./MapNodeView"
-import { createNode, createRecordNode, getNode, Graph, useGraph, ValueNode } from "../graph"
-import { useEffect } from "react"
-import { Property } from "../property"
-import useDebounce from "../hooks"
+import { getNode, useGraph } from "../graph"
+import { isString } from "../utils"
 
 export function TableNodeView({ node }: NodeViewProps) {
-  const { graph, changeGraph } = useGraph()
+  const { graph } = useGraph()
 
   const nodeId = node.id
   const cols = node.view?.includes("asCol") ?? false
@@ -17,11 +14,12 @@ export function TableNodeView({ node }: NodeViewProps) {
 
   for (let childId of node.children) {
     const child = getNode(graph, childId)
-
-    const index = child.value.indexOf(":")
+    const index = isString(child.value) ? child.value.indexOf(":") : -1
 
     if (index >= 0) {
-      fields[child.value.substring(0, index)] = child.value.substring(index + 1)
+      const value = child.value as string
+
+      fields[value.substring(0, index)] = value.substring(index + 1)
     }
   }
 
@@ -35,19 +33,23 @@ export function TableNodeView({ node }: NodeViewProps) {
   for (let childId of node.children) {
     const child = getNode(graph, childId)
 
-    if (!child.value.includes(":")) {
+    if (isString(child.value) && !child.value.includes(":")) {
       for (let grandchildId of child.children) {
         const grandchild = getNode(graph, grandchildId)
-    
-        const index = grandchild.value.indexOf(":")
-    
+
+        const index = isString(grandchild.value) ? grandchild.value.indexOf(":") : -1
+
         if (index >= 0) {
-          if (!subtrees[grandchild.value.substring(0, index)]) {
-            subtrees[grandchild.value.substring(0, index)] = {}
+          const grandChildValue = grandchild.value as string
+
+          if (!subtrees[grandChildValue.substring(0, index)]) {
+            subtrees[grandChildValue.substring(0, index)] = {}
           }
 
-          subtrees[grandchild.value.substring(0, index)][child.value] = grandchild.value.substring(index + 1)
-          
+          subtrees[grandChildValue.substring(0, index)][child.value] = grandChildValue.substring(
+            index + 1
+          )
+
           if (subtreesColumns.indexOf(child.value) === -1) {
             subtreesColumns.push(child.value)
           }
@@ -60,31 +62,41 @@ export function TableNodeView({ node }: NodeViewProps) {
     <div className="text-sm">
       {Object.keys(fields).length > 0 && (
         <table className="table-auto border-collapse border border-slate-100 text-right">
-          {Object.keys(fields).map(key => (
-            <tr>
-              <td className="border border-slate-200 p-2 font-bold">{key}</td>
-              <td className="border border-slate-200 p-2">{fields[key]}</td>
-            </tr>
-          ))}
+          <tbody>
+            {Object.keys(fields).map((key) => (
+              <tr key={key}>
+                <td className="border border-slate-200 p-2 font-bold">{key}</td>
+                <td className="border border-slate-200 p-2">{fields[key]}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
 
       {Object.keys(subtrees).length > 0 && (
         <table className="table-auto border-collapse border border-slate-100 text-right">
-          <tr>
-            <th></th>
-            {subtreesColumns.map(col => (
-              <th className="border border-slate-200 p-2 font-bold">{col}</th>
-            ))}
-          </tr>
-          {Object.keys(subtrees).map(row => (
+          <thead>
             <tr>
-              <td className="border border-slate-200 p-2 font-bold">{row}</td>
-              {subtreesColumns.map(col => (
-                <td className="border border-slate-200 p-2">{subtrees[row][col]}</td>
+              <th></th>
+              {subtreesColumns.map((col, index) => (
+                <th className="border border-slate-200 p-2 font-bold" key={index}>
+                  {col}
+                </th>
               ))}
             </tr>
-          ))}
+          </thead>
+          <tbody>
+            {Object.keys(subtrees).map((row, index) => (
+              <tr key={index}>
+                <td className="border border-slate-200 p-2 font-bold">{row}</td>
+                {subtreesColumns.map((col, index) => (
+                  <td className="border border-slate-200 p-2" key={index}>
+                    {subtrees[row][col]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

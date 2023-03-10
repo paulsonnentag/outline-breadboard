@@ -38,10 +38,10 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
         for (const normal of yearlyWeather.normals) {
           const child = createRecordNode(graph, {
             name: monthToName(normal.month),
-            props: {
-              high: normal.tempMax?.toString(),
-              low: normal.tempMin?.toString(),
-            },
+            props: [
+              ["high", normal.tempMax?.toString()],
+              ["low", normal.tempMin?.toString()],
+            ],
           })
 
           child.view = "table"

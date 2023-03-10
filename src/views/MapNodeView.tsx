@@ -281,6 +281,14 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
             node.isCollapsed = false
           })
 
+          if (popOverRef.current) {
+            popOverRef.current.position = latLng.toJSON()
+            popOverRef.current.rootId = childNodeWithLatLng.id
+            popOverRef.current.show()
+            popOverRef.current.draw()
+            popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
+          }
+
           mapRef.current?.panTo(latLng)
           mapRef.current?.setZoom(15)
         })

@@ -17,6 +17,7 @@ import {
   DragEvent,
   FocusEvent,
   KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent,
   RefObject,
   useCallback,
   useEffect,
@@ -250,13 +251,26 @@ export function OutlineEditor({
     })
   }
 
-  const onToggleIsCollapsed = useCallback(() => {
-    changeGraph((graph) => {
-      const node = graph[nodeId]
+  const onToggleIsCollapsed = useCallback(
+    (evt: MouseEvent) => {
+      changeGraph((graph) => {
+        const node = graph[nodeId]
+        const { isCollapsed } = node
 
-      node.isCollapsed = !node.isCollapsed
-    })
-  }, [changeGraph])
+        // close all children
+        if (evt.metaKey) {
+          const parent = getNode(graph, parentId)
+
+          for (const childId of parent.children) {
+            graph[childId].isCollapsed = !isCollapsed
+          }
+        } else {
+          node.isCollapsed = !isCollapsed
+        }
+      })
+    },
+    [changeGraph]
+  )
 
   const onFocus = useCallback(
     (evt: FocusEvent) => {

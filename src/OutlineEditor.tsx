@@ -779,7 +779,7 @@ export function OutlineEditor({
       {!isCollapsed && (
         <div
           className={classNames("w-full", {
-            "pl-4": parentIds.length > 1,
+            "pl-4": !isRoot,
           })}
         >
           {node.children.map((childId, index) => (

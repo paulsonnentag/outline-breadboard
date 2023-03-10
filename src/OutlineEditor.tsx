@@ -750,8 +750,8 @@ export function OutlineEditor({
             </div>
 
             {node.view !== undefined && (
-              <div className="rounded-sm bg-purple-200 text-purple-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1 mr-1">
-                <div>{node.view}</div>
+              <div className="rounded-sm bg-purple-200 text-purple-600 text-xs px-1 py-0.5 flex items-middle self-center mr-1">
+                <div>view: <span className="font-bold">{node.view}</span></div>
                 <button
                   className="material-icons"
                   style={{ fontSize: "16px" }}
@@ -765,7 +765,7 @@ export function OutlineEditor({
             {node.computations?.map((computation) => (
               <div
                 key={computation}
-                className="rounded-sm bg-blue-200 text-blue-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1 mr-1"
+                className="rounded-sm bg-blue-200 text-blue-600 font-bold text-xs px-1 py-0.5 flex items-middle self-center mr-1"
               >
                 <div>{computation}</div>
                 <button

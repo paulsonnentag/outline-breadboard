@@ -302,6 +302,10 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   }, [Math.random()])
 
   const onFitBounds = () => {
+    if (childNodesWithLatLng.length === 0) {
+      return
+    }
+
     const currentMap = mapRef.current
 
     if (!currentMap || !google) {
@@ -339,12 +343,14 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       <div className="top-0 left-0 right-0 bottom-0 absolute pointer-events-none flex items-center justify-center">
         <div className="material-icons text-gray-500">add</div>
       </div>
-      <button
-        className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
-        onClick={onFitBounds}
-      >
-        <div className="material-icons text-gray-500">center_focus_weak</div>
-      </button>
+      {childNodesWithLatLng.length > 0 && (
+        <button
+          className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
+          onClick={onFitBounds}
+        >
+          <div className="material-icons text-gray-500">center_focus_weak</div>
+        </button>
+      )}
     </div>
   )
 }

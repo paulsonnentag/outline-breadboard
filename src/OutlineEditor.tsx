@@ -168,8 +168,7 @@ export function OutlineEditor({
                   value: "position: 37.2296, -80.4139",
                 }).id
               )
-            }
-            else {
+            } else {
               const posId = node.children[indexOfPos]
               const value = getNode(graph, posId).value ?? "position: 37.2296, -80.4139"
               input.children.push(
@@ -619,9 +618,16 @@ export function OutlineEditor({
 
       const fileReader = new FileReader()
 
+      fileReader.onerror = (err) => {
+        console.log("onerror", err)
+      }
       fileReader.onload = (value) => {
+        console.log("onload")
+
         try {
           const recordDefs: RecordDef[] = JSON.parse(fileReader.result as string)
+
+          console.log("add records", recordDefs.length)
 
           changeGraph((graph) => {
             const node = getNode(graph, nodeId)
@@ -638,9 +644,9 @@ export function OutlineEditor({
         console.log(fileReader.result)
       }
 
-      fileReader.readAsText(file)
+      console.log("read file")
 
-      console.log(file)
+      fileReader.readAsText(file)
 
       return
     }
@@ -765,7 +771,9 @@ export function OutlineEditor({
 
             {node.view !== undefined && (
               <div className="rounded-sm bg-purple-200 text-purple-600 text-xs px-1 py-0.5 flex items-middle self-center mr-1">
-                <div>view: <span className="font-bold">{node.view}</span></div>
+                <div>
+                  view: <span className="font-bold">{node.view}</span>
+                </div>
                 <button
                   className="material-icons"
                   style={{ fontSize: "16px" }}

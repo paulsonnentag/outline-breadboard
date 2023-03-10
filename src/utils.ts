@@ -17,3 +17,7 @@ export function lookupPath(object: any, path: Prop[]): any {
 
   return value
 }
+
+export function isString(value: any): value is string {
+  return typeof value === "string"
+}

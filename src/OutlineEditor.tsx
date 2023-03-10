@@ -3,9 +3,11 @@ import {
   createRefNode,
   getNode,
   Graph,
+  ImageValue,
   isNodeCollapsed,
   isReferenceNodeId,
   Node,
+  NodeValue,
   useGraph,
   ValueNode,
 } from "./graph"
@@ -13,13 +15,14 @@ import {
   DragEvent,
   FocusEvent,
   KeyboardEvent as ReactKeyboardEvent,
+  RefObject,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react"
 import classNames from "classnames"
-import { last } from "./utils"
+import { isString, last } from "./utils"
 import ContentEditable from "react-contenteditable"
 import { NodeView } from "./views"
 import { InputProperty } from "./views/MapNodeView"
@@ -63,6 +66,7 @@ export function OutlineEditor({
 
   const commandQuery =
     isFocused &&
+    typeof node.value === "string" &&
     node.value
       .split(" ")
       .reverse()
@@ -102,7 +106,8 @@ export function OutlineEditor({
           }
 
           node.view = "map"
-          node.value = node.value
+
+          node.value = (node.value as string)
             .split(" ")
             .filter((token) => !token.startsWith("/"))
             .join(" ")
@@ -116,7 +121,7 @@ export function OutlineEditor({
           const node = getNode(graph, nodeId)
 
           node.view = "table"
-          node.value = node.value
+          node.value = (node.value as string)
             .split(" ")
             .filter((token) => !token.startsWith("/"))
             .join(" ")
@@ -130,7 +135,7 @@ export function OutlineEditor({
           const node = getNode(graph, nodeId)
 
           node.computations = (node.computations ?? []).concat(["weather-averages"])
-          node.value = node.value
+          node.value = (node.value as string)
             .split(" ")
             .filter((token) => !token.startsWith("/"))
             .join(" ")
@@ -159,7 +164,7 @@ export function OutlineEditor({
         changeGraph((graph) => {
           const node = getNode(graph, nodeId)
 
-          let tokens = node.value.split(" ")
+          let tokens = (node.value as string).split(" ")
           tokens[tokens.length - 1] = "/poi"
 
           node.value = tokens.join(" ") + " " // TODO: space is getting trimmed
@@ -173,7 +178,7 @@ export function OutlineEditor({
   // this is not how this should work - just doing this for now
   //  in the future, we should come up w/ a way for searches to be run
   //  in-document or in the command menu with just one primitive
-  const tokens = node.value.split(" ")
+  const tokens = typeof node.value === "string" ? node.value.split(" ") : []
   const poiIndex = tokens.indexOf("/poi")
 
   if (poiIndex >= 0) {
@@ -233,21 +238,15 @@ export function OutlineEditor({
 
   const commandSelection = Math.min(selectedMenuIndex, commands.length - 1)
 
-  const onChange = useCallback(() => {
-    const currentContent = contentRef.current
-
-    if (!currentContent) {
-      return
-    }
-
-    // todo: this is aweful, but for some reason if you read the content on the same frame it's empty ¯\_(ツ)_/¯
-    setTimeout(() => {
+  const onChange = useCallback(
+    (value: NodeValue) => {
       changeGraph((graph) => {
         const node = getNode(graph, nodeId)
-        node.value = currentContent.innerText
+        node.value = value
       })
-    })
-  }, [changeGraph])
+    },
+    [changeGraph]
+  )
 
   const onToggleIsCollapsed = useCallback(() => {
     changeGraph((graph) => {
@@ -275,7 +274,7 @@ export function OutlineEditor({
   const onKeyDown = (evt: ReactKeyboardEvent) => {
     switch (evt.key) {
       case "Backspace":
-        if (isMenuOpen && node.value.split(" ").reverse()[0] === "/") {
+        if (isMenuOpen && (node.value as string).split(" ").reverse()[0] === "/") {
           // hacky
           setIsMenuOpen(false)
         }
@@ -293,29 +292,44 @@ export function OutlineEditor({
 
         // if it's the first child join it with parent
         if (index === 0) {
+          const parent = getNode(graph, parentId)
+
+          // can't join with parent if parent is not text
+          if (!isString(parent.value)) {
+            return
+          }
+
           changeGraph((graph) => {
             const parent = getNode(graph, parentId)
             delete parent.children[index]
-
-            parent.value += node.value
+            ;(parent.value as string) += node.value as string
             onChangeSelectedPath(path.slice(0, -1))
           })
 
           // ... otherwise join it with the last child of the previous sibling
         } else {
+          const parent = getNode(graph, parentId)
+          const prevSibling = getNode(graph, parent.children[index - 1])
+
+          const lastChildPath = getLastChildPath(graph, prevSibling.id)
+          const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
+
+          if (!prevNode) {
+            throw new Error("invalid state")
+          }
+
+          // can't join with prevNode if prevNode is not text
+          if (!isString(prevNode?.value)) {
+            return
+          }
+
+          const prevNodeId = prevNode.id
           changeGraph((graph) => {
             const parent = getNode(graph, parentId)
-            const prevSibling = getNode(graph, parent.children[index - 1])
-
-            const lastChildPath = getLastChildPath(graph, prevSibling.id)
-            const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
-
-            if (!prevNode) {
-              throw new Error("invalid state")
-            }
+            const prevNode = getNode(graph, prevNodeId)
 
             delete parent.children[index]
-            prevNode.value += node.value
+            ;(prevNode.value as string) += node.value as string
 
             onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath))
           })
@@ -342,16 +356,20 @@ export function OutlineEditor({
           return
         }
 
+        if (!isString(node.value)) {
+          return
+        }
+
         changeGraph((graph) => {
           const node = getNode(graph, nodeId)
 
           const caretOffset = getCaretCharacterOffsetWithin(contentElement)
 
           const newNode = createNode(graph, {
-            value: node.value.slice(caretOffset),
+            value: (node.value as string).slice(caretOffset),
           })
 
-          node.value = node.value.slice(0, caretOffset)
+          node.value = (node.value as string).slice(0, caretOffset)
 
           if (node.children.length === 0 && parentId) {
             const parent = getNode(graph, parentId)
@@ -514,7 +532,7 @@ export function OutlineEditor({
     elem.style.position = "absolute"
     elem.className = "bg-white border border-gray-200 px-2 py-1 rounded flex gap-2"
     elem.style.top = "-1000px"
-    elem.innerText = node.value
+    elem.innerText = getLabelOfNode(node)
     document.body.appendChild(elem)
 
     setTimeout(() => {
@@ -671,19 +689,12 @@ export function OutlineEditor({
                 "pl-2": isFocused || node.value !== "",
               })}
             >
-              <ContentEditable
+              <NodeValueView
+                value={node.value}
                 innerRef={contentRef}
-                html={node.value}
                 onChange={onChange}
-                style={
-                  isFocused && node.value === ""
-                    ? {
-                        minWidth: "5px",
-                      }
-                    : undefined
-                }
+                isFocused={isFocused}
                 onBlur={() => {
-                  console.log("on blur")
                   onChangeSelectedPath(undefined)
                 }}
               />
@@ -715,7 +726,7 @@ export function OutlineEditor({
                     changeGraph((graph) => {
                       const node = getNode(graph, nodeId)
                       node.computations = node.computations?.filter((c) => c != computation)
-                      if (node.value.length === 0) {
+                      if (isString(node.value) && node.value.length === 0) {
                         node.value = computation
                           .split("-")
                           .map((t) => t[0].toUpperCase() + t.substring(1))
@@ -788,6 +799,78 @@ export function OutlineEditor({
       )}
     </div>
   )
+}
+
+interface NodeValueViewProps {
+  value: NodeValue
+  innerRef: RefObject<HTMLElement>
+  onChange: (value: NodeValue) => void
+  isFocused: boolean
+  onBlur: () => void
+}
+
+function NodeValueView(props: NodeValueViewProps) {
+  const { value } = props
+
+  if (isString(value)) {
+    return <TextNodeValueView {...props} value={value} />
+  }
+
+  switch (value.type) {
+    case "image":
+      return <ImageNodeValueView {...props} value={value} />
+  }
+}
+
+function getLabelOfNode(node: ValueNode): string {
+  if (isString(node.value)) {
+    return node.value
+  }
+
+  return node.value.type
+}
+
+interface TextNodeValueView extends NodeValueViewProps {
+  value: string
+}
+
+function TextNodeValueView({ value, innerRef, onChange, isFocused, onBlur }: TextNodeValueView) {
+  const _onChange = useCallback(() => {
+    const currentContent = innerRef.current
+
+    if (!currentContent) {
+      return
+    }
+
+    // todo: this is aweful, but for some reason if you read the content on the same frame it's empty ¯\_(ツ)_/¯
+    setTimeout(() => {
+      onChange(currentContent.innerText)
+    })
+  }, [onChange])
+
+  return (
+    <ContentEditable
+      innerRef={innerRef}
+      html={value}
+      onChange={_onChange}
+      style={
+        isFocused && value === ""
+          ? {
+              minWidth: "5px",
+            }
+          : undefined
+      }
+      onBlur={onBlur}
+    />
+  )
+}
+
+interface ImageNodeValueView extends NodeValueViewProps {
+  value: ImageValue
+}
+
+function ImageNodeValueView({ value, innerRef }: ImageNodeValueView) {
+  return <img alt="" className="w-full max-h-[300px]" src={value.url} />
 }
 
 function arePathsEqual(path1: number[], path2: number[]) {

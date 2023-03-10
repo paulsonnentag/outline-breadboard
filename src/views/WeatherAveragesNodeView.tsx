@@ -4,6 +4,7 @@ import { createNode, createRecordNode, getNode, Graph, useGraph, ValueNode } fro
 import { useEffect } from "react"
 import { Property } from "../property"
 import useDebounce from "../hooks"
+import { isString } from "../utils"
 
 export function WeatherAveragesNodeView({ node }: NodeViewProps) {
   const { graph, changeGraph } = useGraph()
@@ -67,7 +68,7 @@ function getInputNode(graph: Graph, nodeId: string): ValueNode | undefined {
   for (const childId of node.children) {
     const childNode = getNode(graph, childId)
 
-    if (childNode.value.startsWith("input:")) {
+    if (isString(childNode.value) && childNode.value.startsWith("input:")) {
       return childNode
     }
   }

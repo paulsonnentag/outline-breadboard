@@ -8,6 +8,7 @@ import {
   getNode,
   GraphContext,
   GraphContextProps,
+  ImageValue,
   useGraph,
   ValueNode,
 } from "../graph"
@@ -225,18 +226,20 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
           const phone = result?.formatted_phone_number
           const rating = result?.rating?.toString()
           const position = result?.geometry?.location
+          const photo = result?.photos ? result.photos[0].getUrl() : undefined
 
           changeGraph((graph) => {
-            const node = createRecordNode(graph, {
+            createRecordNode(graph, {
               id: placeId,
               name,
-              props: {
-                rating,
-                address,
-                phone,
-                website,
-                position: position ? `${position.lat()}, ${position.lng()}` : undefined,
-              },
+              props: [
+                { type: "image", url: photo } as ImageValue,
+                ["rating", rating],
+                ["address", address],
+                ["phone", phone],
+                ["website", website],
+                ["position", position ? `${position.lat()}, ${position.lng()}` : undefined],
+              ],
             })
           })
 

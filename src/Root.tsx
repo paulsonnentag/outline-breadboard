@@ -100,9 +100,6 @@ export function Root({ documentId }: RootProps) {
                   const newPath = newSelectedSubPath
                     ? [index].concat(newSelectedSubPath)
                     : undefined
-
-                  console.log(newPath)
-
                   setSelectedPath(newPath)
                 }}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}

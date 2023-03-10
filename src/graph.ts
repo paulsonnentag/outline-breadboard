@@ -31,11 +31,18 @@ export interface Graph {
   [id: string]: Node
 }
 
+export interface ImageValue {
+  type: "image"
+  url: string
+}
+
+export type NodeValue = string | ImageValue
+
 export interface ValueNode {
   type: "value"
   id: string
   children: string[]
-  value: string
+  value: NodeValue
   view?: string
   computations?: string[]
   isCollapsed: boolean
@@ -51,10 +58,12 @@ export interface RefNode {
 
 export type Node = ValueNode | RefNode
 
+type PropDef = [string, string | undefined] | NodeValue | undefined
+
 interface RecordDef {
   id?: string
   name: string
-  props: { [key: string]: string | undefined }
+  props: PropDef[]
 }
 
 export function createRefNode(graph: Graph, refId: string): RefNode {
@@ -72,14 +81,22 @@ export function createRefNode(graph: Graph, refId: string): RefNode {
 export function createRecordNode(graph: Graph, { id = v4(), name, props }: RecordDef): Node {
   const recordNode = createNode(graph, { id, value: name })
 
-  for (const [key, value] of Object.entries(props)) {
-    // skip undefined values
-    if (value === undefined) {
-      continue
-    }
+  for (const prop of props) {
+    // key / property
+    if (prop instanceof Array) {
+      const [key, value] = prop
 
-    const propertyNode = createNode(graph, { value: `${key}: ${value}` })
-    recordNode.children.push(propertyNode.id)
+      // skip undefined values
+      if (value !== undefined) {
+        const propertyNode = createNode(graph, { value: `${key}: ${value}` })
+        recordNode.children.push(propertyNode.id)
+      }
+
+      // property without key
+    } else if (prop !== undefined) {
+      const propertyNode = createNode(graph, { value: prop })
+      recordNode.children.push(propertyNode.id)
+    }
   }
 
   return recordNode
@@ -87,7 +104,7 @@ export function createRecordNode(graph: Graph, { id = v4(), name, props }: Recor
 
 interface NodeDef {
   id?: string
-  value: string
+  value: NodeValue
   children?: string[]
 }
 

@@ -1,4 +1,5 @@
-import { getNode, Graph } from "./graph"
+import { getNode, Graph, NodeValue } from "./graph"
+import { isString } from "./utils"
 
 export interface NodeData {
   id: string
@@ -51,11 +52,15 @@ export class Property<T> {
     this.regex = new RegExp(`^${key}:`)
   }
 
-  matchesValue(value: string): boolean {
-    return this.regex.test(value)
+  matchesValue(value: NodeValue): boolean {
+    return isString(value) && this.regex.test(value)
   }
 
-  parseValue(value: string): T | undefined {
+  parseValue(value: NodeValue): T | undefined {
+    if (!isString(value)) {
+      return
+    }
+
     const content = value.slice(this.key.length + 1).trim()
     return this.parser(content)
   }

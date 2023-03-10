@@ -2,7 +2,7 @@ import { NodeViewProps } from "./index"
 import { GOOGLE_MAPS_API_KEY } from "../api-keys"
 
 import { Loader } from "@googlemaps/js-api-loader"
-import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import {
   createRecordNode,
   getNode,
@@ -19,6 +19,9 @@ import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
 import { OutlineEditor } from "../OutlineEditor"
 import { createRoot } from "react-dom/client"
+import debounce from "lodash.debounce"
+import LatLngLiteral = google.maps.LatLngLiteral
+import LatLngBounds = google.maps.LatLngBounds
 
 const loader = new Loader({
   apiKey: GOOGLE_MAPS_API_KEY,
@@ -74,6 +77,13 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
+  const indexOfInput = InputProperty.getChildIndexesOfNode(graph, node.id)[0]
+  const inputsNodeId = node.children[indexOfInput]
+
+  const childNodesWithLatLng = readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
+  const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
+  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
+
   const google = useGoogleApi()
   const mapId = useId()
   const mapRef = useRef<google.maps.Map>()
@@ -82,19 +92,15 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
   const [isDragging, setIsDragging] = useState(false)
-
-  const indexOfInput = InputProperty.getChildIndexesOfNode(graph, node.id)[0]
+  const [isPanning, setIsPanning] = useState(false)
+  const minBounds = getMinBounds(
+    childNodesWithLatLng.map((child) => child.data.position[0] as google.maps.LatLngLiteral)
+  )
 
   if (indexOfInput === undefined) {
     console.log("No map inputs")
     return <></>
   }
-
-  const inputsNodeId = node.children[indexOfInput]
-
-  const childNodesWithLatLng = readChildrenWithProperties(graph, node.id, [LatLongProperty])
-  const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
-  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
 
   // mount map
 
@@ -120,6 +126,17 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
     const centerChangedListener = currentMap.addListener("center_changed", onChangeMapView)
     const zoomChangedListener = currentMap.addListener("zoom_changed", onChangeMapView)
     const clickListener = currentMap.addListener("click", onClickMap)
+    const mouseDownListener = currentMap.addListener("mousedown", () => setIsPanning(true))
+    const mouseUpListener = currentMap.addListener("mouseup", () => {
+      changeGraph((graph) => {
+        if (!mapRef.current) {
+          return
+        }
+
+        writeBackMapState(graph, inputsNodeId, mapRef.current)
+        setIsPanning(false)
+      })
+    })
 
     markersRef.current = []
     listenersRef.current.forEach((listener) => listener.remove())
@@ -129,63 +146,24 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       centerChangedListener.remove()
       zoomChangedListener.remove()
       clickListener.remove()
+      mouseDownListener.remove()
+      mouseUpListener.remove()
     }
-  }, [mapElementRef.current])
+  }, [mapElementRef.current, google])
 
-  const onChangeMapView = useStaticCallback(() => {
-    const currentMap = mapRef.current
+  const onChangeMapView = useStaticCallback(
+    debounce(() => {
+      const currentMap = mapRef.current
 
-    if (!currentMap) {
-      return
-    }
-
-    const center = currentMap.getCenter()
-    const zoom = currentMap.getZoom()
-
-    const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-    const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-
-    changeGraph((graph) => {
-      const node = getNode(graph, inputsNodeId)
-
-      const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
-
-      if (latLongInputIndex !== undefined) {
-        getNode(graph, node.children[latLongInputIndex]).value = latLongValue
-      } else {
-        const latLngPropertyNode: ValueNode = {
-          id: v4(),
-          type: "value",
-          value: latLongValue,
-          children: [],
-          isCollapsed: false,
-        }
-
-        graph[latLngPropertyNode.id] = latLngPropertyNode
-        node.children.push(latLngPropertyNode.id)
+      if (!currentMap) {
+        return
       }
 
-      const zoomValue = `zoom: ${zoom}`
-
-      if (zoomInputIndex !== undefined) {
-        const zoomPropertyNode = getNode(graph, node.children[zoomInputIndex])
-        if (zoomPropertyNode.value !== zoomValue) {
-          zoomPropertyNode.value = zoomValue
-        }
-      } else {
-        const zoomPropertyNode: ValueNode = {
-          id: v4(),
-          type: "value",
-          value: zoomValue,
-          children: [],
-          isCollapsed: false,
-        }
-
-        graph[zoomPropertyNode.id] = zoomPropertyNode
-        node.children.push(zoomPropertyNode.id)
-      }
-    })
-  })
+      changeGraph((graph) => {
+        writeBackMapState(graph, inputsNodeId, currentMap)
+      })
+    }, 500)
+  )
 
   const onClickMap = useStaticCallback(async (evt: any) => {
     const currentPopOver = popOverRef.current
@@ -220,7 +198,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
   useEffect(() => {
     const currentMap = mapRef.current
-    if (!currentMap || !google || childNodesWithLatLng.length === 0 || isDragging) {
+    if (!currentMap || !google || childNodesWithLatLng.length === 0 || isDragging || isPanning) {
       return
     }
 
@@ -237,26 +215,8 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
       return
     }
-
-    // ... otherwise zoom to the bounds that include all points on the map
-
-    const bounds = new google.maps.LatLngBounds()
-    for (const childNode of childNodesWithLatLng) {
-      const position: google.maps.LatLngLiteral = (
-        childNode.data.position as google.maps.LatLngLiteral[]
-      )[0]
-      bounds.extend(position)
-    }
-
-    setTimeout(() => {
-      currentMap.fitBounds(bounds, 25)
-
-      if (childNodesWithLatLng.length === 1) {
-        currentMap.setZoom(11)
-      }
-    }, 200) // todo: this is not very nice
     // but if we don't have this delay the zoom is not set correctly on initial load
-  }, [childNodesWithLatLng, google, isDragging])
+  }, [childNodesWithLatLng, google, isDragging, isPanning])
 
   // render markers on map
 
@@ -341,26 +301,51 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
     }
   }, [Math.random()])
 
-  return (
-    <div
-      onFocus={(event) => {
-        event.stopPropagation()
-      }}
-      draggable
-      onDragStartCapture={(evt) => {
-        if (isPopupBubble(evt.target as HTMLElement)) {
-          return
-        }
+  const onFitBounds = () => {
+    const currentMap = mapRef.current
 
-        evt.stopPropagation()
-        evt.preventDefault()
-        setIsDragging(true)
-      }}
-      onMouseUp={() => setIsDragging(false)}
-      ref={mapElementRef}
-      onDragStart={(evt) => evt.stopPropagation()}
-      className="w-full h-[400px] border border-gray-200"
-    ></div>
+    if (!currentMap || !google) {
+      return
+    }
+
+    currentMap.fitBounds(minBounds, 25)
+
+    if (childNodesWithLatLng.length === 1) {
+      currentMap.setZoom(11)
+    }
+  }
+
+  return (
+    <div className="w-full h-[400px] border border-gray-200 relative">
+      <div
+        onFocus={(event) => {
+          event.stopPropagation()
+        }}
+        draggable
+        onDragStartCapture={(evt) => {
+          if (isPopupBubble(evt.target as HTMLElement)) {
+            return
+          }
+
+          evt.stopPropagation()
+          evt.preventDefault()
+          setIsDragging(true)
+        }}
+        onMouseUp={() => setIsDragging(false)}
+        ref={mapElementRef}
+        onDragStart={(evt) => evt.stopPropagation()}
+        className="w-full h-full"
+      ></div>
+      <div className="top-0 left-0 right-0 bottom-0 absolute pointer-events-none flex items-center justify-center">
+        <div className="material-icons text-gray-500">add</div>
+      </div>
+      <button
+        className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
+        onClick={onFitBounds}
+      >
+        <div className="material-icons text-gray-500">center_focus_weak</div>
+      </button>
+    </div>
   )
 }
 
@@ -533,7 +518,7 @@ export async function createPlaceNode(
   changeGraph: (fn: (graph: Graph) => void) => void,
   placeId: string
 ): Promise<ValueNode> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     asyncPlacesService.then((placesService) => {
       placesService.getDetails(
         {
@@ -571,12 +556,64 @@ export async function createPlaceNode(
               ],
             })
 
-            console.log(JSON.parse(JSON.stringify(graph)), placeId)
-
             resolve(placeNode)
           })
         }
       )
     })
   })
+}
+
+function getMinBounds(points: LatLngLiteral[]): LatLngBounds {
+  const bounds = new google.maps.LatLngBounds()
+  for (const point of points) {
+    bounds.extend(point)
+  }
+
+  return bounds
+}
+
+function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.Map) {
+  const center = map.getCenter()
+  const zoom = map.getZoom()
+  const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
+  const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
+  const inputNode = getNode(graph, inputsNodeId)
+
+  const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
+
+  if (latLongInputIndex !== undefined) {
+    getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
+  } else {
+    const latLngPropertyNode: ValueNode = {
+      id: v4(),
+      type: "value",
+      value: latLongValue,
+      children: [],
+      isCollapsed: false,
+    }
+
+    graph[latLngPropertyNode.id] = latLngPropertyNode
+    inputNode.children.push(latLngPropertyNode.id)
+  }
+
+  const zoomValue = `zoom: ${zoom}`
+
+  if (zoomInputIndex !== undefined) {
+    const zoomPropertyNode = getNode(graph, inputNode.children[zoomInputIndex])
+    if (zoomPropertyNode.value !== zoomValue) {
+      zoomPropertyNode.value = zoomValue
+    }
+  } else {
+    const zoomPropertyNode: ValueNode = {
+      id: v4(),
+      type: "value",
+      value: zoomValue,
+      children: [],
+      isCollapsed: false,
+    }
+
+    graph[zoomPropertyNode.id] = zoomPropertyNode
+    inputNode.children.push(zoomPropertyNode.id)
+  }
 }

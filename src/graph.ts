@@ -60,7 +60,7 @@ export type Node = ValueNode | RefNode
 
 type PropDef = [string, string | undefined] | NodeValue | undefined
 
-interface RecordDef {
+export interface RecordDef {
   id?: string
   name: string
   props: PropDef[]
@@ -78,7 +78,7 @@ export function createRefNode(graph: Graph, refId: string): RefNode {
   return graph[node.id] as RefNode
 }
 
-export function createRecordNode(graph: Graph, { id = v4(), name, props }: RecordDef): Node {
+export function createRecordNode(graph: Graph, { id = v4(), name, props }: RecordDef): ValueNode {
   const recordNode = createNode(graph, { id, value: name })
 
   for (const prop of props) {

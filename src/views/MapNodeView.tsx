@@ -6,6 +6,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react"
 import {
   createRecordNode,
   getNode,
+  Graph,
   GraphContext,
   GraphContextProps,
   ImageValue,
@@ -27,7 +28,7 @@ const loader = new Loader({
 
 const googleApi = loader.load()
 
-function useGoogleApi() {
+export function useGoogleApi(): typeof google | undefined {
   const [api, setApi] = useState<typeof google>()
 
   useEffect(() => {
@@ -94,9 +95,6 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const childNodesWithLatLng = readChildrenWithProperties(graph, node.id, [LatLongProperty])
   const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
   const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
-  const placesService = useMemo(() => {
-    return google ? new google.maps.places.PlacesService(document.createElement("div")) : undefined
-  }, [google])
 
   // mount map
 
@@ -189,9 +187,9 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
     })
   })
 
-  const onClickMap = useStaticCallback((evt: any) => {
+  const onClickMap = useStaticCallback(async (evt: any) => {
     const currentPopOver = popOverRef.current
-    if (!currentPopOver || !placesService) {
+    if (!currentPopOver) {
       return
     }
 
@@ -206,64 +204,16 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
     evt.cancelBubble = true
 
     if (!graph[placeId]) {
-      placesService?.getDetails(
-        {
-          placeId,
-          fields: [
-            "name",
-            "rating",
-            "photos",
-            "website",
-            "formatted_phone_number",
-            "formatted_address",
-            "geometry",
-          ],
-        },
-        (result) => {
-          const name = result?.name ?? "Unnamed"
-          const website = result?.website
-          const address = result?.formatted_address
-          const phone = result?.formatted_phone_number
-          const rating = result?.rating?.toString()
-          const position = result?.geometry?.location
-          const photo = result?.photos ? result.photos[0].getUrl() : undefined
-
-          changeGraph((graph) => {
-            createRecordNode(graph, {
-              id: placeId,
-              name,
-              props: [
-                { type: "image", url: photo } as ImageValue,
-                ["rating", rating],
-                ["address", address],
-                ["phone", phone],
-                ["website", website],
-                ["position", position ? `${position.lat()}, ${position.lng()}` : undefined],
-              ],
-            })
-          })
-
-          currentPopOver.position = position?.toJSON()
-          currentPopOver.rootId = placeId
-          currentPopOver.show()
-          currentPopOver.draw()
-          currentPopOver.render({ graphContext, onOpenNodeInNewPane })
-
-          if (position) {
-            mapRef.current?.panTo(position)
-          }
-        }
-      )
-    } else {
-      const position = LatLongProperty.readValueOfNode(graph, placeId)[0]
-
-      currentPopOver.position = position
-      currentPopOver.rootId = placeId
-      currentPopOver.show()
-      currentPopOver.draw()
-      currentPopOver.render({ graphContext, onOpenNodeInNewPane })
-      mapRef.current?.panTo(position)
+      await createPlaceNode(changeGraph, placeId)
     }
+
+    const position = LatLongProperty.readValueOfNode(graph, placeId)[0]
+
+    currentPopOver.position = position
+    currentPopOver.rootId = placeId
+    currentPopOver.show()
+    currentPopOver.draw()
+    currentPopOver.render({ graphContext, onOpenNodeInNewPane })
   })
 
   // update bounds and zoom level if underlying data changes
@@ -569,7 +519,64 @@ function PopoverOutlineView({
         selectedPath={selectedPath}
         onChangeSelectedPath={setSelectedPath}
         onOpenNodeInNewPane={onOpenNodeInNewPane}
+        onReplaceNode={() => {}} // it's not possible to replace the root nodeId in the pop over
       />
     </GraphContext.Provider>
   )
+}
+
+const asyncPlacesService = googleApi.then(
+  (google) => new google.maps.places.PlacesService(document.createElement("div"))
+)
+
+export async function createPlaceNode(
+  changeGraph: (fn: (graph: Graph) => void) => void,
+  placeId: string
+): Promise<ValueNode> {
+  return new Promise((resolve, reject) => {
+    asyncPlacesService.then((placesService) => {
+      placesService.getDetails(
+        {
+          placeId,
+          fields: [
+            "name",
+            "rating",
+            "photos",
+            "website",
+            "formatted_phone_number",
+            "formatted_address",
+            "geometry",
+          ],
+        },
+        (result) => {
+          const name = result?.name ?? "Unnamed"
+          const website = result?.website
+          const address = result?.formatted_address
+          const phone = result?.formatted_phone_number
+          const rating = result?.rating?.toString()
+          const position = result?.geometry?.location
+          const photo = result?.photos ? result.photos[0].getUrl() : undefined
+
+          changeGraph((graph) => {
+            const placeNode = createRecordNode(graph, {
+              id: placeId,
+              name,
+              props: [
+                { type: "image", url: photo } as ImageValue,
+                ["rating", rating],
+                ["address", address],
+                ["phone", phone],
+                ["website", website],
+                ["position", position ? `${position.lat()}, ${position.lng()}` : undefined],
+              ],
+            })
+
+            console.log(JSON.parse(JSON.stringify(graph)), placeId)
+
+            resolve(placeNode)
+          })
+        }
+      )
+    })
+  })
 }

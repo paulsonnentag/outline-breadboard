@@ -70,6 +70,12 @@ export function Root({ documentId }: RootProps) {
     })
   }
 
+  const onReplaceRootNodeAt = (index: number, newNodeId: string) => {
+    changeDoc((doc) => {
+      doc.rootNodeIds[index] = newNodeId
+    })
+  }
+
   if (!graphContext || !doc) {
     return null
   }
@@ -103,6 +109,7 @@ export function Root({ documentId }: RootProps) {
                   setSelectedPath(newPath)
                 }}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
+                onReplaceNode={(newNodeId) => onReplaceRootNodeAt(index, newNodeId)}
               />
             </div>
           )

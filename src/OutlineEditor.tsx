@@ -1,5 +1,6 @@
 import {
   createNode,
+  createRecordNode,
   createRefNode,
   getNode,
   Graph,
@@ -8,6 +9,7 @@ import {
   isReferenceNodeId,
   Node,
   NodeValue,
+  RecordDef,
   useGraph,
   ValueNode,
 } from "./graph"
@@ -18,6 +20,7 @@ import {
   RefObject,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react"
@@ -25,7 +28,8 @@ import classNames from "classnames"
 import { isString, last } from "./utils"
 import ContentEditable from "react-contenteditable"
 import { NodeView } from "./views"
-import { InputProperty } from "./views/MapNodeView"
+import { createPlaceNode, InputProperty, useGoogleApi } from "./views/MapNodeView"
+import AutocompleteResponse = google.maps.places.AutocompleteResponse
 
 interface OutlineEditorProps {
   nodeId: string
@@ -36,6 +40,7 @@ interface OutlineEditorProps {
   selectedPath?: number[]
   onOpenNodeInNewPane: (nodeId: string) => void
   onChangeSelectedPath: (path: number[] | undefined) => void
+  onReplaceNode: (newNodeId: string) => void
 }
 
 export function OutlineEditor({
@@ -47,12 +52,14 @@ export function OutlineEditor({
   selectedPath,
   onChangeSelectedPath,
   onOpenNodeInNewPane,
+  onReplaceNode,
 }: OutlineEditorProps) {
   const { graph, changeGraph, setIsDragging } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [poiResults, setPoiResults] = useState<Command[]>([])
   const [selectedMenuIndex, setSelectedMenuIndex] = useState(0)
   const contentRef = useRef<HTMLElement>(null)
   const node = getNode(graph, nodeId)
@@ -63,6 +70,12 @@ export function OutlineEditor({
   const isReferenceNode = isReferenceNodeId(graph, nodeId)
   const isCollapsed = isNodeCollapsed(graph, nodeId) && !isRoot
   const isCollapsable = node.children.length > 0
+
+  const google = useGoogleApi()
+  const placesAutocomplete = useMemo(
+    () => (google ? new google.maps.places.AutocompleteService() : undefined),
+    [google]
+  )
 
   const commandQuery =
     isFocused &&
@@ -181,60 +194,42 @@ export function OutlineEditor({
   const tokens = typeof node.value === "string" ? node.value.split(" ") : []
   const poiIndex = tokens.indexOf("/poi")
 
-  if (poiIndex >= 0) {
-    const query = tokens.slice(poiIndex + 1).join(" ")
+  // fetch pois
 
-    // Run the search with query
+  const query = poiIndex >= 0 ? tokens.slice(poiIndex + 1).join(" ") : null
 
-    let set: Command[] = [
-      {
-        title: "Gros Ventre Campground",
-        subtitle: "100 Gros Ventre Campground Rd, Kelly, WY 83011",
-        action: () => {
-          changeGraph((graph) => {
-            const node = getNode(graph, nodeId)
+  useEffect(() => {
+    if (!query || !placesAutocomplete) {
+      setPoiResults([])
+      return
+    }
 
-            node.value = "Gros Ventre Campground"
+    placesAutocomplete
+      .getPlacePredictions({
+        input: query,
+      })
+      .then((result: AutocompleteResponse) => {
+        console.log("fetch", result)
 
-            const input = createNode(graph, { value: "input:" })
+        setPoiResults(
+          result.predictions.map((prediction) => ({
+            title: prediction.description,
+            action: async () => {
+              if (!graph[prediction.place_id]) {
+                await createPlaceNode(changeGraph, prediction.place_id)
+              }
 
-            input.children.push(
-              createNode(graph, {
-                value: "position: 43.6163222, -110.6668727",
-              }).id
-            )
+              changeGraph((graph) => {
+                const refNode = createRefNode(graph, prediction.place_id)
+                onReplaceNode(refNode.id)
+              })
+            },
+          }))
+        )
+      })
+  }, [query, placesAutocomplete])
 
-            node.children.push(input.id)
-          })
-        },
-      },
-      {
-        title: "Headwaters Campground and RV Park",
-        subtitle: "101 Grassy Lake Road, Moran, WY 83013",
-        action: () => {
-          changeGraph((graph) => {
-            const node = getNode(graph, nodeId)
-
-            node.value = "Headwaters Campground and RV Park"
-
-            const input = createNode(graph, { value: "input:" })
-
-            input.children.push(
-              createNode(graph, {
-                value: "position: 44.10406650, -110.67592620",
-              }).id
-            )
-
-            node.children.push(input.id)
-          })
-        },
-      },
-    ]
-
-    commands = commands.concat(
-      set.filter((c) => (query ? c.title.toLowerCase().includes(query.toLowerCase()) : false))
-    )
-  }
+  commands = commands.concat(poiResults)
 
   const commandSelection = Math.min(selectedMenuIndex, commands.length - 1)
 
@@ -247,6 +242,13 @@ export function OutlineEditor({
     },
     [changeGraph]
   )
+
+  const onReplaceChildNodeAt = (index: number, newNodeId: string) => {
+    changeGraph((graph) => {
+      const node = getNode(graph, nodeId)
+      node.children[index] = newNodeId
+    })
+  }
 
   const onToggleIsCollapsed = useCallback(() => {
     changeGraph((graph) => {
@@ -582,6 +584,39 @@ export function OutlineEditor({
   const onDrop = (evt: DragEvent) => {
     setIsDraggedOver(false)
 
+    if (evt.dataTransfer.files.length > 0) {
+      evt.preventDefault()
+
+      const file = evt.dataTransfer.files[0]
+
+      const fileReader = new FileReader()
+
+      fileReader.onload = (value) => {
+        try {
+          const recordDefs: RecordDef[] = JSON.parse(fileReader.result as string)
+
+          changeGraph((graph) => {
+            const node = getNode(graph, nodeId)
+
+            for (const recordDef of recordDefs) {
+              const childNode = createRecordNode(graph, recordDef)
+              node.children.push(childNode.id)
+            }
+          })
+        } catch (err) {
+          console.error("could not read file")
+        }
+
+        console.log(fileReader.result)
+      }
+
+      fileReader.readAsText(file)
+
+      console.log(file)
+
+      return
+    }
+
     const {
       id: sourceId,
       parentId: sourceParentId,
@@ -793,6 +828,7 @@ export function OutlineEditor({
               selectedPath={selectedPath}
               onChangeSelectedPath={onChangeSelectedPath}
               onOpenNodeInNewPane={onOpenNodeInNewPane}
+              onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
             />
           ))}
         </div>

@@ -29,7 +29,7 @@ import classNames from "classnames"
 import { isString, last } from "./utils"
 import ContentEditable from "react-contenteditable"
 import { NodeView } from "./views"
-import { createPlaceNode, InputProperty, useGoogleApi } from "./views/MapNodeView"
+import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
 import AutocompleteResponse = google.maps.places.AutocompleteResponse
 
 interface OutlineEditorProps {
@@ -159,11 +159,25 @@ export function OutlineEditor({
           if (indexOfInput === undefined) {
             const input = createNode(graph, { value: "input:" })
 
-            input.children.push(
-              createNode(graph, {
-                value: "position: 37.2296, -80.4139",
-              }).id
-            )
+            // Look for default pos
+            const indexOfPos = LatLongProperty.getChildIndexesOfNode(graph, nodeId)[0]
+
+            if (indexOfPos === undefined) {
+              input.children.push(
+                createNode(graph, {
+                  value: "position: 37.2296, -80.4139",
+                }).id
+              )
+            }
+            else {
+              const posId = node.children[indexOfPos]
+              const value = getNode(graph, posId).value ?? "position: 37.2296, -80.4139"
+              input.children.push(
+                createNode(graph, {
+                  value,
+                }).id
+              )
+            }
 
             node.children.push(input.id)
           }

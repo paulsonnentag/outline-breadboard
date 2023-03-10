@@ -72,7 +72,7 @@ export function OutlineEditor({
   // Future: A schema for commands. Until we know its shape in more cases, hardcoding.
   interface Command {
     title: string
-    subtitle?: string,
+    subtitle?: string
     action: () => void
     tabAction?: () => void
   }
@@ -154,11 +154,9 @@ export function OutlineEditor({
     {
       title: "Search for points of interest",
       subtitle: "",
-      action: () => {
-        
-      },
+      action: () => {},
       tabAction: () => {
-        changeGraph(graph => {
+        changeGraph((graph) => {
           const node = getNode(graph, nodeId)
 
           let tokens = node.value.split(" ")
@@ -167,63 +165,70 @@ export function OutlineEditor({
           node.value = tokens.join(" ") + " " // TODO: space is getting trimmed
         })
       },
-    }
-  ].filter((c) => (commandQuery ? c.title.toLowerCase().includes(commandQuery.toLowerCase()) : true))
+    },
+  ].filter((c) =>
+    commandQuery ? c.title.toLowerCase().includes(commandQuery.toLowerCase()) : true
+  )
 
   // this is not how this should work - just doing this for now
   //  in the future, we should come up w/ a way for searches to be run
   //  in-document or in the command menu with just one primitive
   const tokens = node.value.split(" ")
   const poiIndex = tokens.indexOf("/poi")
-  
+
   if (poiIndex >= 0) {
     const query = tokens.slice(poiIndex + 1).join(" ")
 
     // Run the search with query
 
-    let set: Command[] = [{
-      title: "Gros Ventre Campground",
-      subtitle: "100 Gros Ventre Campground Rd, Kelly, WY 83011",
-      action: () => {
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
+    let set: Command[] = [
+      {
+        title: "Gros Ventre Campground",
+        subtitle: "100 Gros Ventre Campground Rd, Kelly, WY 83011",
+        action: () => {
+          changeGraph((graph) => {
+            const node = getNode(graph, nodeId)
 
-          node.value = "Gros Ventre Campground"
+            node.value = "Gros Ventre Campground"
 
-          const input = createNode(graph, { value: "input:" })
+            const input = createNode(graph, { value: "input:" })
 
-          input.children.push(
-            createNode(graph, {
-              value: "position: 43.6163222, -110.6668727",
-            }).id
-          )
+            input.children.push(
+              createNode(graph, {
+                value: "position: 43.6163222, -110.6668727",
+              }).id
+            )
 
-          node.children.push(input.id)
-        })
-      }
-    }, {
-      title: "Headwaters Campground and RV Park",
-      subtitle: "101 Grassy Lake Road, Moran, WY 83013",
-      action: () => {
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
+            node.children.push(input.id)
+          })
+        },
+      },
+      {
+        title: "Headwaters Campground and RV Park",
+        subtitle: "101 Grassy Lake Road, Moran, WY 83013",
+        action: () => {
+          changeGraph((graph) => {
+            const node = getNode(graph, nodeId)
 
-          node.value = "Headwaters Campground and RV Park"
+            node.value = "Headwaters Campground and RV Park"
 
-          const input = createNode(graph, { value: "input:" })
+            const input = createNode(graph, { value: "input:" })
 
-          input.children.push(
-            createNode(graph, {
-              value: "position: 44.10406650, -110.67592620",
-            }).id
-          )
+            input.children.push(
+              createNode(graph, {
+                value: "position: 44.10406650, -110.67592620",
+              }).id
+            )
 
-          node.children.push(input.id)
-        })
-      }
-    }]
+            node.children.push(input.id)
+          })
+        },
+      },
+    ]
 
-    commands = commands.concat(set.filter((c) => (query ? c.title.toLowerCase().includes(query.toLowerCase()) : false)))
+    commands = commands.concat(
+      set.filter((c) => (query ? c.title.toLowerCase().includes(query.toLowerCase()) : false))
+    )
   }
 
   const commandSelection = Math.min(selectedMenuIndex, commands.length - 1)
@@ -697,19 +702,27 @@ export function OutlineEditor({
               </div>
             )}
 
-            {node.computations?.map(computation => (
-              <div key={computation} className="rounded-sm bg-blue-200 text-blue-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1 mr-1">
+            {node.computations?.map((computation) => (
+              <div
+                key={computation}
+                className="rounded-sm bg-blue-200 text-blue-600 font-bold text-xs px-1 py-0.5 flex items-middle mb-1 mr-1"
+              >
                 <div>{computation}</div>
                 <button
                   className="material-icons"
                   style={{ fontSize: "16px" }}
-                  onClick={() => changeGraph((graph) => {
-                    const node = getNode(graph, nodeId)
-                    node.computations = node.computations?.filter(c => c != computation)
-                    if (node.value.length === 0) {
-                      node.value = computation.split("-").map(t => t[0].toUpperCase() + t.substring(1)).join(" ")
-                    }
-                  })}
+                  onClick={() =>
+                    changeGraph((graph) => {
+                      const node = getNode(graph, nodeId)
+                      node.computations = node.computations?.filter((c) => c != computation)
+                      if (node.value.length === 0) {
+                        node.value = computation
+                          .split("-")
+                          .map((t) => t[0].toUpperCase() + t.substring(1))
+                          .join(" ")
+                      }
+                    })
+                  }
                 >
                   close
                 </button>
@@ -735,9 +748,7 @@ export function OutlineEditor({
               >
                 {command.title}
 
-                {command.subtitle && (
-                  <p className="text-xs">{command.subtitle}</p>
-                )}
+                {command.subtitle && <p className="text-xs">{command.subtitle}</p>}
               </div>
             )
           })}
@@ -755,7 +766,11 @@ export function OutlineEditor({
       />
 
       {!isCollapsed && (
-        <div className={classNames("w-full pl-4")}>
+        <div
+          className={classNames("w-full", {
+            "pl-4": parentIds.length > 1,
+          })}
+        >
           {node.children.map((childId, index) => (
             <OutlineEditor
               isParentDragged={isBeingDragged}

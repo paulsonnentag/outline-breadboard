@@ -39,8 +39,9 @@ interface OutlineEditorProps {
   isParentDragged?: boolean
   path: number[]
   selectedPath?: number[]
+  focusOffset: number // this is kind of hacky, it's necessary so that when two bullets are joined through deletion the cursor is set to the right position
   onOpenNodeInNewPane: (nodeId: string) => void
-  onChangeSelectedPath: (path: number[] | undefined) => void
+  onChangeSelectedPath: (path: number[] | undefined, focusOffset?: number) => void
   onReplaceNode: (newNodeId: string) => void
 }
 
@@ -51,6 +52,7 @@ export function OutlineEditor({
   parentIds,
   isParentDragged,
   selectedPath,
+  focusOffset,
   onChangeSelectedPath,
   onOpenNodeInNewPane,
   onReplaceNode,
@@ -307,7 +309,7 @@ export function OutlineEditor({
         setIsMenuOpen(false)
       }
 
-      if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
+      if (!contentRef.current || getCaretCharacterOffset(contentRef.current) !== 0) {
         return
       }
 
@@ -330,8 +332,9 @@ export function OutlineEditor({
         changeGraph((graph) => {
           const parent = getNode(graph, parentId)
           delete parent.children[index]
+          const focusOffset = (parent.value as string).length
           ;(parent.value as string) += node.value as string
-          onChangeSelectedPath(path.slice(0, -1))
+          onChangeSelectedPath(path.slice(0, -1), focusOffset)
         })
 
         // ... otherwise join it with the last child of the previous sibling
@@ -357,9 +360,10 @@ export function OutlineEditor({
           const prevNode = getNode(graph, prevNodeId)
 
           delete parent.children[index]
+          const focusOffset = (prevNode.value as string).length
           ;(prevNode.value as string) += node.value as string
 
-          onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath))
+          onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath), focusOffset)
         })
       }
     } else if (evt.key === "Enter") {
@@ -388,8 +392,7 @@ export function OutlineEditor({
 
         changeGraph((graph) => {
           const node = getNode(graph, nodeId)
-
-          const caretOffset = getCaretCharacterOffsetWithin(contentElement)
+          const caretOffset = getCaretCharacterOffset(contentElement)
 
           const newNode = createNode(graph, {
             value: (node.value as string).slice(caretOffset),
@@ -681,6 +684,8 @@ export function OutlineEditor({
   useEffect(() => {
     if (contentRef.current && isFocused && document.activeElement !== contentRef.current) {
       contentRef.current.focus()
+      console.log("focus", focusOffset)
+      setCaretCharacterOffset(contentRef.current, focusOffset)
     }
   }, [isFocused])
 
@@ -852,6 +857,7 @@ export function OutlineEditor({
               parentIds={parentIds.concat(node.id)}
               path={path.concat(index)}
               selectedPath={selectedPath}
+              focusOffset={focusOffset}
               onChangeSelectedPath={onChangeSelectedPath}
               onOpenNodeInNewPane={onOpenNodeInNewPane}
               onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
@@ -979,7 +985,7 @@ function getNodeAt(graph: Graph, nodeId: string, path: number[]): ValueNode | un
 }
 
 // adapted from: https://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
-function getCaretCharacterOffsetWithin(element: HTMLElement) {
+function getCaretCharacterOffset(element: HTMLElement) {
   var caretOffset = 0
   var doc = element.ownerDocument || (element as any).document
   var win = doc.defaultView || (doc as any).parentWindow
@@ -1001,6 +1007,22 @@ function getCaretCharacterOffsetWithin(element: HTMLElement) {
     caretOffset = preCaretTextRange.text.length
   }
   return caretOffset
+}
+
+// adapted from https://stackoverflow.com/questions/6249095/how-to-set-the-caret-cursor-position-in-a-contenteditable-element-div#answer-6249440
+function setCaretCharacterOffset(element: HTMLElement, offset: number) {
+  var range = document.createRange()
+  var selection = window.getSelection()
+
+  try {
+    range.setStart(element.childNodes[0], offset) // todo: this throws sometimes
+    range.collapse(true)
+
+    selection!.removeAllRanges()
+    selection!.addRange(range)
+  } catch (err) {
+    console.log("bad")
+  }
 }
 
 function getNextPath(

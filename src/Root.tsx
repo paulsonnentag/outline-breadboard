@@ -13,6 +13,7 @@ interface RootProps {
 export function Root({ documentId }: RootProps) {
   const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
+  const [focusOffset, setFocusOffset] = useState<number>(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isDraggedOverDelete, setIsDraggedOverDelete] = useState(false)
 
@@ -102,11 +103,13 @@ export function Root({ documentId }: RootProps) {
                 path={[]}
                 parentIds={[]}
                 selectedPath={selectedSubPath}
-                onChangeSelectedPath={(newSelectedSubPath) => {
+                focusOffset={focusOffset}
+                onChangeSelectedPath={(newSelectedSubPath, newFocusOffset = 0) => {
                   const newPath = newSelectedSubPath
                     ? [index].concat(newSelectedSubPath)
                     : undefined
                   setSelectedPath(newPath)
+                  setFocusOffset(newFocusOffset)
                 }}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
                 onReplaceNode={(newNodeId) => onReplaceRootNodeAt(index, newNodeId)}

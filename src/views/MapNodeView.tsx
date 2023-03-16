@@ -357,7 +357,9 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       return
     }
 
-    currentMap.fitBounds(minBounds, 25)
+    if (minBounds) {
+      currentMap.fitBounds(minBounds, 25)
+    }
 
     if (childNodesWithLatLng.length === 1) {
       currentMap.setZoom(11)
@@ -544,16 +546,21 @@ function PopoverOutlineView({
   onOpenNodeInNewPane,
 }: PopoverOutlineViewProps) {
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>([])
+  const [focusOffset, setFocusOffset] = useState<number>(0)
 
   return (
     <GraphContext.Provider value={graphContext}>
       <OutlineEditor
+        focusOffset={focusOffset}
         nodeId={rootId}
         index={0}
         path={[]}
         parentIds={[]}
         selectedPath={selectedPath}
-        onChangeSelectedPath={setSelectedPath}
+        onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
+          setSelectedPath(newSelectedPath)
+          setFocusOffset(newFocusOffset)
+        }}
         onOpenNodeInNewPane={onOpenNodeInNewPane}
         onReplaceNode={() => {}} // it's not possible to replace the root nodeId in the pop over
       />

@@ -301,72 +301,69 @@ export function OutlineEditor({
   }
 
   const onKeyDown = (evt: ReactKeyboardEvent) => {
-    switch (evt.key) {
-      case "Backspace":
-        if (isMenuOpen && (node.value as string).split(" ").reverse()[0] === "/") {
-          // hacky
-          setIsMenuOpen(false)
-        }
+    if (evt.key === "Backspace") {
+      if (isMenuOpen && (node.value as string).split(" ").reverse()[0] === "/") {
+        // hacky
+        setIsMenuOpen(false)
+      }
 
-        if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
+      if (!contentRef.current || getCaretCharacterOffsetWithin(contentRef.current) !== 0) {
+        return
+      }
+
+      evt.preventDefault()
+      evt.stopPropagation()
+
+      if (node.children.length !== 0 || !parentId) {
+        return
+      }
+
+      // if it's the first child join it with parent
+      if (index === 0) {
+        const parent = getNode(graph, parentId)
+
+        // can't join with parent if parent is not text
+        if (!isString(parent.value)) {
           return
         }
 
-        evt.preventDefault()
-        evt.stopPropagation()
+        changeGraph((graph) => {
+          const parent = getNode(graph, parentId)
+          delete parent.children[index]
+          ;(parent.value as string) += node.value as string
+          onChangeSelectedPath(path.slice(0, -1))
+        })
 
-        if (node.children.length !== 0 || !parentId) {
+        // ... otherwise join it with the last child of the previous sibling
+      } else {
+        const parent = getNode(graph, parentId)
+        const prevSibling = getNode(graph, parent.children[index - 1])
+
+        const lastChildPath = getLastChildPath(graph, prevSibling.id)
+        const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
+
+        if (!prevNode) {
+          throw new Error("invalid state")
+        }
+
+        // can't join with prevNode if prevNode is not text
+        if (!isString(prevNode?.value)) {
           return
         }
 
-        // if it's the first child join it with parent
-        if (index === 0) {
+        const prevNodeId = prevNode.id
+        changeGraph((graph) => {
           const parent = getNode(graph, parentId)
+          const prevNode = getNode(graph, prevNodeId)
 
-          // can't join with parent if parent is not text
-          if (!isString(parent.value)) {
-            return
-          }
+          delete parent.children[index]
+          ;(prevNode.value as string) += node.value as string
 
-          changeGraph((graph) => {
-            const parent = getNode(graph, parentId)
-            delete parent.children[index]
-            ;(parent.value as string) += node.value as string
-            onChangeSelectedPath(path.slice(0, -1))
-          })
-
-          // ... otherwise join it with the last child of the previous sibling
-        } else {
-          const parent = getNode(graph, parentId)
-          const prevSibling = getNode(graph, parent.children[index - 1])
-
-          const lastChildPath = getLastChildPath(graph, prevSibling.id)
-          const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
-
-          if (!prevNode) {
-            throw new Error("invalid state")
-          }
-
-          // can't join with prevNode if prevNode is not text
-          if (!isString(prevNode?.value)) {
-            return
-          }
-
-          const prevNodeId = prevNode.id
-          changeGraph((graph) => {
-            const parent = getNode(graph, parentId)
-            const prevNode = getNode(graph, prevNodeId)
-
-            delete parent.children[index]
-            ;(prevNode.value as string) += node.value as string
-
-            onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath))
-          })
-        }
-
-        break
-
-      case "Enter": {
+          onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath))
+        })
+      }
+    } else if (evt.key === "Enter") {
+      {
         evt.preventDefault()
         evt.stopPropagation()
 
@@ -424,58 +421,55 @@ export function OutlineEditor({
             }
           }
         })
-        break
+      }
+    } else if (evt.key === "Tab") {
+      evt.preventDefault()
+      evt.stopPropagation()
+
+      if (isMenuOpen) {
+        commands[commandSelection]?.tabAction?.()
+        return
       }
 
-      case "Tab":
-        evt.preventDefault()
-        evt.stopPropagation()
-
-        if (isMenuOpen) {
-          commands[commandSelection]?.tabAction?.()
+      // unindent
+      if (evt.shiftKey) {
+        // can't unindent root or top level node
+        if (!parentId || !grandParentId) {
           return
         }
 
-        // unindent
-        if (evt.shiftKey) {
-          // can't unindent root or top level node
-          if (!parentId || !grandParentId) {
-            return
-          }
+        changeGraph((graph) => {
+          const parent = getNode(graph, parentId)
+          const parentIndex = path[path.length - 2]
+          const grandParent = getNode(graph, grandParentId)
 
-          changeGraph((graph) => {
-            const parent = getNode(graph, parentId)
-            const parentIndex = path[path.length - 2]
-            const grandParent = getNode(graph, grandParentId)
+          delete parent.children[index]
+          const newIndex = parentIndex + 1
+          grandParent.children.splice(newIndex, 0, nodeId)
+          onChangeSelectedPath(path.slice(0, -2).concat(newIndex))
+        })
+      } else {
+        // indent
 
-            delete parent.children[index]
-            const newIndex = parentIndex + 1
-            grandParent.children.splice(newIndex, 0, nodeId)
-            onChangeSelectedPath(path.slice(0, -2).concat(newIndex))
-          })
-        } else {
-          // indent
-
-          // can't indent root or nodes that are already indented to the max
-          if (index == 0 || parentId === undefined) {
-            return
-          }
-
-          changeGraph((graph) => {
-            const parent = getNode(graph, parentId)
-            const prevSibling = getNode(graph, parent.children[index - 1])
-
-            const newIndex = prevSibling.children.length
-
-            delete parent.children[index]
-            prevSibling.children[newIndex] = nodeId
-
-            onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
-          })
+        // can't indent root or nodes that are already indented to the max
+        if (index == 0 || parentId === undefined) {
+          return
         }
-        break
 
-      case "ArrowDown": {
+        changeGraph((graph) => {
+          const parent = getNode(graph, parentId)
+          const prevSibling = getNode(graph, parent.children[index - 1])
+
+          const newIndex = prevSibling.children.length
+
+          delete parent.children[index]
+          prevSibling.children[newIndex] = nodeId
+
+          onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
+        })
+      }
+    } else if (evt.key === "ArrowDown" || (evt.key === "n" && evt.ctrlKey)) {
+      {
         if (isMenuOpen) {
           setSelectedMenuIndex(Math.min(selectedMenuIndex + 1, commands.length - 1))
           evt.preventDefault()
@@ -500,10 +494,9 @@ export function OutlineEditor({
 
         evt.preventDefault()
         evt.stopPropagation()
-        break
       }
-
-      case "ArrowUp": {
+    } else if (evt.key === "ArrowUp" || (evt.key === "p" && evt.ctrlKey)) {
+      {
         if (isMenuOpen) {
           setSelectedMenuIndex(Math.max(selectedMenuIndex - 1, 0))
           evt.preventDefault()
@@ -538,16 +531,13 @@ export function OutlineEditor({
 
         evt.stopPropagation()
         evt.preventDefault()
-        break
       }
-
-      case "/":
-        if (!isMenuOpen) {
-          setIsMenuOpen(true)
-        }
-        break
-
-      case "Escape": {
+    } else if (evt.key === "/") {
+      if (!isMenuOpen) {
+        setIsMenuOpen(true)
+      }
+    } else if (evt.key === "Escape") {
+      {
         if (isMenuOpen) {
           setIsMenuOpen(false)
         }

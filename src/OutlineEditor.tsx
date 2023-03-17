@@ -531,6 +531,7 @@ export function OutlineEditor({
                 innerRef={contentRef}
                 onChange={onChange}
                 isFocused={isFocused}
+                onReplaceNode={onReplaceNode}
                 onBlur={() => {
                   onChangeSelectedPath(undefined)
                 }}
@@ -629,6 +630,7 @@ export interface NodeValueViewProps {
   onChange: (value: NodeValue) => void
   isFocused: boolean
   onBlur: () => void
+  onReplaceNode: (newNodeId: string) => void
 }
 
 function NodeValueView(props: NodeValueViewProps) {

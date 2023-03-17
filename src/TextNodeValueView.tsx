@@ -2,9 +2,9 @@ import { KeyboardEvent, useCallback, useState } from "react"
 import ContentEditable from "react-contenteditable"
 import { NodeValueViewProps } from "./OutlineEditor"
 import { isArrowDown, isArrowUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
-import { getCaretCharacterOffset, mod } from "./utils"
+import { getCaretCharacterOffset, isString, mod } from "./utils"
 import { useStaticCallback } from "./hooks"
-import { createValueNode, getNode, Graph, useGraph } from "./graph"
+import { createValueNode, getNode, Graph, useGraph, Node, createRefNode } from "./graph"
 import { InputProperty, LatLongProperty } from "./views/MapNodeView"
 import classNames from "classnames"
 
@@ -19,7 +19,7 @@ interface Command {
   tabAction?: () => void
 }
 
-const COMMANDS: Command[] = [
+const COMPUTATION_COMMANDS: Command[] = [
   {
     title: "Use map view",
     action: (graph, nodeId) => {
@@ -95,16 +95,51 @@ export function TextNodeValueView({
   onChange,
   isFocused,
   onBlur,
+  onReplaceNode,
 }: TextNodeValueView) {
-  const { changeGraph } = useGraph()
+  const { graph, changeGraph } = useGraph()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [selectedItemIndex, setSelectedItemIndex] = useState(0)
-  const commandString = getCommandString(value)
+  const commandSearch = getCommandSearch(value)
 
-  const commands =
-    commandString !== undefined && isMenuOpen
-      ? COMMANDS.filter((command) => command.title.includes(commandString.trim()))
-      : []
+  let commands: Command[] = []
+
+  if (isMenuOpen && commandSearch) {
+    switch (commandSearch.type) {
+      case "computation":
+        commands = commands.concat(
+          COMPUTATION_COMMANDS.filter((command) =>
+            command.title.includes(commandSearch.search.trim())
+          )
+        )
+        break
+      case "mention":
+        commands = commands.concat(
+          Object.values(graph).flatMap((node: Node) => {
+            if (
+              node.type !== "value" ||
+              !isString(node.value) ||
+              node.value === "" ||
+              node.id === id ||
+              !node.value.includes(commandSearch.search)
+            ) {
+              return []
+            }
+
+            return [
+              {
+                title: node.value,
+                action: (graph: Graph) => {
+                  const refNode = createRefNode(graph, node.id)
+                  onReplaceNode(refNode.id)
+                },
+              },
+            ]
+          })
+        )
+        break
+    }
+  }
 
   const selectedCommand = commands[Math.min(selectedItemIndex, commands.length - 1)]
 
@@ -120,7 +155,7 @@ export function TextNodeValueView({
       const newValue = currentContent.innerText
 
       if (
-        (!newValue.includes("/") ||
+        (!includesCommandChar(newValue) ||
           (innerRef.current && getCaretCharacterOffset(innerRef.current) !== newValue.length)) &&
         isMenuOpen
       ) {
@@ -136,14 +171,14 @@ export function TextNodeValueView({
   }, [onBlur])
 
   const onKeyDown = useStaticCallback((evt: KeyboardEvent) => {
-    if (evt.key === "/") {
+    if (isCommandChar(evt.key)) {
       setIsMenuOpen(true)
       setSelectedItemIndex(0)
       return
     }
 
     if (isBackspace(evt)) {
-      if (value.endsWith("/")) {
+      if (endsWithCommandChar(value)) {
         setIsMenuOpen(false)
       }
       return
@@ -162,7 +197,7 @@ export function TextNodeValueView({
         evt.stopPropagation()
         changeGraph((graph) => {
           let node = getNode<string>(graph, id)
-          node.value = node.value.slice(0, -(commandString!.length + 1))
+          node.value = node.value.slice(0, -(commandSearch!.search.length + 1))
           selectedCommand.action(graph, id)
         })
 
@@ -207,9 +242,9 @@ export function TextNodeValueView({
 
       {isMenuOpen && (
         <div className="absolute z-30 rounded p-1 bg-slate-100 shadow-md w-56 text-sm">
-          {commands.map((command) => (
+          {commands.map((command, index) => (
             <div
-              key={command.title}
+              key={index}
               className={classNames("py-1 px-2 rounded-sm", {
                 "bg-slate-300": command === selectedCommand,
               })}
@@ -225,10 +260,37 @@ export function TextNodeValueView({
   )
 }
 
-const COMMAND_REGEX = /\/([^/]*)$/
+const COMMAND_REGEX = /([/@])([^/]*)$/
 
-function getCommandString(value: string): string | undefined {
+function isCommandChar(char: string): boolean {
+  return char === "/" || char === "@"
+}
+
+function includesCommandChar(value: string): boolean {
+  return COMMAND_REGEX.test(value)
+}
+
+function endsWithCommandChar(value: string): boolean {
+  const command = getCommandSearch(value)
+  return command ? command.search === "" : false
+}
+
+interface CommandSearch {
+  type: "mention" | "computation"
+  search: string
+}
+
+function getCommandSearch(value: string): CommandSearch | undefined {
   const match = value.match(COMMAND_REGEX)
 
-  return match ? match[1] : undefined
+  if (match) {
+    const [, char, search] = match
+
+    return {
+      type: char === "@" ? "mention" : "computation",
+      search,
+    }
+  }
+
+  return undefined
 }

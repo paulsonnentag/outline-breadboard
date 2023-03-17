@@ -1,6 +1,6 @@
 import { DocumentId } from "automerge-repo"
 import { useEffect, useMemo, useState } from "react"
-import { createNode, getNode, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
+import { createValueNode, getNode, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
 import { OutlineEditor } from "./OutlineEditor"
 import { useDocumentWithHistory } from "./history"
 import { IconButton } from "./IconButton"
@@ -55,7 +55,7 @@ export function Root({ documentId }: RootProps) {
 
   const onAddRootNode = () => {
     changeDoc((doc) => {
-      const newRootNode = createNode(doc.graph, {
+      const newRootNode = createValueNode(doc.graph, {
         value: "",
       })
 

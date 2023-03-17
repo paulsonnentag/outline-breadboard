@@ -4,7 +4,7 @@ import { NodeValueViewProps } from "./OutlineEditor"
 import { isArrowDown, isArrowUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
 import { getCaretCharacterOffset, mod } from "./utils"
 import { useStaticCallback } from "./hooks"
-import { createNode, getNode, Graph, isRef, useGraph } from "./graph"
+import { createValueNode, getNode, Graph, useGraph } from "./graph"
 import { InputProperty, LatLongProperty } from "./views/MapNodeView"
 import classNames from "classnames"
 
@@ -31,10 +31,10 @@ const COMMANDS: Command[] = [
       const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
       if (indexOfInput === undefined) {
-        const input = createNode(graph, { value: "input:" })
+        const input = createValueNode(graph, { value: "input:" })
 
         input.children.push(
-          createNode(graph, {
+          createValueNode(graph, {
             value: "position: 37.2296, -80.4139",
           }).id
         )
@@ -61,14 +61,14 @@ const COMMANDS: Command[] = [
       const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
       if (indexOfInput === undefined) {
-        const input = createNode(graph, { value: "input:" })
+        const input = createValueNode(graph, { value: "input:" })
 
         // Look for default pos
         const indexOfPos = LatLongProperty.getChildIndexesOfNode(graph, nodeId)[0]
 
         if (indexOfPos === undefined) {
           input.children.push(
-            createNode(graph, {
+            createValueNode(graph, {
               value: "position: 37.2296, -80.4139",
             }).id
           )
@@ -76,7 +76,7 @@ const COMMANDS: Command[] = [
           const posId = node.children[indexOfPos]
           const value = getNode(graph, posId).value ?? "position: 37.2296, -80.4139"
           input.children.push(
-            createNode(graph, {
+            createValueNode(graph, {
               value,
             }).id
           )
@@ -162,12 +162,6 @@ export function TextNodeValueView({
         evt.stopPropagation()
         changeGraph((graph) => {
           let node = getNode<string>(graph, id)
-
-          if (isRef(node.value)) {
-            // this doesn't handle refs that reference other refs, but that case shouldn't occur
-            node = getNode<string>(graph, node.value.id)
-          }
-
           node.value = node.value.slice(0, -(commandString!.length + 1))
           selectedCommand.action(graph, id)
         })

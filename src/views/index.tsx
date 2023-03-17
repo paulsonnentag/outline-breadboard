@@ -1,10 +1,10 @@
-import { Node, NodeValue } from "../graph"
+import { Node, NodeValue, ValueNode } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { WeatherAveragesNodeView } from "./WeatherAveragesNodeView"
 
 export interface NodeViewProps {
-  node: Node<NodeValue>
+  node: ValueNode<NodeValue>
   isFocused: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
 }

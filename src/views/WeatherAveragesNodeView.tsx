@@ -1,6 +1,15 @@
 import { NodeViewProps } from "./index"
 import { LatLongProperty } from "./MapNodeView"
-import { createNode, createRecordNode, getNode, Graph, useGraph, Node, NodeValue } from "../graph"
+import {
+  createValueNode,
+  createRecordNode,
+  getNode,
+  Graph,
+  useGraph,
+  Node,
+  NodeValue,
+  ValueNode,
+} from "../graph"
 import { useEffect } from "react"
 import { Property } from "../property"
 import useDebounce from "../hooks"
@@ -31,7 +40,7 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
           delete node.children[indexOfOutput]
         }
 
-        const output = createNode(graph, { value: "output:" })
+        const output = createValueNode(graph, { value: "output:" })
         output.view = "table"
         output.isCollapsed = true
 
@@ -62,7 +71,7 @@ const outputProperty = new Property("output", () => {
   return true
 })
 
-function getInputNode(graph: Graph, nodeId: string): Node<NodeValue> | undefined {
+function getInputNode(graph: Graph, nodeId: string): ValueNode<NodeValue> | undefined {
   const node = getNode(graph, nodeId)
 
   for (const childId of node.children) {

@@ -1,16 +1,16 @@
 import {
-  createNode,
   createRecordNode,
-  createRef,
+  createRefNode,
+  createValueNode,
   getNode,
   Graph,
   ImageValue,
   isNodeCollapsed,
-  isRef,
   Node,
   NodeValue,
   RecordDef,
   useGraph,
+  ValueNode,
 } from "./graph"
 import {
   DragEvent,
@@ -65,9 +65,9 @@ export function OutlineEditor({
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
   const isRoot = parentId === undefined
-  const isReferenceNode = isRef(node.value)
   const isCollapsed = isNodeCollapsed(graph, nodeId) && !isRoot
   const isCollapsable = node.children.length > 0
+  const isReferenceNode = node.id !== nodeId
 
   const onChange = useCallback(
     (value: NodeValue) => {
@@ -200,7 +200,7 @@ export function OutlineEditor({
           const node = getNode(graph, nodeId)
           const caretOffset = getCaretCharacterOffset(contentElement)
 
-          const newNode = createNode(graph, {
+          const newNode = createValueNode(graph, {
             value: (node.value as string).slice(caretOffset),
           })
 
@@ -434,7 +434,7 @@ export function OutlineEditor({
         const sourceParent = getNode(graph, sourceParentId)
         delete sourceParent.children[sourceIndex]
       } else {
-        nodeIdToInsert = createNode(graph, { value: createRef(sourceId) }).id
+        nodeIdToInsert = createRefNode(graph, sourceId).id
       }
 
       if (node.children.length !== 0 || !parentId) {
@@ -646,7 +646,7 @@ function NodeValueView(props: NodeValueViewProps) {
   return null
 }
 
-function getLabelOfNode(node: Node<NodeValue>): string {
+function getLabelOfNode(node: ValueNode<NodeValue>): string {
   if (isString(node.value)) {
     return node.value
   }
@@ -689,7 +689,7 @@ function getLastChildPath(graph: Graph, nodeId: string, prefixPath: number[] = [
   return getLastChildPath(graph, lastChild, prefixPath.concat(lastIndex))
 }
 
-function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node<NodeValue> | undefined {
+function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node | undefined {
   let currentNode = getNode(graph, nodeId)
 
   for (const index of path) {
@@ -708,7 +708,7 @@ function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node<NodeValue
 function getNextPath(
   graph: Graph,
   selectedPath: number[],
-  node: Node<NodeValue>,
+  node: Node,
   parentIds: string[]
 ): number[] | undefined {
   const parentId = last(parentIds)

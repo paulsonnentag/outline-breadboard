@@ -12,6 +12,7 @@ import {
   ImageValue,
   useGraph,
   Node,
+  ValueNode,
 } from "../graph"
 import { NodeData, Property, readChildrenWithProperties } from "../property"
 import classNames from "classnames"
@@ -575,7 +576,7 @@ const asyncPlacesService = googleApi.then(
 export async function createPlaceNode(
   changeGraph: (fn: (graph: Graph) => void) => void,
   placeId: string
-): Promise<Node<string>> {
+): Promise<ValueNode<string>> {
   return new Promise((resolve) => {
     asyncPlacesService.then((placesService) => {
       placesService.getDetails(
@@ -643,7 +644,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
   if (latLongInputIndex !== undefined) {
     getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
   } else {
-    const latLngPropertyNode: Node<string> = {
+    const latLngPropertyNode: ValueNode<string> = {
       id: v4(),
       type: "value",
       value: latLongValue,
@@ -663,7 +664,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
       zoomPropertyNode.value = zoomValue
     }
   } else {
-    const zoomPropertyNode: Node<string> = {
+    const zoomPropertyNode: ValueNode<string> = {
       id: v4(),
       type: "value",
       value: zoomValue,

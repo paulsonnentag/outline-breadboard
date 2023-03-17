@@ -58,9 +58,7 @@ export function setCaretCharacterOffset(element: HTMLElement, offset: number) {
 
     selection!.removeAllRanges()
     selection!.addRange(range)
-  } catch (err) {
-    console.log("bad")
-  }
+  } catch (err) {}
 }
 
 // adapted from: https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers#answer-4467559

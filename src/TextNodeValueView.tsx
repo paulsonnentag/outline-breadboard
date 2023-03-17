@@ -1,11 +1,11 @@
-import { KeyboardEvent, useCallback, useState } from "react"
+import { KeyboardEvent, useCallback, useEffect, useMemo, useState } from "react"
 import ContentEditable from "react-contenteditable"
 import { NodeValueViewProps } from "./OutlineEditor"
 import { isArrowDown, isArrowUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
 import { getCaretCharacterOffset, isString, mod } from "./utils"
 import { useStaticCallback } from "./hooks"
 import { createValueNode, getNode, Graph, useGraph, Node, createRefNode } from "./graph"
-import { InputProperty, LatLongProperty } from "./views/MapNodeView"
+import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
 import classNames from "classnames"
 
 interface TextNodeValueView extends NodeValueViewProps {
@@ -100,6 +100,12 @@ export function TextNodeValueView({
   const { graph, changeGraph } = useGraph()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [selectedItemIndex, setSelectedItemIndex] = useState(0)
+  const [poiSuggestions, setPoiSuggestions] = useState<Command[]>([])
+  const google = useGoogleApi()
+  const placesAutocomplete = useMemo(
+    () => (google ? new google.maps.places.AutocompleteService() : undefined),
+    [google]
+  )
   const commandSearch = getCommandSearch(value)
 
   let commands: Command[] = []
@@ -137,9 +143,57 @@ export function TextNodeValueView({
             ]
           })
         )
+
+        if (commandSearch.search !== "") {
+          commands = commands.concat(poiSuggestions)
+        }
         break
     }
   }
+
+  useEffect(() => {
+    if (
+      !isMenuOpen ||
+      !placesAutocomplete ||
+      !commandSearch ||
+      commandSearch.type !== "mention" ||
+      commandSearch.search === ""
+    ) {
+      return
+    }
+
+    placesAutocomplete
+      .getPlacePredictions({
+        input: commandSearch.search,
+      })
+      .then((result: google.maps.places.AutocompleteResponse) => {
+        console.log("fetch", result)
+
+        setPoiSuggestions(
+          result.predictions.flatMap((prediction) => {
+            if (graph[prediction.place_id]) {
+              return []
+            }
+
+            return [
+              {
+                title: prediction.description,
+                action: async () => {
+                  if (!graph[prediction.place_id]) {
+                    await createPlaceNode(changeGraph, prediction.place_id)
+                  }
+
+                  changeGraph((graph) => {
+                    const refNode = createRefNode(graph, prediction.place_id)
+                    onReplaceNode(refNode.id)
+                  })
+                },
+              },
+            ]
+          })
+        )
+      })
+  }, [isMenuOpen, placesAutocomplete, commandSearch?.search, commandSearch?.type])
 
   const selectedCommand = commands[Math.min(selectedItemIndex, commands.length - 1)]
 

@@ -57,7 +57,6 @@ export function OutlineEditor({
   const { graph, changeGraph, setIsDragging } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
   const node = getNode(graph, nodeId)

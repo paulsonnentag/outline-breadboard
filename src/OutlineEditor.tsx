@@ -1,6 +1,7 @@
 import {
   createNode,
   createRecordNode,
+  createRef,
   getNode,
   Graph,
   ImageValue,
@@ -10,7 +11,6 @@ import {
   NodeValue,
   RecordDef,
   useGraph,
-  createRef,
 } from "./graph"
 import {
   DragEvent,
@@ -20,16 +20,14 @@ import {
   RefObject,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react"
 import classNames from "classnames"
-import { isString, last } from "./utils"
-import ContentEditable from "react-contenteditable"
+import { getCaretCharacterOffset, isString, last, setCaretCharacterOffset } from "./utils"
 import { NodeView } from "./views"
-import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
-import AutocompleteResponse = google.maps.places.AutocompleteResponse
+import { TextNodeValueView } from "./TextNodeValueView"
+import { isArrowDown, isArrowUp, isBackspace, isEnter, isTab } from "./keyboardEvents"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -61,8 +59,6 @@ export function OutlineEditor({
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [poiResults, setPoiResults] = useState<Command[]>([])
-  const [selectedMenuIndex, setSelectedMenuIndex] = useState(0)
   const contentRef = useRef<HTMLElement>(null)
   const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
@@ -72,181 +68,6 @@ export function OutlineEditor({
   const isReferenceNode = isRef(node.value)
   const isCollapsed = isNodeCollapsed(graph, nodeId) && !isRoot
   const isCollapsable = node.children.length > 0
-
-  const google = useGoogleApi()
-  const placesAutocomplete = useMemo(
-    () => (google ? new google.maps.places.AutocompleteService() : undefined),
-    [google]
-  )
-
-  const commandQuery =
-    isFocused &&
-    typeof node.value === "string" &&
-    node.value
-      .split(" ")
-      .reverse()
-      .find((token) => token.startsWith("/"))
-      ?.slice(1)
-
-  // Future: A schema for commands. Until we know its shape in more cases, hardcoding.
-  interface Command {
-    title: string
-    subtitle?: string
-    action: () => void
-    tabAction?: () => void
-  }
-
-  let commands: Command[] = [
-    {
-      title: "Use map view",
-      action: () => {
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
-
-          // This logic should be elsewhere; starting here until we can see a clear protocol
-          // It should also be made generic; action could simply state expected inputs
-
-          const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
-
-          if (indexOfInput === undefined) {
-            const input = createNode(graph, { value: "input:" })
-
-            input.children.push(
-              createNode(graph, {
-                value: "position: 37.2296, -80.4139",
-              }).id
-            )
-
-            node.children.push(input.id)
-          }
-
-          node.view = "map"
-
-          node.value = (node.value as string)
-            .split(" ")
-            .filter((token) => !token.startsWith("/"))
-            .join(" ")
-        })
-      },
-    },
-    {
-      title: "Use table view",
-      action: () => {
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
-
-          node.view = "table"
-          node.value = (node.value as string)
-            .split(" ")
-            .filter((token) => !token.startsWith("/"))
-            .join(" ")
-        })
-      },
-    },
-    {
-      title: "Insert weather averages",
-      action: () => {
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
-
-          node.computations = (node.computations ?? []).concat(["weather-averages"])
-          node.value = (node.value as string)
-            .split(" ")
-            .filter((token) => !token.startsWith("/"))
-            .join(" ")
-
-          const indexOfInput = InputProperty.getChildIndexesOfNode(graph, nodeId)[0]
-
-          if (indexOfInput === undefined) {
-            const input = createNode(graph, { value: "input:" })
-
-            // Look for default pos
-            const indexOfPos = LatLongProperty.getChildIndexesOfNode(graph, nodeId)[0]
-
-            if (indexOfPos === undefined) {
-              input.children.push(
-                createNode(graph, {
-                  value: "position: 37.2296, -80.4139",
-                }).id
-              )
-            } else {
-              const posId = node.children[indexOfPos]
-              const value = getNode(graph, posId).value ?? "position: 37.2296, -80.4139"
-              input.children.push(
-                createNode(graph, {
-                  value,
-                }).id
-              )
-            }
-
-            node.children.push(input.id)
-          }
-        })
-      },
-    },
-    {
-      title: "Search for points of interest",
-      subtitle: "",
-      action: () => {},
-      tabAction: () => {
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
-
-          let tokens = (node.value as string).split(" ")
-          tokens[tokens.length - 1] = "/poi"
-
-          node.value = tokens.join(" ") + " " // TODO: space is getting trimmed
-        })
-      },
-    },
-  ].filter((c) =>
-    commandQuery ? c.title.toLowerCase().includes(commandQuery.toLowerCase()) : true
-  )
-
-  // this is not how this should work - just doing this for now
-  //  in the future, we should come up w/ a way for searches to be run
-  //  in-document or in the command menu with just one primitive
-  const tokens = typeof node.value === "string" ? node.value.split(" ") : []
-  const poiIndex = tokens.indexOf("/poi")
-
-  // fetch pois
-
-  const query = poiIndex >= 0 ? tokens.slice(poiIndex + 1).join(" ") : null
-
-  useEffect(() => {
-    if (!query || !placesAutocomplete) {
-      setPoiResults([])
-      return
-    }
-
-    placesAutocomplete
-      .getPlacePredictions({
-        input: query,
-      })
-      .then((result: AutocompleteResponse) => {
-        console.log("fetch", result)
-
-        setPoiResults(
-          result.predictions.map((prediction) => ({
-            title: prediction.description,
-            action: async () => {
-              if (!graph[prediction.place_id]) {
-                await createPlaceNode(changeGraph, prediction.place_id)
-              }
-
-              changeGraph((graph) => {
-                const refNode = createNode(graph, { value: createRef(prediction.place_id) })
-                onReplaceNode(refNode.id)
-              })
-            },
-          }))
-        )
-      })
-  }, [query, placesAutocomplete])
-
-  commands = commands.concat(poiResults)
-
-  const commandSelection = Math.min(selectedMenuIndex, commands.length - 1)
 
   const onChange = useCallback(
     (value: NodeValue) => {
@@ -302,12 +123,7 @@ export function OutlineEditor({
   }
 
   const onKeyDown = (evt: ReactKeyboardEvent) => {
-    if (evt.key === "Backspace") {
-      if (isMenuOpen && (node.value as string).split(" ").reverse()[0] === "/") {
-        // hacky
-        setIsMenuOpen(false)
-      }
-
+    if (isBackspace(evt)) {
       if (!contentRef.current || getCaretCharacterOffset(contentRef.current) !== 0) {
         return
       }
@@ -365,19 +181,10 @@ export function OutlineEditor({
           onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath), focusOffset)
         })
       }
-    } else if (evt.key === "Enter") {
+    } else if (isEnter(evt)) {
       {
         evt.preventDefault()
         evt.stopPropagation()
-
-        if (isMenuOpen) {
-          const command = commands[commandSelection]
-          command.action()
-
-          setIsMenuOpen(false)
-          setSelectedMenuIndex(0)
-          return
-        }
 
         const contentElement = contentRef.current
 
@@ -424,14 +231,9 @@ export function OutlineEditor({
           }
         })
       }
-    } else if (evt.key === "Tab") {
+    } else if (isTab(evt)) {
       evt.preventDefault()
       evt.stopPropagation()
-
-      if (isMenuOpen) {
-        commands[commandSelection]?.tabAction?.()
-        return
-      }
 
       // unindent
       if (evt.shiftKey) {
@@ -470,80 +272,52 @@ export function OutlineEditor({
           onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
         })
       }
-    } else if (evt.key === "ArrowDown" || (evt.key === "n" && evt.ctrlKey)) {
-      {
-        if (isMenuOpen) {
-          setSelectedMenuIndex(Math.min(selectedMenuIndex + 1, commands.length - 1))
-          evt.preventDefault()
-          evt.stopPropagation()
-          return
-        }
-
-        if (!selectedPath) {
-          return
-        }
-
-        if (node.children.length > 0 && !isCollapsed) {
-          onChangeSelectedPath(path.concat(0))
-          return
-        }
-
-        const nextPath = getNextPath(graph, selectedPath, node, parentIds)
-
-        if (nextPath) {
-          onChangeSelectedPath(nextPath)
-        }
-
-        evt.preventDefault()
-        evt.stopPropagation()
+    } else if (isArrowDown(evt)) {
+      if (!selectedPath) {
+        return
       }
-    } else if (evt.key === "ArrowUp" || (evt.key === "p" && evt.ctrlKey)) {
-      {
-        if (isMenuOpen) {
-          setSelectedMenuIndex(Math.max(selectedMenuIndex - 1, 0))
-          evt.preventDefault()
-          evt.stopPropagation()
-          return
-        }
 
-        // can't go up if node has no parent
-        if (!parentId) {
-          return
-        }
-
-        // if first child go up to parent
-        if (index === 0) {
-          onChangeSelectedPath(path.slice(0, -1))
-          return
-        }
-
-        const parent = getNode(graph, parentId)
-        const prevSiblingId = parent.children[index - 1]
-
-        // if previous sibling is collapsed pick it directly
-        if (isNodeCollapsed(graph, prevSiblingId)) {
-          onChangeSelectedPath(path.slice(0, -1).concat(index - 1))
-          return
-        }
-
-        // ... otherwise pick last child of previous sibling
-        onChangeSelectedPath(
-          getLastChildPath(graph, prevSiblingId, path.slice(0, -1).concat(index - 1))
-        )
-
-        evt.stopPropagation()
-        evt.preventDefault()
+      if (node.children.length > 0 && !isCollapsed) {
+        onChangeSelectedPath(path.concat(0))
+        return
       }
-    } else if (evt.key === "/") {
-      if (!isMenuOpen) {
-        setIsMenuOpen(true)
+
+      const nextPath = getNextPath(graph, selectedPath, node, parentIds)
+
+      if (nextPath) {
+        onChangeSelectedPath(nextPath)
       }
-    } else if (evt.key === "Escape") {
-      {
-        if (isMenuOpen) {
-          setIsMenuOpen(false)
-        }
+
+      evt.preventDefault()
+      evt.stopPropagation()
+    } else if (isArrowUp(evt)) {
+      // can't go up if node has no parent
+      if (!parentId) {
+        return
       }
+
+      // if first child go up to parent
+      if (index === 0) {
+        onChangeSelectedPath(path.slice(0, -1))
+        return
+      }
+
+      const parent = getNode(graph, parentId)
+      const prevSiblingId = parent.children[index - 1]
+
+      // if previous sibling is collapsed pick it directly
+      if (isNodeCollapsed(graph, prevSiblingId)) {
+        onChangeSelectedPath(path.slice(0, -1).concat(index - 1))
+        return
+      }
+
+      // ... otherwise pick last child of previous sibling
+      onChangeSelectedPath(
+        getLastChildPath(graph, prevSiblingId, path.slice(0, -1).concat(index - 1))
+      )
+
+      evt.stopPropagation()
+      evt.preventDefault()
     }
   }
 
@@ -752,6 +526,7 @@ export function OutlineEditor({
               })}
             >
               <NodeValueView
+                id={node.id}
                 value={node.value}
                 innerRef={contentRef}
                 onChange={onChange}
@@ -810,26 +585,6 @@ export function OutlineEditor({
         </div>
       </div>
 
-      {isMenuOpen && isFocused && (
-        // Command menu
-        <div className="absolute z-30 rounded p-1 bg-slate-100 shadow-md w-56 text-sm">
-          {commands.map((command, i) => {
-            return (
-              <div
-                key={command.title}
-                className={classNames("py-1 px-2 rounded-sm", {
-                  "bg-slate-300": commandSelection === i,
-                })}
-              >
-                {command.title}
-
-                {command.subtitle && <p className="text-xs">{command.subtitle}</p>}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
       <div
         className={classNames(
           "w-full border-b-2",
@@ -867,8 +622,9 @@ export function OutlineEditor({
   )
 }
 
-interface NodeValueViewProps {
+export interface NodeValueViewProps {
   value: NodeValue
+  id: string
   innerRef: RefObject<HTMLElement>
   onChange: (value: NodeValue) => void
   isFocused: boolean
@@ -876,7 +632,6 @@ interface NodeValueViewProps {
 }
 
 function NodeValueView(props: NodeValueViewProps) {
-  const { graph } = useGraph()
   const { value } = props
 
   if (isString(value)) {
@@ -897,41 +652,6 @@ function getLabelOfNode(node: Node<NodeValue>): string {
   }
 
   return node.value.type
-}
-
-interface TextNodeValueView extends NodeValueViewProps {
-  value: string
-}
-
-function TextNodeValueView({ value, innerRef, onChange, isFocused, onBlur }: TextNodeValueView) {
-  const _onChange = useCallback(() => {
-    const currentContent = innerRef.current
-
-    if (!currentContent) {
-      return
-    }
-
-    // todo: this is aweful, but for some reason if you read the content on the same frame it's empty ¯\_(ツ)_/¯
-    setTimeout(() => {
-      onChange(currentContent.innerText)
-    })
-  }, [onChange])
-
-  return (
-    <ContentEditable
-      innerRef={innerRef}
-      html={value}
-      onChange={_onChange}
-      style={
-        isFocused && value === ""
-          ? {
-              minWidth: "5px",
-            }
-          : undefined
-      }
-      onBlur={onBlur}
-    />
-  )
 }
 
 interface ImageNodeValueView extends NodeValueViewProps {
@@ -983,47 +703,6 @@ function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node<NodeValue
   }
 
   return currentNode
-}
-
-// adapted from: https://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
-function getCaretCharacterOffset(element: HTMLElement) {
-  var caretOffset = 0
-  var doc = element.ownerDocument || (element as any).document
-  var win = doc.defaultView || (doc as any).parentWindow
-  var sel
-  if (typeof win.getSelection != "undefined") {
-    sel = win.getSelection()
-    if (sel.rangeCount > 0) {
-      var range = win.getSelection().getRangeAt(0)
-      var preCaretRange = range.cloneRange()
-      preCaretRange.selectNodeContents(element)
-      preCaretRange.setEnd(range.endContainer, range.endOffset)
-      caretOffset = preCaretRange.toString().length
-    }
-  } else if ((sel = (doc as any).selection) && sel.type != "Control") {
-    var textRange = sel.createRange()
-    var preCaretTextRange = (doc.body as any).createTextRange()
-    preCaretTextRange.moveToElementText(element)
-    preCaretTextRange.setEndPoint("EndToEnd", textRange)
-    caretOffset = preCaretTextRange.text.length
-  }
-  return caretOffset
-}
-
-// adapted from https://stackoverflow.com/questions/6249095/how-to-set-the-caret-cursor-position-in-a-contenteditable-element-div#answer-6249440
-function setCaretCharacterOffset(element: HTMLElement, offset: number) {
-  var range = document.createRange()
-  var selection = window.getSelection()
-
-  try {
-    range.setStart(element.childNodes[0], offset) // todo: this throws sometimes
-    range.collapse(true)
-
-    selection!.removeAllRanges()
-    selection!.addRange(range)
-  } catch (err) {
-    console.log("bad")
-  }
 }
 
 function getNextPath(

@@ -43,7 +43,7 @@ export interface RefValue {
 
 export type NodeValue = string | ImageValue | RefValue
 
-export function isRef(value: NodeValue): boolean {
+export function isRef(value: NodeValue): value is RefValue {
   return typeof value === "object" && value.type === "ref"
 }
 

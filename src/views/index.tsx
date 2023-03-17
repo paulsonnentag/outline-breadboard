@@ -1,10 +1,10 @@
-import { ValueNode } from "../graph"
+import { Node, NodeValue } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { WeatherAveragesNodeView } from "./WeatherAveragesNodeView"
 
 export interface NodeViewProps {
-  node: ValueNode
+  node: Node<NodeValue>
   isFocused: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
 }
@@ -19,9 +19,7 @@ export function NodeView(props: NodeViewProps) {
       {node.view?.startsWith("table") && <TableNodeView {...props} />}
 
       {/* Computations */}
-      {node.computations?.includes("weather-averages") && (
-        <WeatherAveragesNodeView {...props} />
-      )}
+      {node.computations?.includes("weather-averages") && <WeatherAveragesNodeView {...props} />}
     </>
   )
 }

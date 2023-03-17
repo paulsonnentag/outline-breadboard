@@ -1,17 +1,16 @@
 import {
   createNode,
   createRecordNode,
-  createRefNode,
   getNode,
   Graph,
   ImageValue,
   isNodeCollapsed,
-  isReferenceNodeId,
+  isRef,
   Node,
   NodeValue,
   RecordDef,
   useGraph,
-  ValueNode,
+  createRef,
 } from "./graph"
 import {
   DragEvent,
@@ -70,7 +69,7 @@ export function OutlineEditor({
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]
   const isRoot = parentId === undefined
-  const isReferenceNode = isReferenceNodeId(graph, nodeId)
+  const isReferenceNode = isRef(node.value)
   const isCollapsed = isNodeCollapsed(graph, nodeId) && !isRoot
   const isCollapsable = node.children.length > 0
 
@@ -236,7 +235,7 @@ export function OutlineEditor({
               }
 
               changeGraph((graph) => {
-                const refNode = createRefNode(graph, prediction.place_id)
+                const refNode = createNode(graph, { value: createRef(prediction.place_id) })
                 onReplaceNode(refNode.id)
               })
             },
@@ -661,7 +660,7 @@ export function OutlineEditor({
         const sourceParent = getNode(graph, sourceParentId)
         delete sourceParent.children[sourceIndex]
       } else {
-        nodeIdToInsert = createRefNode(graph, sourceId).id
+        nodeIdToInsert = createNode(graph, { value: createRef(sourceId) }).id
       }
 
       if (node.children.length !== 0 || !parentId) {
@@ -684,7 +683,6 @@ export function OutlineEditor({
   useEffect(() => {
     if (contentRef.current && isFocused && document.activeElement !== contentRef.current) {
       contentRef.current.focus()
-      console.log("focus", focusOffset)
       setCaretCharacterOffset(contentRef.current, focusOffset)
     }
   }, [isFocused])
@@ -878,6 +876,7 @@ interface NodeValueViewProps {
 }
 
 function NodeValueView(props: NodeValueViewProps) {
+  const { graph } = useGraph()
   const { value } = props
 
   if (isString(value)) {
@@ -888,9 +887,11 @@ function NodeValueView(props: NodeValueViewProps) {
     case "image":
       return <ImageNodeValueView {...props} value={value} />
   }
+
+  return null
 }
 
-function getLabelOfNode(node: ValueNode): string {
+function getLabelOfNode(node: Node<NodeValue>): string {
   if (isString(node.value)) {
     return node.value
   }
@@ -968,7 +969,7 @@ function getLastChildPath(graph: Graph, nodeId: string, prefixPath: number[] = [
   return getLastChildPath(graph, lastChild, prefixPath.concat(lastIndex))
 }
 
-function getNodeAt(graph: Graph, nodeId: string, path: number[]): ValueNode | undefined {
+function getNodeAt(graph: Graph, nodeId: string, path: number[]): Node<NodeValue> | undefined {
   let currentNode = getNode(graph, nodeId)
 
   for (const index of path) {
@@ -1028,7 +1029,7 @@ function setCaretCharacterOffset(element: HTMLElement, offset: number) {
 function getNextPath(
   graph: Graph,
   selectedPath: number[],
-  node: Node,
+  node: Node<NodeValue>,
   parentIds: string[]
 ): number[] | undefined {
   const parentId = last(parentIds)

@@ -10,7 +10,7 @@ export interface GraphDoc {
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
   handle.change((doc) => {
-    const rootNode: ValueNode = {
+    const rootNode: Node<string> = {
       id: v4(),
       type: "value",
       value: "",
@@ -28,7 +28,7 @@ export function createGraphDoc(repo: Repo) {
 }
 
 export interface Graph {
-  [id: string]: Node
+  [id: string]: Node<NodeValue>
 }
 
 export interface ImageValue {
@@ -36,27 +36,30 @@ export interface ImageValue {
   url: string
 }
 
-export type NodeValue = string | ImageValue
+export interface RefValue {
+  type: "ref"
+  id: string
+}
 
-export interface ValueNode {
+export type NodeValue = string | ImageValue | RefValue
+
+export function isRef(value: NodeValue): boolean {
+  return typeof value === "object" && value.type === "ref"
+}
+
+export function createRef(id: string): RefValue {
+  return { type: "ref", id }
+}
+
+export interface Node<T extends NodeValue> {
   type: "value"
   id: string
+  value: T
   children: string[]
-  value: NodeValue
   view?: string
   computations?: string[]
   isCollapsed: boolean
 }
-
-export interface RefNode {
-  type: "ref"
-  id: string
-  refId: string
-  view?: string
-  isCollapsed: boolean
-}
-
-export type Node = ValueNode | RefNode
 
 type PropDef = [string, string | undefined] | NodeValue | undefined
 
@@ -66,20 +69,11 @@ export interface RecordDef {
   props: PropDef[]
 }
 
-export function createRefNode(graph: Graph, refId: string): RefNode {
-  const node: RefNode = {
-    type: "ref",
-    id: v4(),
-    isCollapsed: false,
-    refId,
-  }
-
-  graph[node.id] = node
-  return graph[node.id] as RefNode
-}
-
-export function createRecordNode(graph: Graph, { id = v4(), name, props }: RecordDef): ValueNode {
-  const recordNode = createNode(graph, { id, value: name })
+export function createRecordNode(
+  graph: Graph,
+  { id = v4(), name, props }: RecordDef
+): Node<string> {
+  const recordNode: Node<string> = createNode(graph, { id, value: name })
 
   for (const prop of props) {
     // key / property
@@ -102,14 +96,16 @@ export function createRecordNode(graph: Graph, { id = v4(), name, props }: Recor
   return recordNode
 }
 
-interface NodeDef {
+interface NodeDef<T extends NodeValue> {
   id?: string
-  value: NodeValue
+  value: T
   children?: string[]
 }
 
-export function createNode(graph: Graph, { id = v4(), value, children = [] }: NodeDef): ValueNode {
-  const node: ValueNode = {
+export function createNode<T extends NodeValue>(graph: Graph, nodeDef: NodeDef<T>): Node<T> {
+  const { id = v4(), value, children = [] } = nodeDef
+
+  const node: Node<T> = {
     type: "value",
     id,
     value,
@@ -119,7 +115,7 @@ export function createNode(graph: Graph, { id = v4(), value, children = [] }: No
 
   graph[node.id] = node
 
-  return getNode(graph, node.id) as ValueNode // need to lookup the node again to get a mutable version
+  return getNode<T>(graph, node.id)
 }
 
 export interface GraphContextProps {
@@ -140,29 +136,10 @@ export function useGraph(): GraphContextProps {
   return context
 }
 
-// todo: this assumes that you don't have cycles in your graph
-export function getNode(graph: Graph, nodeId: string): ValueNode {
-  const node = graph[nodeId]
-
-  if (node.type === "value") {
-    return node
-  }
-
-  return getNode(graph, node.refId)
-}
-
-export function isReferenceNodeId(graph: Graph, nodeId: string): boolean {
-  return graph[nodeId].type === "ref"
+export function getNode<T extends NodeValue>(graph: Graph, nodeId: string): Node<T> {
+  return graph[nodeId] as Node<T>
 }
 
 export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
   return graph[nodeId].isCollapsed
-}
-
-export function resolveNode(graph: Graph, node: Node): ValueNode {
-  if (node.type === "value") {
-    return node
-  }
-
-  return getNode(graph, node.refId)
 }

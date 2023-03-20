@@ -657,14 +657,6 @@ function NodeValueView(props: NodeValueViewProps) {
   return null
 }
 
-function getLabelOfNode(node: ValueNode<NodeValue>): string {
-  if (isString(node.value)) {
-    return node.value
-  }
-
-  return node.value.type
-}
-
 interface ImageNodeValueView extends NodeValueViewProps {
   value: ImageValue
 }

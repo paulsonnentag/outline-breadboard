@@ -1,9 +1,16 @@
 import { ValueInputProps } from "./TextNodeValueView"
-import { Ref, useEffect, useRef, useState } from "react"
-import { EditorView } from "@codemirror/view"
+import { useEffect, useRef, useState } from "react"
+import {
+  Decoration,
+  DecorationSet,
+  EditorView,
+  ViewPlugin,
+  ViewUpdate,
+  WidgetType,
+} from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { parseFormula } from "./formulas"
-import { getGraph, Graph, Node, useGraph } from "./graph"
+import { getGraph, getLabelOfNode, getNode, Node, useGraph } from "./graph"
 import { autocompletion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "./utils"
 
@@ -50,6 +57,8 @@ export function CodeInput({
     }
   }, [value, editorRef.current])
 
+  console.log(editorRef.current)
+
   useEffect(() => {
     const view = (editorRef.current = new EditorView({
       doc: value,
@@ -60,6 +69,7 @@ export function CodeInput({
           activateOnTyping: true,
           override: [mentionCompletionContext],
         }),
+        refIdTokenPlugin,
       ],
       parent: innerRef.current!,
       dispatch(transaction) {
@@ -109,6 +119,7 @@ async function mentionCompletionContext(context: CompletionContext) {
         node.type !== "value" ||
         !isString(node.value) ||
         node.value === "" ||
+        node.value.startsWith("=") ||
         !node.value.includes(name)
       ) {
         return []
@@ -117,4 +128,76 @@ async function mentionCompletionContext(context: CompletionContext) {
       return [{ label: node.value, apply: `@{${node.id}}` }]
     }),
   }
+}
+
+class RefIdWidget extends WidgetType {
+  constructor(readonly id: string) {
+    super()
+  }
+
+  eq(other: RefIdWidget) {
+    return other.id == this.id
+  }
+
+  toDOM() {
+    const graph = getGraph()
+    const node = getNode(graph, this.id)
+
+    const wrap = document.createElement("span")
+    wrap.setAttribute("aria-hidden", "true")
+    wrap.className = "px-2 py-1 rounded border border-gray-200"
+    wrap.innerText = getLabelOfNode(node)
+    return wrap
+  }
+
+  ignoreEvent() {
+    return false
+  }
+}
+
+const refIdTokenPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet
+
+    constructor(view: EditorView) {
+      this.decorations = refIdTokens(view)
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) this.decorations = refIdTokens(update.view)
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+  }
+)
+
+function refIdTokens(view: EditorView) {
+  const widgets = []
+
+  const docString = view.state.doc.toString()
+
+  for (let { from, to } of view.visibleRanges) {
+    const string = docString.slice(from, to)
+
+    console.log("trye", string)
+
+    const regex = new RegExp("@{([^@]+)}", "g")
+
+    let match
+    while ((match = regex.exec(string)) != null) {
+      console.log("match", match)
+      const value = match[0]
+      const from = match.index
+      const to = from + value.length
+      const id = match[1]
+
+      let deco = Decoration.replace({
+        widget: new RefIdWidget(id),
+        side: 1,
+      })
+      widgets.push(deco.range(from, to))
+    }
+  }
+  return Decoration.set(widgets)
 }

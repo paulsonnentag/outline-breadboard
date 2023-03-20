@@ -1,24 +1,33 @@
 import { createContext, useContext } from "react"
 import { DocHandle, Repo } from "automerge-repo"
 import { v4 } from "uuid"
+import { isString } from "./utils"
 
 export interface GraphDoc {
   rootNodeIds: string[]
   graph: Graph
 }
 
-let GRAPH_HANDLE: DocHandle<GraphDoc>
+let GRAPH_DOC: GraphDoc
 
-export function registerGraphHandle(handle: DocHandle<GraphDoc>) {
-  GRAPH_HANDLE = handle
+export async function registerGraphHandle(handle: DocHandle<GraphDoc>) {
+  if (GRAPH_DOC) {
+    throw new Error("graph handle has already been registered")
+  }
+
+  handle.on("change", () => {
+    GRAPH_DOC = handle.doc
+  })
+
+  GRAPH_DOC = await handle.value()
 }
 
-export function getGraph(): Promise<Graph> {
-  if (!GRAPH_HANDLE) {
+export function getGraph(): Graph {
+  if (!GRAPH_DOC) {
     throw new Error("no registered graph handle")
   }
 
-  return GRAPH_HANDLE.value().then(({ graph }) => graph)
+  return GRAPH_DOC.graph
 }
 
 export function createGraphDoc(repo: Repo) {
@@ -173,4 +182,12 @@ export function getNode<T extends NodeValue>(graph: Graph, nodeId: string): Valu
 
 export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
   return graph[nodeId].isCollapsed
+}
+
+export function getLabelOfNode(node: ValueNode<NodeValue>): string {
+  if (isString(node.value)) {
+    return node.value
+  }
+
+  return node.value.type
 }

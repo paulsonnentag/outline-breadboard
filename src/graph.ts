@@ -41,6 +41,7 @@ export type NodeValue = string | ImageValue
 export interface ValueNode<T extends NodeValue> {
   type: "value"
   id: string
+  key?: string
   value: T
   children: string[]
   view?: string

@@ -2,7 +2,7 @@ import { KeyboardEvent, useCallback, useEffect, useMemo, useState } from "react"
 import ContentEditable from "react-contenteditable"
 import { NodeValueViewProps } from "./OutlineEditor"
 import { isArrowDown, isArrowUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
-import { getCaretCharacterOffset, isString, mod } from "./utils"
+import { getCaretCharacterOffset, isString, mod, setCaretCharacterOffset } from "./utils"
 import { useStaticCallback } from "./hooks"
 import { createValueNode, getNode, Graph, useGraph, Node, createRefNode } from "./graph"
 import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
@@ -107,6 +107,7 @@ export function TextNodeValueView({
     [google]
   )
   const commandSearch = getCommandSearch(value)
+  const node = getNode(graph, id)
 
   let commands: Command[] = []
 
@@ -231,6 +232,30 @@ export function TextNodeValueView({
       return
     }
 
+    if (isColon(evt.key)) {
+      const contentRef = innerRef.current
+
+      if (node.key === undefined && contentRef) {
+        const offset = getCaretCharacterOffset(contentRef)
+
+        const key = value.slice(0, offset).trim()
+        const newValue = value.slice(offset)
+
+        if (key === "") {
+          return
+        }
+
+        changeGraph((graph) => {
+          const node = getNode(graph, id)
+
+          node.key = key
+          node.value = newValue
+
+          setCaretCharacterOffset(contentRef, 0)
+        })
+      }
+    }
+
     if (isBackspace(evt)) {
       if (endsWithCommandChar(value)) {
         setIsMenuOpen(false)
@@ -278,7 +303,8 @@ export function TextNodeValueView({
   })
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full flex">
+      {node.key && <span className="text-gray-500 bold pr-1">{node.key}:</span>}
       <ContentEditable
         innerRef={innerRef}
         html={value}
@@ -318,6 +344,10 @@ const COMMAND_REGEX = /([/@])([^/]*)$/
 
 function isCommandChar(char: string): boolean {
   return char === "/" || char === "@"
+}
+
+function isColon(char: string): boolean {
+  return char === ":"
 }
 
 function includesCommandChar(value: string): boolean {

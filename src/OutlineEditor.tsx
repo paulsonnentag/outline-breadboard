@@ -134,6 +134,15 @@ export function OutlineEditor({
         return
       }
 
+      // delete key first if element has key
+      if (node.key) {
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
+          delete node.key
+        })
+        return
+      }
+
       // if it's the first child join it with parent
       if (index === 0) {
         const parent = getNode(graph, parentId)
@@ -510,6 +519,7 @@ export function OutlineEditor({
                   invisible:
                     !isFocused &&
                     node.value == "" &&
+                    node.key === undefined &&
                     node.view === undefined &&
                     node.children.length === 0,
                 })}
@@ -521,7 +531,7 @@ export function OutlineEditor({
             </div>
             <div
               className={classNames("pr-2 w-fit", {
-                "pl-2": isFocused || node.value !== "",
+                "pl-2": isFocused || node.value !== "" || node.key !== undefined,
               })}
             >
               <NodeValueView

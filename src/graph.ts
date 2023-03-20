@@ -1,10 +1,24 @@
 import { createContext, useContext } from "react"
-import { Repo } from "automerge-repo"
+import { DocHandle, Repo } from "automerge-repo"
 import { v4 } from "uuid"
 
 export interface GraphDoc {
   rootNodeIds: string[]
   graph: Graph
+}
+
+let GRAPH_HANDLE: DocHandle<GraphDoc>
+
+export function registerGraphHandle(handle: DocHandle<GraphDoc>) {
+  GRAPH_HANDLE = handle
+}
+
+export function getGraph(): Promise<Graph> {
+  if (!GRAPH_HANDLE) {
+    throw new Error("no registered graph handle")
+  }
+
+  return GRAPH_HANDLE.value().then(({ graph }) => graph)
 }
 
 export function createGraphDoc(repo: Repo) {

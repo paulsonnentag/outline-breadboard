@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@automerge/automerge": "^2.0.1-alpha.1",
+    "@codemirror/autocomplete": "^6.4.2",
     "@codemirror/commands": "^6.2.2",
     "@codemirror/state": "^6.2.0",
     "@codemirror/view": "^6.9.2",

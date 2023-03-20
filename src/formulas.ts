@@ -23,11 +23,11 @@ Formula {
   NumberLiteral
     = digit+
 
-  ColRefChar
-  	= alnum+ | "_"
+  IdRefChar
+  	= alnum+ | "_" | "-"
 
   IdRef
-    = ColRefChar+
+    = "@{" IdRefChar+ "}"
 
   StringChar
     = alnum | "." | ":" | ">" | "-" | "(" | ")" | "[" | "]" | "=" | "'" | "/" | "*" | "!" | "$" | "_"
@@ -153,7 +153,7 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
   FunctionExp: function (fnName, _p1, args, _p2) {
     return new FnNode(fnName.sourceString, args.asIteration().toAst())
   },
-  IdRef: function (chars) {
+  IdRef: function (fo, chars, bar) {
     return new IdRefNode(chars.sourceString)
   },
   StringLiteral: function (_q1, string, _q2) {
@@ -306,7 +306,7 @@ class Formula implements AstNode {
     if (this.match.succeeded()) {
       return formulaSemantics(this.match).toAst().eval(graph)
     } else {
-      console.error(`Couldn't parse formula: ${this.match.message}`)
+      // console.error(`Couldn't parse formula: ${this.match.message}`)
       return `Error: ${this.match.message}`
     }
   }

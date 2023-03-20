@@ -1,9 +1,11 @@
 import { ValueInputProps } from "./TextNodeValueView"
-import { useContext, useEffect, useRef, useState } from "react"
+import { Ref, useEffect, useRef, useState } from "react"
 import { EditorView } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { parseFormula } from "./formulas"
-import { useGraph } from "./graph"
+import { getGraph, Graph, Node, useGraph } from "./graph"
+import { autocompletion, CompletionContext } from "@codemirror/autocomplete"
+import { isString } from "./utils"
 
 export function CodeInput({
   innerRef,
@@ -51,7 +53,14 @@ export function CodeInput({
   useEffect(() => {
     const view = (editorRef.current = new EditorView({
       doc: value,
-      extensions: [minimalSetup, EditorView.lineWrapping],
+      extensions: [
+        minimalSetup,
+        EditorView.lineWrapping,
+        autocompletion({
+          activateOnTyping: true,
+          override: [mentionCompletionContext],
+        }),
+      ],
       parent: innerRef.current!,
       dispatch(transaction) {
         view.update([transaction])
@@ -76,8 +85,36 @@ export function CodeInput({
 
   return (
     <div>
-      <div onKeyDownCapture={onKeyDown} onBlur={onBlur} ref={innerRef}></div>
+      <div onBlur={onBlur} ref={innerRef} onKeyDown={(evt) => evt.stopPropagation()}></div>
       <span className="text-blue-400">={JSON.stringify(computedValue)}</span>
     </div>
   )
+}
+
+async function mentionCompletionContext(context: CompletionContext) {
+  let reference = context.matchBefore(/@[^@]*/)
+
+  if (reference === null) {
+    return null
+  }
+
+  const name = reference.text.toString().slice(1).trim()
+  const graph = await getGraph()
+
+  return {
+    from: reference.from,
+    filter: false,
+    options: Object.values(graph).flatMap((node: Node) => {
+      if (
+        node.type !== "value" ||
+        !isString(node.value) ||
+        node.value === "" ||
+        !node.value.includes(name)
+      ) {
+        return []
+      }
+
+      return [{ label: node.value, apply: `@{${node.id}}` }]
+    }),
+  }
 }

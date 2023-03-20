@@ -5,7 +5,7 @@ import { RepoContext } from "automerge-repo-react-hooks"
 import "./index.css"
 import { LocalForageStorageAdapter } from "automerge-repo-storage-localforage"
 import { BrowserWebSocketClientAdapter } from "automerge-repo-network-websocket"
-import { createGraphDoc } from "./graph"
+import { createGraphDoc, GraphDoc, registerGraphHandle } from "./graph"
 import { Root } from "./Root"
 import "material-icons/iconfont/material-icons.css"
 
@@ -20,12 +20,19 @@ const repo = new Repo({
 const params = new URLSearchParams(window.location.search)
 
 let documentId = params.get("documentId") as DocumentId
+let handle
 
 if (!documentId) {
-  const handle = createGraphDoc(repo)
+  handle = createGraphDoc(repo)
   documentId = handle.documentId
   window.history.replaceState(null, "", `?documentId=${documentId}`)
 }
+
+if (!handle) {
+  handle = repo.find<GraphDoc>(documentId)
+}
+
+registerGraphHandle(handle)
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

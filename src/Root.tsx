@@ -1,10 +1,19 @@
 import { DocumentId } from "automerge-repo"
 import { useEffect, useMemo, useState } from "react"
-import { createValueNode, getNode, Graph, GraphContext, GraphContextProps, GraphDoc } from "./graph"
+import {
+  createValueNode,
+  getNode,
+  Graph,
+  GraphContext,
+  GraphContextProps,
+  GraphDoc,
+  ValueNode,
+} from "./graph"
 import { OutlineEditor } from "./OutlineEditor"
 import { useDocumentWithHistory } from "./history"
 import { IconButton } from "./IconButton"
 import classNames from "classnames"
+import { isString } from "./utils"
 
 interface RootProps {
   documentId: DocumentId
@@ -76,6 +85,15 @@ export function Root({ documentId }: RootProps) {
       doc.rootNodeIds[index] = newNodeId
     })
   }
+
+  const firstRootNodeId = doc?.rootNodeIds[0]
+  const firstRootNode: ValueNode<any> | undefined =
+    firstRootNodeId && graphContext ? getNode(graphContext.graph, firstRootNodeId) : undefined
+
+  useEffect(() => {
+    document.title =
+      firstRootNode?.value && isString(firstRootNode?.value) ? firstRootNode.value : "Breadboard"
+  }, [firstRootNode?.value])
 
   if (!graphContext || !doc) {
     return null

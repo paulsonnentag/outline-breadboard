@@ -1,5 +1,5 @@
 import * as ohm from "ohm-js"
-import { getNode, Graph } from "./graph"
+import { getNode, Graph, ValueNode } from "./graph"
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -64,7 +64,7 @@ function promisify(value: any) {
 }
 
 interface FunctionDef {
-  function: Function
+  function: (args: any[], graph: Graph) => any
   arguments?: {
     [arg: string]: string
   }
@@ -73,13 +73,25 @@ interface FunctionDef {
 
 const functions: { [name: string]: FunctionDef } = {
   Get: {
-    function: (object: any, key: string) => {
-      return promisify(object ? object[key] : undefined)
+    function: ([object, key], graph) => {
+      if (!object || !object.children || !key) {
+        return undefined
+      }
+
+      const valueNode = object.children
+        .map((childId: string) => getNode(graph, childId))
+        .find((childNode: ValueNode<any>) => {
+          console.log(childNode.key, key)
+
+          return childNode.key === key
+        })
+
+      return promisify(valueNode ? valueNode.value : undefined)
     },
   },
 
   And: {
-    function: (...args: any[]) => {
+    function: (args) => {
       return promisify(args.reduce((accumulator, element) => accumulator && element))
     },
     arguments: {
@@ -87,50 +99,49 @@ const functions: { [name: string]: FunctionDef } = {
     },
   },
   Or: {
-    function: (...args: any[]) =>
-      promisify(args.reduce((accumulator, element) => accumulator || element)),
+    function: (args) => promisify(args.reduce((accumulator, element) => accumulator || element)),
     arguments: {
       "values, ...": "The boolean values to perform OR across.",
     },
   },
   Not: {
-    function: (arg: any) => promisify(!arg),
+    function: ([arg]) => promisify(!arg),
     arguments: {
       "values, ...": "The boolean values to perform NOT across.",
     },
   },
   LessThan: {
-    function: (arg: any, value: any) => promisify(arg < value),
+    function: ([a, b]) => promisify(a < b),
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   GreaterThan: {
-    function: (arg: any, value: any) => promisify(arg > value),
+    function: ([a, b]) => promisify(a > b),
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   Divide: {
-    function: (x: number, y: number) => promisify(x / y),
+    function: ([x, y]) => promisify(x / y),
     description: "Divides one numeric value by another.",
   },
   Multiply: {
-    function: (x: number, y: number) => promisify(x * y),
+    function: ([x, y]) => promisify(x * y),
     description: "Multiplies two numeric values together.",
   },
   Plus: {
-    function: (x: number, y: number) => promisify(parseFloat(x) + parseFloat(y)),
+    function: ([x, y]) => promisify(parseFloat(x) + parseFloat(y)),
     description: "Adds two numeric values together.",
   },
   Minus: {
-    function: (x: number, y: number) => promisify(x - y),
+    function: ([x, y]) => promisify(x - y),
     description: "Subtracts one numeric value from another.",
   },
   Round: {
-    function: (x: number) => promisify(Math.round(x)),
+    function: ([x]) => promisify(Math.round(x)),
     arguments: {
       numeric: "The numeric value to round to integers.",
     },
@@ -180,7 +191,7 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
       [obj, key].map((x) => x.toAst())
     ),
 
-  PropertyName: (name) => new PropertyName(name.sourceString),
+  PropertyName: (name) => new StringNode(name.sourceString),
 })
 
 interface AstNode {
@@ -208,17 +219,17 @@ class FnNode implements AstNode {
       // Then look it up in our in-memory cache. (the cache isn't persisted,
       // it's just there to make re-evals smoother within pageloads)
 
-      const cacheKey = `${this.fnName}:${values.join("_:_")}`
+      /* const cacheKey = `${this.fnName}:${values.join("_:_")}`
 
       if (functionCache[cacheKey]) {
         //console.log("FROM CACHE:", this.fnName, row.id, values[0].tagName, values[1]);
         return functionCache[cacheKey]
-      } else {
-        const result = fn.apply(this, values)
-        functionCache[cacheKey] = result
-        //console.log("COMPUTED:", this.fnName, row.id, values[0].tagName, values[1]);
-        return result
-      }
+      } else { */
+      const result = fn(values, graph)
+      // functionCache[cacheKey] = result
+      //console.log("COMPUTED:", this.fnName, row.id, values[0].tagName, values[1]);
+      return result
+      // }
     })
   }
 
@@ -244,18 +255,6 @@ class IdRefNode implements AstNode {
 
   getIdRefs(): string[] {
     return [this.id]
-  }
-}
-
-class PropertyName implements AstNode {
-  constructor(readonly name: string) {}
-
-  eval() {
-    return promisify(this.name)
-  }
-
-  getIdRefs(): string[] {
-    return []
   }
 }
 

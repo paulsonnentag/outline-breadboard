@@ -1,10 +1,10 @@
-import { KeyboardEvent, useCallback, useEffect, useMemo, useState } from "react"
+import { KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useState } from "react"
 import ContentEditable from "react-contenteditable"
 import { NodeValueViewProps } from "./OutlineEditor"
 import { isArrowDown, isArrowUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
 import { getCaretCharacterOffset, isString, mod, setCaretCharacterOffset } from "./utils"
 import { useStaticCallback } from "./hooks"
-import { createValueNode, getNode, Graph, useGraph, Node, createRefNode } from "./graph"
+import { createValueNode, getNode, Graph, useGraph, Node, createRefNode, NodeValue } from "./graph"
 import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
 import classNames from "classnames"
 
@@ -198,17 +198,8 @@ export function TextNodeValueView({
 
   const selectedCommand = commands[Math.min(selectedItemIndex, commands.length - 1)]
 
-  const _onChange = useCallback(() => {
-    const currentContent = innerRef.current
-
-    if (!currentContent) {
-      return
-    }
-
-    // todo: this is aweful, but for some reason if you read the content on the same frame it's empty ¯\_(ツ)_/¯
-    setTimeout(() => {
-      const newValue = currentContent.innerText
-
+  const _onChange = useCallback(
+    (newValue: string) => {
       if (
         (!includesCommandChar(newValue) ||
           (innerRef.current && getCaretCharacterOffset(innerRef.current) !== newValue.length)) &&
@@ -218,8 +209,9 @@ export function TextNodeValueView({
       }
 
       onChange(newValue)
-    })
-  }, [onChange, isMenuOpen])
+    },
+    [onChange, isMenuOpen]
+  )
 
   const _onBlur = useCallback(() => {
     setIsMenuOpen(false)
@@ -305,19 +297,14 @@ export function TextNodeValueView({
   return (
     <div className="relative w-full flex">
       {node.key && <span className="text-gray-500 bold pr-1">{node.key}:</span>}
-      <ContentEditable
+
+      <ValueInput
         innerRef={innerRef}
-        html={value}
+        value={value}
         onChange={_onChange}
         onKeyDown={onKeyDown}
-        style={
-          isFocused && value === ""
-            ? {
-                minWidth: "5px",
-              }
-            : undefined
-        }
         onBlur={_onBlur}
+        isFocused={isFocused}
       />
 
       {isMenuOpen && (
@@ -377,4 +364,59 @@ function getCommandSearch(value: string): CommandSearch | undefined {
   }
 
   return undefined
+}
+
+interface ValueInputProps {
+  innerRef: RefObject<HTMLElement>
+  value: string
+  onChange: (value: string) => void
+  onKeyDown: (evt: KeyboardEvent) => void
+  onBlur: () => void
+  isFocused: boolean
+}
+
+function ValueInput(props: ValueInputProps) {
+  const { value } = props
+
+  if (value.startsWith("=")) {
+    return <CodeInput {...props} />
+  }
+
+  return <TextInput {...props} />
+}
+
+function TextInput({ innerRef, value, onChange, onKeyDown, onBlur, isFocused }: ValueInputProps) {
+  const _onChange = useStaticCallback(() => {
+    const currentContent = innerRef.current
+
+    if (!currentContent) {
+      return
+    }
+
+    // todo: this is aweful, but for some reason if you read the content on the same frame it's empty ¯\_(ツ)_/¯
+    setTimeout(() => {
+      onChange(currentContent.innerText)
+    })
+  })
+
+  return (
+    <ContentEditable
+      innerRef={innerRef}
+      html={value}
+      onChange={_onChange}
+      onKeyDown={onKeyDown}
+      style={
+        isFocused && value === ""
+          ? {
+              minWidth: "5px",
+            }
+          : undefined
+      }
+      onBlur={onBlur}
+    />
+  )
+}
+
+function CodeInput({}: ValueInputProps) {
+  return <div>= magic ✨</div>
 }

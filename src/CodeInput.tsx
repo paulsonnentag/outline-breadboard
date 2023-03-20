@@ -4,6 +4,7 @@ import {
   Decoration,
   DecorationSet,
   EditorView,
+  MatchDecorator,
   ViewPlugin,
   ViewUpdate,
   WidgetType,
@@ -57,19 +58,17 @@ export function CodeInput({
     }
   }, [value, editorRef.current])
 
-  console.log(editorRef.current)
-
   useEffect(() => {
     const view = (editorRef.current = new EditorView({
       doc: value,
       extensions: [
         minimalSetup,
         EditorView.lineWrapping,
+        refIdTokensPlugin,
         autocompletion({
           activateOnTyping: true,
           override: [mentionCompletionContext],
         }),
-        refIdTokenPlugin,
       ],
       parent: innerRef.current!,
       dispatch(transaction) {
@@ -94,7 +93,7 @@ export function CodeInput({
   }, [isFocused])
 
   return (
-    <div>
+    <div className="flex gap-2">
       <div onBlur={onBlur} ref={innerRef} onKeyDown={(evt) => evt.stopPropagation()}></div>
       <span className="text-blue-400">={JSON.stringify(computedValue)}</span>
     </div>
@@ -109,7 +108,7 @@ async function mentionCompletionContext(context: CompletionContext) {
   }
 
   const name = reference.text.toString().slice(1).trim()
-  const graph = await getGraph()
+  const graph = getGraph()
 
   return {
     from: reference.from,
@@ -136,7 +135,7 @@ class RefIdWidget extends WidgetType {
   }
 
   eq(other: RefIdWidget) {
-    return other.id == this.id
+    return false
   }
 
   toDOM() {
@@ -145,7 +144,7 @@ class RefIdWidget extends WidgetType {
 
     const wrap = document.createElement("span")
     wrap.setAttribute("aria-hidden", "true")
-    wrap.className = "px-2 py-1 rounded border border-gray-200"
+    wrap.className = "px-1 rounded border border-blue-700 bg-blue-500 text-white"
     wrap.innerText = getLabelOfNode(node)
     return wrap
   }
@@ -155,49 +154,29 @@ class RefIdWidget extends WidgetType {
   }
 }
 
-const refIdTokenPlugin = ViewPlugin.fromClass(
+const refIdMatcher = new MatchDecorator({
+  regexp: /@{([^@]+)}/g,
+  decoration: ([, id]) =>
+    Decoration.replace({
+      widget: new RefIdWidget(id),
+    }),
+})
+
+const refIdTokensPlugin = ViewPlugin.fromClass(
   class {
-    decorations: DecorationSet
-
+    placeholders: DecorationSet
     constructor(view: EditorView) {
-      this.decorations = refIdTokens(view)
+      this.placeholders = refIdMatcher.createDeco(view)
     }
-
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged) this.decorations = refIdTokens(update.view)
+      this.placeholders = refIdMatcher.updateDeco(update, this.placeholders)
     }
   },
   {
-    decorations: (v) => v.decorations,
+    decorations: (instance) => instance.placeholders,
+    provide: (plugin) =>
+      EditorView.atomicRanges.of((view) => {
+        return view.plugin(plugin)?.placeholders || Decoration.none
+      }),
   }
 )
-
-function refIdTokens(view: EditorView) {
-  const widgets = []
-
-  const docString = view.state.doc.toString()
-
-  for (let { from, to } of view.visibleRanges) {
-    const string = docString.slice(from, to)
-
-    console.log("trye", string)
-
-    const regex = new RegExp("@{([^@]+)}", "g")
-
-    let match
-    while ((match = regex.exec(string)) != null) {
-      console.log("match", match)
-      const value = match[0]
-      const from = match.index
-      const to = from + value.length
-      const id = match[1]
-
-      let deco = Decoration.replace({
-        widget: new RefIdWidget(id),
-        side: 1,
-      })
-      widgets.push(deco.range(from, to))
-    }
-  }
-  return Decoration.set(widgets)
-}

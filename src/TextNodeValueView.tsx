@@ -7,6 +7,7 @@ import { useStaticCallback } from "./hooks"
 import { createValueNode, getNode, Graph, useGraph, Node, createRefNode, NodeValue } from "./graph"
 import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
 import classNames from "classnames"
+import { CodeInput } from "./CodeInput"
 
 interface TextNodeValueView extends NodeValueViewProps {
   value: string
@@ -366,7 +367,7 @@ function getCommandSearch(value: string): CommandSearch | undefined {
   return undefined
 }
 
-interface ValueInputProps {
+export interface ValueInputProps {
   innerRef: RefObject<HTMLElement>
   value: string
   onChange: (value: string) => void
@@ -415,8 +416,4 @@ function TextInput({ innerRef, value, onChange, onKeyDown, onBlur, isFocused }: 
       onBlur={onBlur}
     />
   )
-}
-
-function CodeInput({}: ValueInputProps) {
-  return <div>= magic ✨</div>
 }

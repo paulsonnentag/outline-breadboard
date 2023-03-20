@@ -37,6 +37,7 @@ export function CodeInput({
           setComputedValue(result)
         })
       } catch (err) {
+        console.error(err)
         setComputedValue("invalid")
       }
     }
@@ -95,7 +96,7 @@ export function CodeInput({
   return (
     <div className="flex gap-2">
       <div onBlur={onBlur} ref={innerRef} onKeyDown={(evt) => evt.stopPropagation()}></div>
-      <span className="text-blue-400">={JSON.stringify(computedValue)}</span>
+      <span className="text-blue-400 max-w-[200px]">={JSON.stringify(computedValue)}</span>
     </div>
   )
 }

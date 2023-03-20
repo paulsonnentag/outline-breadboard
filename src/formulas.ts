@@ -11,11 +11,21 @@ Formula {
 
   Exp = AddExp
 
-  SimpleExp =
-    FunctionExp
+  SimpleExp 
+    = AccessExp
+    | FunctionExp
     | StringLiteral
     | NumberLiteral
     | IdRef
+
+  AccessExp
+    = SimpleExp "." PropertyName
+  
+  PropertyName 
+    = PropertyChar+
+    
+  PropertyChar
+    = alnum+ | "_"
 
   StringLiteral
     = "\\\"" StringChar+ "\\\""
@@ -62,8 +72,14 @@ interface FunctionDef {
 }
 
 const functions: { [name: string]: FunctionDef } = {
+  Get: {
+    function: (object: any, key: string) => {
+      return promisify(object ? object[key] : undefined)
+    },
+  },
+
   And: {
-    function: function (...args: any[]) {
+    function: (...args: any[]) => {
       return promisify(args.reduce((accumulator, element) => accumulator && element))
     },
     arguments: {
@@ -71,67 +87,50 @@ const functions: { [name: string]: FunctionDef } = {
     },
   },
   Or: {
-    function: function (...args: any[]) {
-      return promisify(args.reduce((accumulator, element) => accumulator || element))
-    },
+    function: (...args: any[]) =>
+      promisify(args.reduce((accumulator, element) => accumulator || element)),
     arguments: {
       "values, ...": "The boolean values to perform OR across.",
     },
   },
   Not: {
-    function: function (arg: any) {
-      return promisify(!arg)
-    },
+    function: (arg: any) => promisify(!arg),
     arguments: {
       "values, ...": "The boolean values to perform NOT across.",
     },
   },
   LessThan: {
-    function: function (arg: any, value: any) {
-      return promisify(arg < value)
-    },
+    function: (arg: any, value: any) => promisify(arg < value),
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   GreaterThan: {
-    function: function (arg: any, value: any) {
-      return promisify(arg > value)
-    },
+    function: (arg: any, value: any) => promisify(arg > value),
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   Divide: {
-    function: function (x: number, y: number) {
-      return promisify(x / y)
-    },
+    function: (x: number, y: number) => promisify(x / y),
     description: "Divides one numeric value by another.",
   },
   Multiply: {
-    function: function (x: number, y: number) {
-      return promisify(x * y)
-    },
+    function: (x: number, y: number) => promisify(x * y),
     description: "Multiplies two numeric values together.",
   },
   Plus: {
-    function: function (x: number, y: number) {
-      return promisify(parseFloat(x) + parseFloat(y))
-    },
+    function: (x: number, y: number) => promisify(parseFloat(x) + parseFloat(y)),
     description: "Adds two numeric values together.",
   },
   Minus: {
-    function: function (x: number, y: number) {
-      return promisify(x - y)
-    },
+    function: (x: number, y: number) => promisify(x - y),
     description: "Subtracts one numeric value from another.",
   },
   Round: {
-    function: function (x: number) {
-      return promisify(Math.round(x))
-    },
+    function: (x: number) => promisify(Math.round(x)),
     arguments: {
       numeric: "The numeric value to round to integers.",
     },
@@ -141,51 +140,47 @@ const functions: { [name: string]: FunctionDef } = {
 const formulaGrammar = ohm.grammar(GRAMMAR_SRC)
 
 const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", {
-  Formula: function (eq, e) {
-    return e.toAst()
-  },
+  Formula: (eq, e) => e.toAst(),
   Exp: function (e) {
     return e.toAst()
   },
-  SimpleExp: function (e) {
-    return e.toAst()
-  },
+  SimpleExp: (e) => e.toAst(),
   FunctionExp: function (fnName, _p1, args, _p2) {
     return new FnNode(fnName.sourceString, args.asIteration().toAst())
   },
-  IdRef: function (fo, chars, bar) {
-    return new IdRefNode(chars.sourceString)
-  },
+  IdRef: (fo, chars, bar) => new IdRefNode(chars.sourceString),
   StringLiteral: function (_q1, string, _q2) {
     return new StringNode(string.sourceString)
   },
-  NumberLiteral: function (num) {
-    return new NumberNode(num.sourceString)
-  },
-  MulExp_times: function (a, _, b) {
-    return new FnNode(
+  NumberLiteral: (num) => new NumberNode(num.sourceString),
+  MulExp_times: (a, _, b) =>
+    new FnNode(
       "Multiply",
       [a, b].map((x) => x.toAst())
-    )
-  },
-  MulExp_divide: function (a, _, b) {
-    return new FnNode(
+    ),
+  MulExp_divide: (a, _, b) =>
+    new FnNode(
       "Divide",
       [a, b].map((x) => x.toAst())
-    )
-  },
-  AddExp_plus: function (a, _, b) {
-    return new FnNode(
+    ),
+  AddExp_plus: (a, _, b) =>
+    new FnNode(
       "Plus",
       [a, b].map((x) => x.toAst())
-    )
-  },
-  AddExp_minus: function (a, _, b) {
-    return new FnNode(
+    ),
+  AddExp_minus: (a, _, b) =>
+    new FnNode(
       "Minus",
       [a, b].map((x) => x.toAst())
-    )
-  },
+    ),
+
+  AccessExp: (obj, _, key) =>
+    new FnNode(
+      "Get",
+      [obj, key].map((x) => x.toAst())
+    ),
+
+  PropertyName: (name) => new PropertyName(name.sourceString),
 })
 
 interface AstNode {
@@ -241,11 +236,7 @@ class FnNode implements AstNode {
 }
 
 class IdRefNode implements AstNode {
-  id: string
-
-  constructor(id: string) {
-    this.id = id
-  }
+  constructor(readonly id: string) {}
 
   eval(graph: Graph) {
     return promisify(getNode(graph, this.id))
@@ -256,12 +247,20 @@ class IdRefNode implements AstNode {
   }
 }
 
-class StringNode implements AstNode {
-  string: string
+class PropertyName implements AstNode {
+  constructor(readonly name: string) {}
 
-  constructor(str: string) {
-    this.string = str
+  eval() {
+    return promisify(this.name)
   }
+
+  getIdRefs(): string[] {
+    return []
+  }
+}
+
+class StringNode implements AstNode {
+  constructor(readonly string: string) {}
 
   eval(graph: Graph) {
     return promisify(this.string)

@@ -1,3 +1,5 @@
+// OLD METHOD that parse key value parse, use properties.ts instead
+
 import { getNode, Graph, NodeValue } from "./graph"
 import { isString } from "./utils"
 

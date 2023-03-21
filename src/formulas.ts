@@ -1,6 +1,7 @@
 import * as ohm from "ohm-js"
 import { getNode, Graph, ValueNode } from "./graph"
 import { isString } from "./utils"
+import { readLatLng, readProperty } from "./properties"
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -73,26 +74,28 @@ interface FunctionDef {
 }
 
 const functions: { [name: string]: FunctionDef } = {
+  Distance: {
+    function: ([node1, node2], graph) => {
+      const pos1 = readLatLng(graph, node1.id)
+      const pos2 = readLatLng(graph, node2.id)
+
+      console.log(readProperty(graph, node1.id, "position"))
+
+      if (!pos1 || !pos2) {
+        return undefined
+      }
+
+      return getDistanceFromLatLonInKm(pos1, pos2)
+    },
+  },
+
   Get: {
     function: ([object, key], graph) => {
       if (!object || !object.children || !key) {
         return undefined
       }
 
-      const valueNode = object.children
-        .map((childId: string) => getNode(graph, childId))
-        .find((childNode: ValueNode<any>) => {
-          console.log(childNode.key, key)
-
-          return childNode.key === key
-        })
-
-      const value =
-        valueNode.value && isString(valueNode.value) && valueNode.value.startsWith("=")
-          ? parseFormula(valueNode.value)?.eval(graph)
-          : valueNode?.value
-
-      return promisify(value)
+      return promisify(readProperty(graph, object.id, key, (value) => value))
     },
   },
 
@@ -154,6 +157,28 @@ const functions: { [name: string]: FunctionDef } = {
   },
 }
 
+function getDistanceFromLatLonInKm(
+  pos1: google.maps.LatLngLiteral,
+  pos2: google.maps.LatLngLiteral
+) {
+  var R = 6371 // Radius of the earth in km
+  var dLat = deg2rad(pos2.lat - pos1.lat) // deg2rad below
+  var dLon = deg2rad(pos2.lng - pos2.lng)
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(pos1.lat)) *
+      Math.cos(deg2rad(pos2.lat)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  var d = R * c // Distance in km
+  return d
+}
+
+function deg2rad(deg: number) {
+  return deg * (Math.PI / 180)
+}
+
 const formulaGrammar = ohm.grammar(GRAMMAR_SRC)
 
 const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", {
@@ -198,6 +223,8 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
     ),
 
   PropertyName: (name) => new StringNode(name.sourceString),
+
+  _iter: (...args) => args.map((arg) => arg.toAst()),
 })
 
 interface AstNode {

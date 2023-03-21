@@ -309,7 +309,10 @@ export function TextNodeValueView({
       />
 
       {isMenuOpen && (
-        <div className="absolute z-30 rounded p-1 bg-slate-100 shadow-md w-56 text-sm">
+        <div
+          className="absolute z-30 rounded p-1 bg-slate-100 shadow-md w-56 text-sm"
+          style={{ top: "100%" }}
+        >
           {commands.map((command, index) => (
             <div
               key={index}

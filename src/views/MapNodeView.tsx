@@ -21,8 +21,7 @@ import { useStaticCallback } from "../hooks"
 import { OutlineEditor } from "../OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
-import LatLngLiteral = google.maps.LatLngLiteral
-import LatLngBounds = google.maps.LatLngBounds
+import { getChildIdsWith, readColor, readLatLng } from "../properties"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -86,8 +85,6 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
   return isNaN(parsedValue) ? undefined : parsedValue
 })
 
-const ColorProperty = new Property<string>("color", (value) => value.trim())
-
 export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
@@ -95,7 +92,15 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const indexOfInput = InputProperty.getChildIndexesOfNode(graph, node.id)[0]
   const inputsNodeId = node.children[indexOfInput]
 
-  const childNodesWithLatLng = readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
+  const childNodeIdsWithLatLng = getChildIdsWith(
+    graph,
+    node.id,
+    (node, graph) => readLatLng(graph, node.id) !== undefined
+  )
+
+  node.children.flatMap(() => {})
+
+  readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
   const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
   const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
 
@@ -111,7 +116,9 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const minBounds =
     google &&
     getMinBounds(
-      childNodesWithLatLng.map((child) => child.data.position[0] as google.maps.LatLngLiteral)
+      childNodeIdsWithLatLng.map(
+        (childId) => readLatLng(graph, childId) as google.maps.LatLngLiteral
+      )
     )
 
   if (indexOfInput === undefined) {
@@ -219,7 +226,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
   useEffect(() => {
     const currentMap = mapRef.current
-    if (!currentMap || !google || childNodesWithLatLng.length === 0 || isDragging || isPanning) {
+    if (!currentMap || !google || childNodeIdsWithLatLng.length === 0 || isDragging || isPanning) {
       return
     }
 
@@ -237,7 +244,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       return
     }
     // but if we don't have this delay the zoom is not set correctly on initial load
-  }, [childNodesWithLatLng, google, isDragging, isPanning])
+  }, [childNodeIdsWithLatLng, google, isDragging, isPanning])
 
   // render markers on map
 
@@ -246,7 +253,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       return
     }
 
-    const totalMarkers = childNodesWithLatLng.length
+    const totalMarkers = childNodeIdsWithLatLng.length
 
     // cleanup unused markers and event listener
 
@@ -265,13 +272,13 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
     // update / create new markers
 
-    for (let i = 0; i < childNodesWithLatLng.length; i++) {
-      const childNodeWithLatLng: NodeData = childNodesWithLatLng[i]
+    for (let i = 0; i < childNodeIdsWithLatLng.length; i++) {
+      const childNodeId = childNodeIdsWithLatLng[i]
       const latLng = new google.maps.LatLng(
-        (childNodeWithLatLng.data.position as google.maps.LatLngLiteral[])[0]
+        readLatLng(graph, childNodeId) as google.maps.LatLngLiteral
       )
 
-      const color = ColorProperty.readValueOfNode(graph, childNodeWithLatLng.id)[0] ?? "blue"
+      const color = readColor(graph, childNodeId) ?? "blue"
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
@@ -299,14 +306,14 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       listenersRef.current.push(
         mapsMarker.addListener("click", () => {
           changeGraph((graph) => {
-            const node = getNode(graph, childNodeWithLatLng.id)
+            const node = getNode(graph, childNodeId)
 
             node.isCollapsed = false
           })
 
           if (popOverRef.current) {
             popOverRef.current.position = latLng.toJSON()
-            popOverRef.current.rootId = childNodeWithLatLng.id
+            popOverRef.current.rootId = childNodeId
             popOverRef.current.show()
             popOverRef.current.draw()
             popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
@@ -339,7 +346,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       mapsMarker.position = latLng
       // mapsMarker.zIndex = hoveredItemId === poiResult.id ? 10 : 0
     }
-  }, [childNodesWithLatLng, mapRef.current])
+  }, [childNodeIdsWithLatLng, mapRef.current])
 
   useEffect(() => {
     if (popOverRef.current) {
@@ -348,7 +355,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   }, [Math.random()])
 
   const onFitBounds = () => {
-    if (childNodesWithLatLng.length === 0) {
+    if (childNodeIdsWithLatLng.length === 0) {
       return
     }
 
@@ -362,7 +369,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       currentMap.fitBounds(minBounds, 25)
     }
 
-    if (childNodesWithLatLng.length === 1) {
+    if (childNodeIdsWithLatLng.length === 1) {
       currentMap.setZoom(11)
     }
   }
@@ -391,7 +398,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       <div className="top-0 left-0 right-0 bottom-0 absolute pointer-events-none flex items-center justify-center">
         <div className="material-icons text-gray-500">add</div>
       </div>
-      {childNodesWithLatLng.length > 0 && (
+      {childNodeIdsWithLatLng.length > 0 && (
         <button
           className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
           onClick={onFitBounds}
@@ -623,7 +630,7 @@ export async function createPlaceNode(
   })
 }
 
-function getMinBounds(points: LatLngLiteral[]): LatLngBounds {
+function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBounds {
   const bounds = new google.maps.LatLngBounds()
   for (const point of points) {
     bounds.extend(point)

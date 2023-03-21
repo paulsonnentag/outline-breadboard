@@ -397,8 +397,6 @@ export function OutlineEditor({
         console.log("onerror", err)
       }
       fileReader.onload = (value) => {
-        console.log("onload")
-
         try {
           const recordDefs: RecordDef[] = JSON.parse(fileReader.result as string)
 
@@ -446,7 +444,7 @@ export function OutlineEditor({
         nodeIdToInsert = createRefNode(graph, sourceId).id
       }
 
-      if (node.children.length !== 0 || !parentId) {
+      if ((node.children.length !== 0 || !parentId) && !isCollapsed) {
         // important to get node from mutable graph
         node.children.unshift(nodeIdToInsert)
       } else {

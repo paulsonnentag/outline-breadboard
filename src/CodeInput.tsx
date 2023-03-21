@@ -15,14 +15,7 @@ import { getGraph, getLabelOfNode, getNode, Node, useGraph } from "./graph"
 import { autocompletion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "./utils"
 
-export function CodeInput({
-  innerRef,
-  value,
-  onChange,
-  onKeyDown,
-  onBlur,
-  isFocused,
-}: ValueInputProps) {
+export function CodeInput({ innerRef, value, onChange, onBlur, isFocused }: ValueInputProps) {
   const { graph } = useGraph()
   const currentEditor = innerRef.current
   const editorRef = useRef<EditorView>()
@@ -37,7 +30,7 @@ export function CodeInput({
           setComputedValue(result)
         })
       } catch (err) {
-        // console.error(err)
+        console.error(err)
         setComputedValue("invalid")
       }
     }

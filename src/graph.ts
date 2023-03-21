@@ -2,6 +2,7 @@ import { createContext, useContext } from "react"
 import { DocHandle, Repo } from "automerge-repo"
 import { v4 } from "uuid"
 import { isString } from "./utils"
+import { parseFormula } from "./formulas"
 
 export interface GraphDoc {
   rootNodeIds: string[]
@@ -104,7 +105,7 @@ export function createRecordNode(
 
       // skip undefined values
       if (value !== undefined) {
-        const propertyNode = createValueNode(graph, { value: `${key}: ${value}` })
+        const propertyNode = createValueNode(graph, { value, key })
         recordNode.children.push(propertyNode.id)
       }
 
@@ -121,6 +122,7 @@ export function createRecordNode(
 interface NodeDef<T extends NodeValue> {
   id?: string
   value: T
+  key?: string
   children?: string[]
 }
 
@@ -128,7 +130,7 @@ export function createValueNode<T extends NodeValue>(
   graph: Graph,
   nodeDef: NodeDef<T>
 ): ValueNode<T> {
-  const { id = v4(), value, children = [] } = nodeDef
+  const { id = v4(), value, key, children = [] } = nodeDef
 
   const node: ValueNode<T> = {
     type: "value",
@@ -136,6 +138,10 @@ export function createValueNode<T extends NodeValue>(
     value,
     children,
     isCollapsed: false,
+  }
+
+  if (key) {
+    node.key = key
   }
 
   graph[node.id] = node

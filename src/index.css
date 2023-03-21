@@ -103,3 +103,16 @@
 .bullet.is-transcluded {
   border: 1px dashed gray;
 }
+
+/* codemirror */
+.cm-line {
+  font-size: 16px !important;
+}
+
+.cm-content {
+  padding: 0 !important;
+}
+
+.ͼ1.cm-focused{
+  outline: 0 !important;
+}

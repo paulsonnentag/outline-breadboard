@@ -1,5 +1,5 @@
 import { ValueInputProps } from "./TextNodeValueView"
-import { useEffect, useRef, useState } from "react"
+import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import {
   Decoration,
   DecorationSet,
@@ -37,7 +37,7 @@ export function CodeInput({
           setComputedValue(result)
         })
       } catch (err) {
-        console.error(err)
+        // console.error(err)
         setComputedValue("invalid")
       }
     }
@@ -81,22 +81,32 @@ export function CodeInput({
       },
     }))
 
+    if (isFocused && !view.hasFocus) {
+      view.focus()
+    }
+
     return () => {
       view.destroy()
     }
-  }, [currentEditor])
+  }, [currentEditor, isFocused])
 
   useEffect(() => {
-    if (isFocused && document.activeElement !== currentEditor && currentEditor) {
-      console.log("focus")
-      currentEditor.focus()
+    if (isFocused && editorRef.current && !editorRef.current.hasFocus) {
+      editorRef.current.focus()
     }
   }, [isFocused])
 
+  const _onKeyDown = (evt: KeyboardEvent) => {
+    evt.stopPropagation()
+  }
+
   return (
-    <div className="flex gap-2">
-      <div onBlur={onBlur} ref={innerRef} onKeyDown={(evt) => evt.stopPropagation()}></div>
-      <span className="text-blue-400 max-w-[200px]">={JSON.stringify(computedValue)}</span>
+    <div className="flex gap-2 items-baseline">
+      {isFocused && <div onKeyDown={_onKeyDown} onBlur={onBlur} ref={innerRef}></div>}
+      <span className="text-blue-400 max-w-[200px]">
+        {isFocused && "= "}
+        {JSON.stringify(computedValue)}
+      </span>
     </div>
   )
 }

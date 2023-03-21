@@ -2,6 +2,7 @@ import {
   createRecordNode,
   createRefNode,
   createValueNode,
+  getLabelOfNode,
   getNode,
   Graph,
   ImageValue,

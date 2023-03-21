@@ -1,5 +1,6 @@
 import * as ohm from "ohm-js"
 import { getNode, Graph, ValueNode } from "./graph"
+import { isString } from "./utils"
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -86,7 +87,12 @@ const functions: { [name: string]: FunctionDef } = {
           return childNode.key === key
         })
 
-      return promisify(valueNode ? valueNode.value : undefined)
+      const value =
+        valueNode.value && isString(valueNode.value) && valueNode.value.startsWith("=")
+          ? parseFormula(valueNode.value)?.eval(graph)
+          : valueNode?.value
+
+      return promisify(value)
     },
   },
 

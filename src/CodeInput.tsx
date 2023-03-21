@@ -57,7 +57,7 @@ export function CodeInput({
         )
       }
     }
-  }, [value, editorRef.current])
+  }, [value, editorRef.current, graph])
 
   useEffect(() => {
     const view = (editorRef.current = new EditorView({

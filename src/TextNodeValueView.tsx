@@ -7,7 +7,7 @@ import { useStaticCallback } from "./hooks"
 import { createValueNode, getNode, Graph, useGraph, Node, createRefNode, NodeValue } from "./graph"
 import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
 import classNames from "classnames"
-import { CodeInput } from "./CodeInput"
+import { TextInput } from "./TextInput"
 
 interface TextNodeValueView extends NodeValueViewProps {
   value: string
@@ -383,7 +383,7 @@ function ValueInput(props: ValueInputProps) {
   const { value } = props
 
   if (value.startsWith("=")) {
-    return <CodeInput {...props} />
+    return <TextInput {...props} />
   }
 
   return <TextInput {...props} />

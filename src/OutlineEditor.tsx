@@ -11,7 +11,6 @@ import {
   NodeValue,
   RecordDef,
   useGraph,
-  ValueNode,
 } from "./graph"
 import {
   DragEvent,
@@ -27,8 +26,8 @@ import {
 import classNames from "classnames"
 import { getCaretCharacterOffset, isString, last, setCaretCharacterOffset } from "./utils"
 import { NodeView } from "./views"
-import { TextNodeValueView } from "./TextNodeValueView"
 import { isArrowDown, isArrowUp, isBackspace, isEnter, isTab } from "./keyboardEvents"
+import { TextInput } from "./TextInput"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -107,14 +106,13 @@ export function OutlineEditor({
     [changeGraph]
   )
 
-  const onFocus = useCallback(
-    (evt: FocusEvent) => {
-      evt.stopPropagation()
+  const onFocus = () => {
+    onChangeSelectedPath(path)
+  }
 
-      onChangeSelectedPath(path)
-    },
-    [onChangeSelectedPath]
-  )
+  const onBlur = () => {
+    onChangeSelectedPath(undefined)
+  }
 
   const onRemoveView = () => {
     changeGraph((graph) => {
@@ -122,212 +120,170 @@ export function OutlineEditor({
     })
   }
 
-  const onKeyDown = (evt: ReactKeyboardEvent) => {
-    if (isBackspace(evt)) {
-      if (!contentRef.current || getCaretCharacterOffset(contentRef.current) !== 0) {
-        return
-      }
-
-      evt.preventDefault()
-      evt.stopPropagation()
-
-      if (node.children.length !== 0 || !parentId) {
-        return
-      }
-
-      // delete key first if element has key
-      if (node.key) {
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
-          delete node.key
-        })
-        return
-      }
-
-      // if it's the first child join it with parent
-      if (index === 0) {
-        const parent = getNode(graph, parentId)
-
-        // can't join with parent if parent is not text
-        if (!isString(parent.value)) {
-          return
-        }
-
-        changeGraph((graph) => {
-          const parent = getNode(graph, parentId)
-          delete parent.children[index]
-          const focusOffset = (parent.value as string).length
-          ;(parent.value as string) += node.value as string
-          onChangeSelectedPath(path.slice(0, -1), focusOffset)
-        })
-
-        // ... otherwise join it with the last child of the previous sibling
-      } else {
-        const parent = getNode(graph, parentId)
-        const prevSibling = getNode(graph, parent.children[index - 1])
-
-        const lastChildPath = getLastChildPath(graph, prevSibling.id)
-        const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
-
-        if (!prevNode) {
-          throw new Error("invalid state")
-        }
-
-        // can't join with prevNode if prevNode is not text
-        if (!isString(prevNode?.value)) {
-          return
-        }
-
-        const prevNodeId = prevNode.id
-        changeGraph((graph) => {
-          const parent = getNode(graph, parentId)
-          const prevNode = getNode(graph, prevNodeId)
-
-          delete parent.children[index]
-          const focusOffset = (prevNode.value as string).length
-          ;(prevNode.value as string) += node.value as string
-
-          onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath), focusOffset)
-        })
-      }
-    } else if (isEnter(evt)) {
-      {
-        evt.preventDefault()
-        evt.stopPropagation()
-
-        const contentElement = contentRef.current
-
-        if (!contentElement) {
-          return
-        }
-
-        if (!isString(node.value)) {
-          return
-        }
-
-        changeGraph((graph) => {
-          const node = getNode(graph, nodeId)
-          const caretOffset = getCaretCharacterOffset(contentElement)
-
-          const newNode = createValueNode(graph, {
-            value: (node.value as string).slice(caretOffset),
-          })
-
-          node.value = (node.value as string).slice(0, caretOffset)
-
-          if (node.children.length === 0 && parentId) {
-            const parent = getNode(graph, parentId)
-            parent.children.splice(index + 1, 0, newNode.id)
-            onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
-          } else {
-            if (parentId) {
-              const parent = getNode(graph, parentId)
-
-              if (caretOffset === 0) {
-                node.value = newNode.value
-                newNode.value = ""
-
-                parent.children.splice(index, 0, newNode.id)
-              } else {
-                parent.children.splice(index + 1, 0, newNode.id)
-              }
-
-              onChangeSelectedPath(path.slice(0, -2).concat(index + 1))
-            } else {
-              node.children.unshift(newNode.id)
-              onChangeSelectedPath(path.concat(0))
-            }
-          }
-        })
-      }
-    } else if (isTab(evt)) {
-      evt.preventDefault()
-      evt.stopPropagation()
-
-      // unindent
-      if (evt.shiftKey) {
-        // can't unindent root or top level node
-        if (!parentId || !grandParentId) {
-          return
-        }
-
-        changeGraph((graph) => {
-          const parent = getNode(graph, parentId)
-          const parentIndex = path[path.length - 2]
-          const grandParent = getNode(graph, grandParentId)
-
-          delete parent.children[index]
-          const newIndex = parentIndex + 1
-          grandParent.children.splice(newIndex, 0, nodeId)
-          onChangeSelectedPath(path.slice(0, -2).concat(newIndex))
-        })
-      } else {
-        // indent
-
-        // can't indent root or nodes that are already indented to the max
-        if (index == 0 || parentId === undefined) {
-          return
-        }
-
-        changeGraph((graph) => {
-          const parent = getNode(graph, parentId)
-          const prevSibling = getNode(graph, parent.children[index - 1])
-
-          const newIndex = prevSibling.children.length
-
-          delete parent.children[index]
-          prevSibling.children[newIndex] = nodeId
-
-          onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
-        })
-      }
-    } else if (isArrowDown(evt)) {
-      if (!selectedPath) {
-        return
-      }
-
-      if (node.children.length > 0 && !isCollapsed) {
-        onChangeSelectedPath(path.concat(0))
-        return
-      }
-
-      const nextPath = getNextPath(graph, selectedPath, node, parentIds)
-
-      if (nextPath) {
-        onChangeSelectedPath(nextPath)
-      }
-
-      evt.preventDefault()
-      evt.stopPropagation()
-    } else if (isArrowUp(evt)) {
-      // can't go up if node has no parent
-      if (!parentId) {
-        return
-      }
-
-      // if first child go up to parent
-      if (index === 0) {
-        onChangeSelectedPath(path.slice(0, -1))
-        return
-      }
-
-      const parent = getNode(graph, parentId)
-      const prevSiblingId = parent.children[index - 1]
-
-      // if previous sibling is collapsed pick it directly
-      if (isNodeCollapsed(graph, prevSiblingId)) {
-        onChangeSelectedPath(path.slice(0, -1).concat(index - 1))
-        return
-      }
-
-      // ... otherwise pick last child of previous sibling
-      onChangeSelectedPath(
-        getLastChildPath(graph, prevSiblingId, path.slice(0, -1).concat(index - 1))
-      )
-
-      evt.stopPropagation()
-      evt.preventDefault()
+  const onDelete = () => {
+    if (node.children.length !== 0 || !parentId) {
+      return
     }
+
+    // if it's the first child join it with parent
+    if (index === 0) {
+      const parent = getNode(graph, parentId)
+
+      // can't join with parent if parent is not text
+      if (!isString(parent.value)) {
+        return
+      }
+
+      changeGraph((graph) => {
+        const parent = getNode(graph, parentId)
+        delete parent.children[index]
+        const focusOffset = (parent.value as string).length
+        ;(parent.value as string) += node.value as string
+        onChangeSelectedPath(path.slice(0, -1), focusOffset)
+      })
+
+      // ... otherwise join it with the last child of the previous sibling
+    } else {
+      const parent = getNode(graph, parentId)
+      const prevSibling = getNode(graph, parent.children[index - 1])
+
+      const lastChildPath = getLastChildPath(graph, prevSibling.id)
+      const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
+
+      if (!prevNode) {
+        throw new Error("invalid state")
+      }
+
+      // can't join with prevNode if prevNode is not text
+      if (!isString(prevNode?.value)) {
+        return
+      }
+
+      const prevNodeId = prevNode.id
+      changeGraph((graph) => {
+        const parent = getNode(graph, parentId)
+        const prevNode = getNode(graph, prevNodeId)
+
+        delete parent.children[index]
+        const focusOffset = (prevNode.value as string).length
+        ;(prevNode.value as string) += node.value as string
+
+        onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath), focusOffset)
+      })
+    }
+  }
+
+  const onSplit = (splitIndex: number) => {
+    changeGraph((graph) => {
+      const node = getNode(graph, nodeId)
+
+      const newNode = createValueNode(graph, {
+        value: (node.value as string).slice(splitIndex),
+      })
+
+      node.value = (node.value as string).slice(0, splitIndex)
+
+      if (node.children.length === 0 && parentId) {
+        const parent = getNode(graph, parentId)
+        parent.children.splice(index + 1, 0, newNode.id)
+        onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
+      } else {
+        if (parentId) {
+          const parent = getNode(graph, parentId)
+
+          if (splitIndex === 0) {
+            node.value = newNode.value
+            newNode.value = ""
+
+            parent.children.splice(index, 0, newNode.id)
+          } else {
+            parent.children.splice(index + 1, 0, newNode.id)
+          }
+
+          onChangeSelectedPath(path.slice(0, -2).concat(index + 1))
+        } else {
+          node.children.unshift(newNode.id)
+          onChangeSelectedPath(path.concat(0))
+        }
+      }
+    })
+  }
+
+  const onIndent = () => {
+    // can't indent root or nodes that are already indented to the max
+    if (index == 0 || parentId === undefined) {
+      return
+    }
+
+    changeGraph((graph) => {
+      const parent = getNode(graph, parentId)
+      const prevSibling = getNode(graph, parent.children[index - 1])
+
+      const newIndex = prevSibling.children.length
+
+      delete parent.children[index]
+      prevSibling.children[newIndex] = nodeId
+
+      onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
+    })
+  }
+
+  const onOutdent = () => {
+    // can't outndent root or top level node
+    if (!parentId || !grandParentId) {
+      return
+    }
+
+    changeGraph((graph) => {
+      const parent = getNode(graph, parentId)
+      const parentIndex = path[path.length - 2]
+      const grandParent = getNode(graph, grandParentId)
+
+      delete parent.children[index]
+      const newIndex = parentIndex + 1
+      grandParent.children.splice(newIndex, 0, nodeId)
+      onChangeSelectedPath(path.slice(0, -2).concat(newIndex))
+    })
+  }
+
+  const onFocusDown = () => {
+    if (node.children.length > 0 && !isCollapsed) {
+      onChangeSelectedPath(path.concat(0))
+      return
+    }
+
+    const nextPath = getNextPath(graph, path, node, parentIds)
+
+    if (nextPath) {
+      onChangeSelectedPath(nextPath)
+    }
+  }
+
+  const onFocusUp = () => {
+    // can't go up if node has no parent
+    if (!parentId) {
+      return
+    }
+
+    // if first child go up to parent
+    if (index === 0) {
+      onChangeSelectedPath(path.slice(0, -1))
+      return
+    }
+
+    const parent = getNode(graph, parentId)
+    const prevSiblingId = parent.children[index - 1]
+
+    // if previous sibling is collapsed pick it directly
+    if (isNodeCollapsed(graph, prevSiblingId)) {
+      onChangeSelectedPath(path.slice(0, -1).concat(index - 1))
+      return
+    }
+
+    // ... otherwise pick last child of previous sibling
+    onChangeSelectedPath(
+      getLastChildPath(graph, prevSiblingId, path.slice(0, -1).concat(index - 1))
+    )
   }
 
   const onDragStart = (evt: DragEvent) => {
@@ -459,15 +415,6 @@ export function OutlineEditor({
     })
   }
 
-  // focus contenteditable
-
-  useEffect(() => {
-    if (contentRef.current && isFocused && document.activeElement !== contentRef.current) {
-      contentRef.current.focus()
-      setCaretCharacterOffset(contentRef.current, focusOffset)
-    }
-  }, [isFocused])
-
   if (!node) {
     return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
   }
@@ -482,8 +429,6 @@ export function OutlineEditor({
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        onKeyDown={onKeyDown}
-        onFocus={onFocus}
       >
         <div className="w-full flex cursor-text items-center">
           <div
@@ -533,16 +478,17 @@ export function OutlineEditor({
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
               })}
             >
-              <NodeValueView
-                id={node.id}
-                value={node.value}
-                innerRef={contentRef}
-                onChange={onChange}
+              <TextInput
                 isFocused={isFocused}
-                onReplaceNode={onReplaceNode}
-                onBlur={() => {
-                  onChangeSelectedPath(undefined)
-                }}
+                value={node.value as string}
+                onFocusUp={onFocusUp}
+                onFocusDown={onFocusDown}
+                onSplit={onSplit}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onIndent={onIndent}
+                onOutdent={onOutdent}
+                onChange={onChange}
               />
             </div>
 
@@ -645,7 +591,7 @@ function NodeValueView(props: NodeValueViewProps) {
   const { value } = props
 
   if (isString(value)) {
-    return <TextNodeValueView {...props} value={value} />
+    return <TextInput {...props} value={value} />
   }
 
   switch (value.type) {

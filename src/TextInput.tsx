@@ -15,45 +15,32 @@ import { getGraph, getLabelOfNode, getNode, Node, useGraph } from "./graph"
 import { autocompletion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "./utils"
 
-export function CodeInput({ innerRef, value, onChange, onBlur, isFocused }: ValueInputProps) {
-  const { graph } = useGraph()
-  const currentEditor = innerRef.current
-  const editorRef = useRef<EditorView>()
+interface TextInputProps {
+  isFocused: boolean
+  value: string
+  onFocusUp: () => void
+  onFocusDown: () => void
+  onSplit: (position: number) => void
+  onFocus: () => void
+  onBlur: () => void
+  onIndent: () => void
+  onOutdent: () => void
+  onChange: (value: string) => void
+}
+
+export function TextInput({ value, isFocused, onChange }: TextInputProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const editorViewRef = useRef<EditorView>()
   const [computedValue, setComputedValue] = useState<any>(null)
 
-  useEffect(() => {
-    const formula = parseFormula(value)
-
-    if (formula) {
-      try {
-        formula.eval(graph).then((result: any) => {
-          setComputedValue(result)
-        })
-      } catch (err) {
-        console.error(err)
-        setComputedValue("invalid")
-      }
-    }
-
-    if (editorRef.current && editorRef.current.state) {
-      const docValue = editorRef.current.state.doc.toString()
-
-      if (docValue !== value) {
-        editorRef.current?.dispatch(
-          editorRef.current.state.update({
-            changes: {
-              from: 0,
-              to: docValue.length,
-              insert: value,
-            },
-          })
-        )
-      }
-    }
-  }, [value, editorRef.current, graph])
+  // mount editor
 
   useEffect(() => {
-    const view = (editorRef.current = new EditorView({
+    if (!containerRef.current) {
+      return
+    }
+
+    const view = (editorViewRef.current = new EditorView({
       doc: value,
       extensions: [
         minimalSetup,
@@ -64,7 +51,7 @@ export function CodeInput({ innerRef, value, onChange, onBlur, isFocused }: Valu
           override: [mentionCompletionContext],
         }),
       ],
-      parent: innerRef.current!,
+      parent: containerRef.current,
       dispatch(transaction) {
         view.update([transaction])
 
@@ -81,27 +68,19 @@ export function CodeInput({ innerRef, value, onChange, onBlur, isFocused }: Valu
     return () => {
       view.destroy()
     }
-  }, [currentEditor, isFocused])
+  }, [containerRef.current])
+
+  // set focus
 
   useEffect(() => {
-    if (isFocused && editorRef.current && !editorRef.current.hasFocus) {
-      editorRef.current.focus()
+    const currentEditorView = editorViewRef.current
+
+    if (isFocused && currentEditorView && !currentEditorView.hasFocus) {
+      currentEditorView.focus()
     }
   }, [isFocused])
 
-  const _onKeyDown = (evt: KeyboardEvent) => {
-    evt.stopPropagation()
-  }
-
-  return (
-    <div className="flex gap-2 items-baseline">
-      {isFocused && <div onKeyDown={_onKeyDown} onBlur={onBlur} ref={innerRef}></div>}
-      <span className="text-blue-400 max-w-[200px]">
-        {isFocused && "= "}
-        {JSON.stringify(computedValue)}
-      </span>
-    </div>
-  )
+  return <div ref={containerRef}></div>
 }
 
 async function mentionCompletionContext(context: CompletionContext) {

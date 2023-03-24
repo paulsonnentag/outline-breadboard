@@ -59,6 +59,7 @@ export function TextInput({
         minimalSetup,
         EditorView.lineWrapping,
         refIdTokensPlugin,
+        keywordHighlightPlugin,
         autocompletion({
           activateOnTyping: true,
           override: [mentionCompletionContext],
@@ -247,6 +248,30 @@ const refIdTokensPlugin = ViewPlugin.fromClass(
     decorations: (instance) => instance.placeholders,
     provide: (plugin) =>
       EditorView.atomicRanges.of((view) => {
+        return view.plugin(plugin)?.placeholders || Decoration.none
+      }),
+  }
+)
+
+const keywordMatcher = new MatchDecorator({
+  regexp: /^[^:]+:/g,
+  decoration: () => Decoration.mark({ class: "text-gray-500" }),
+})
+
+const keywordHighlightPlugin = ViewPlugin.fromClass(
+  class {
+    placeholders: DecorationSet
+    constructor(view: EditorView) {
+      this.placeholders = keywordMatcher.createDeco(view)
+    }
+    update(update: ViewUpdate) {
+      this.placeholders = keywordMatcher.updateDeco(update, this.placeholders)
+    }
+  },
+  {
+    decorations: (instance) => instance.placeholders,
+    provide: (plugin) =>
+      EditorView.decorations.of((view) => {
         return view.plugin(plugin)?.placeholders || Decoration.none
       }),
   }

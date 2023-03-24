@@ -1,13 +1,12 @@
 import { KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useState } from "react"
 import ContentEditable from "react-contenteditable"
 import { NodeValueViewProps } from "./OutlineEditor"
-import { isArrowDown, isArrowUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
+import { isDown, isUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
 import { getCaretCharacterOffset, isString, mod, setCaretCharacterOffset } from "./utils"
 import { useStaticCallback } from "./hooks"
 import { createValueNode, getNode, Graph, useGraph, Node, createRefNode, NodeValue } from "./graph"
 import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
 import classNames from "classnames"
-import { TextInput } from "./TextInput"
 
 interface TextNodeValueView extends NodeValueViewProps {
   value: string
@@ -280,13 +279,13 @@ export function TextNodeValueView({
     }
 
     if (isMenuOpen) {
-      if (isArrowUp(evt)) {
+      if (isUp(evt)) {
         evt.stopPropagation()
         evt.preventDefault()
         setSelectedItemIndex((index) => mod(index - 1, commands.length))
         return
       }
-      if (isArrowDown(evt)) {
+      if (isDown(evt)) {
         evt.stopPropagation()
         evt.preventDefault()
         setSelectedItemIndex((index) => mod(index + 1, commands.length))

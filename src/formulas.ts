@@ -95,7 +95,7 @@ const functions: { [name: string]: FunctionDef } = {
         return undefined
       }
 
-      return promisify(readProperty(graph, object.id, key, (value) => value))
+      return promisify(readProperty(graph, object.id, key))
     },
   },
 

@@ -1,10 +1,10 @@
 import { KeyboardEvent as ReactKeyboardEvent } from "react"
 
-export function isArrowDown(evt: KeyboardEvent | ReactKeyboardEvent) {
+export function isDown(evt: KeyboardEvent | ReactKeyboardEvent) {
   return evt.key === "ArrowDown" || (evt.key === "n" && evt.ctrlKey)
 }
 
-export function isArrowUp(evt: KeyboardEvent | ReactKeyboardEvent) {
+export function isUp(evt: KeyboardEvent | ReactKeyboardEvent) {
   return evt.key === "ArrowUp" || (evt.key === "p" && evt.ctrlKey)
 }
 

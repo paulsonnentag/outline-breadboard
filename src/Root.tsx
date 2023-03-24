@@ -114,7 +114,6 @@ export function Root({ documentId }: RootProps) {
               <div className="absolute top-2 right-2 z-50">
                 <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
               </div>
-
               <OutlineEditor
                 index={0}
                 nodeId={rootId}

@@ -26,8 +26,9 @@ import {
 import classNames from "classnames"
 import { getCaretCharacterOffset, isString, last, setCaretCharacterOffset } from "./utils"
 import { NodeView } from "./views"
-import { isArrowDown, isArrowUp, isBackspace, isEnter, isTab } from "./keyboardEvents"
+import { isDown, isUp, isBackspace, isEnter, isTab } from "./keyboardEvents"
 import { TextInput } from "./TextInput"
+import { useStaticCallback } from "./hooks"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -68,16 +69,6 @@ export function OutlineEditor({
   const isCollapsable = node.children.length > 0
   const isReferenceNode = node.id !== nodeId
 
-  const onChange = useCallback(
-    (value: NodeValue) => {
-      changeGraph((graph) => {
-        const node = getNode(graph, nodeId)
-        node.value = value
-      })
-    },
-    [changeGraph]
-  )
-
   const onReplaceChildNodeAt = (index: number, newNodeId: string) => {
     changeGraph((graph) => {
       const node = getNode(graph, nodeId)
@@ -106,21 +97,28 @@ export function OutlineEditor({
     [changeGraph]
   )
 
-  const onFocus = () => {
-    onChangeSelectedPath(path)
-  }
-
-  const onBlur = () => {
-    onChangeSelectedPath(undefined)
-  }
-
   const onRemoveView = () => {
     changeGraph((graph) => {
       delete graph[nodeId].view
     })
   }
 
-  const onDelete = () => {
+  const onChange = useStaticCallback((value: NodeValue) => {
+    changeGraph((graph) => {
+      const node = getNode(graph, nodeId)
+      node.value = value
+    })
+  })
+
+  const onFocus = useStaticCallback(() => {
+    onChangeSelectedPath(path)
+  })
+
+  const onBlur = useStaticCallback(() => {
+    onChangeSelectedPath(undefined)
+  })
+
+  const onJoinWithPrev = useStaticCallback(() => {
     if (node.children.length !== 0 || !parentId) {
       return
     }
@@ -171,9 +169,9 @@ export function OutlineEditor({
         onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath), focusOffset)
       })
     }
-  }
+  })
 
-  const onSplit = (splitIndex: number) => {
+  const onSplit = useStaticCallback((splitIndex: number) => {
     changeGraph((graph) => {
       const node = getNode(graph, nodeId)
 
@@ -207,9 +205,9 @@ export function OutlineEditor({
         }
       }
     })
-  }
+  })
 
-  const onIndent = () => {
+  const onIndent = useStaticCallback(() => {
     // can't indent root or nodes that are already indented to the max
     if (index == 0 || parentId === undefined) {
       return
@@ -226,9 +224,9 @@ export function OutlineEditor({
 
       onChangeSelectedPath(path.slice(0, -1).concat(index - 1, newIndex))
     })
-  }
+  })
 
-  const onOutdent = () => {
+  const onOutdent = useStaticCallback(() => {
     // can't outndent root or top level node
     if (!parentId || !grandParentId) {
       return
@@ -244,9 +242,9 @@ export function OutlineEditor({
       grandParent.children.splice(newIndex, 0, nodeId)
       onChangeSelectedPath(path.slice(0, -2).concat(newIndex))
     })
-  }
+  })
 
-  const onFocusDown = () => {
+  const onFocusDown = useStaticCallback(() => {
     if (node.children.length > 0 && !isCollapsed) {
       onChangeSelectedPath(path.concat(0))
       return
@@ -257,9 +255,9 @@ export function OutlineEditor({
     if (nextPath) {
       onChangeSelectedPath(nextPath)
     }
-  }
+  })
 
-  const onFocusUp = () => {
+  const onFocusUp = useStaticCallback(() => {
     // can't go up if node has no parent
     if (!parentId) {
       return
@@ -284,7 +282,7 @@ export function OutlineEditor({
     onChangeSelectedPath(
       getLastChildPath(graph, prevSiblingId, path.slice(0, -1).concat(index - 1))
     )
-  }
+  })
 
   const onDragStart = (evt: DragEvent) => {
     evt.stopPropagation()
@@ -479,16 +477,18 @@ export function OutlineEditor({
               })}
             >
               <TextInput
-                isFocused={isFocused}
                 value={node.value as string}
+                isFocused={isFocused}
+                focusOffset={focusOffset}
+                onChange={onChange}
                 onFocusUp={onFocusUp}
                 onFocusDown={onFocusDown}
                 onSplit={onSplit}
+                onJoinWithPrev={onJoinWithPrev}
                 onFocus={onFocus}
                 onBlur={onBlur}
                 onIndent={onIndent}
                 onOutdent={onOutdent}
-                onChange={onChange}
               />
             </div>
 
@@ -585,29 +585,6 @@ export interface NodeValueViewProps {
   isFocused: boolean
   onBlur: () => void
   onReplaceNode: (newNodeId: string) => void
-}
-
-function NodeValueView(props: NodeValueViewProps) {
-  const { value } = props
-
-  if (isString(value)) {
-    return <TextInput {...props} value={value} />
-  }
-
-  switch (value.type) {
-    case "image":
-      return <ImageNodeValueView {...props} value={value} />
-  }
-
-  return null
-}
-
-interface ImageNodeValueView extends NodeValueViewProps {
-  value: ImageValue
-}
-
-function ImageNodeValueView({ value, innerRef }: ImageNodeValueView) {
-  return <img alt="" className="w-full max-h-[300px]" src={value.url} />
 }
 
 function arePathsEqual(path1: number[], path2: number[]) {

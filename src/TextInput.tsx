@@ -1,4 +1,3 @@
-import { ValueInputProps } from "./TextNodeValueView"
 import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import {
   Decoration,
@@ -10,25 +9,39 @@ import {
   WidgetType,
 } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { parseFormula } from "./formulas"
-import { getGraph, getLabelOfNode, getNode, Node, useGraph } from "./graph"
+import { getGraph, getLabelOfNode, getNode, Node } from "./graph"
 import { autocompletion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "./utils"
+import { isBackspace, isDown, isEnter, isTab, isUp } from "./keyboardEvents"
 
 interface TextInputProps {
-  isFocused: boolean
   value: string
+  isFocused: boolean
+  focusOffset: number
+  onChange: (value: string) => void
   onFocusUp: () => void
   onFocusDown: () => void
   onSplit: (position: number) => void
+  onJoinWithPrev: () => void
   onFocus: () => void
   onBlur: () => void
   onIndent: () => void
   onOutdent: () => void
-  onChange: (value: string) => void
 }
 
-export function TextInput({ value, isFocused, onChange }: TextInputProps) {
+export function TextInput({
+  value,
+  isFocused,
+  focusOffset,
+  onChange,
+  onOutdent,
+  onIndent,
+  onSplit,
+  onJoinWithPrev,
+  onFocusUp,
+  onFocusDown,
+  onFocus,
+}: TextInputProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
   const [computedValue, setComputedValue] = useState<any>(null)
@@ -68,7 +81,7 @@ export function TextInput({ value, isFocused, onChange }: TextInputProps) {
     return () => {
       view.destroy()
     }
-  }, [containerRef.current])
+  }, [])
 
   // set focus
 
@@ -77,10 +90,85 @@ export function TextInput({ value, isFocused, onChange }: TextInputProps) {
 
     if (isFocused && currentEditorView && !currentEditorView.hasFocus) {
       currentEditorView.focus()
+
+      setTimeout(() => {
+        currentEditorView.dispatch({
+          selection: {
+            anchor: focusOffset,
+            head: focusOffset,
+          },
+        })
+      })
     }
   }, [isFocused])
 
-  return <div ref={containerRef}></div>
+  // update value
+
+  useEffect(() => {
+    const currentEditorView = editorViewRef.current
+
+    if (!currentEditorView) {
+      return
+    }
+
+    if (editorViewRef.current && editorViewRef.current.state) {
+      const docValue = editorViewRef.current.state.doc.toString()
+
+      if (docValue !== value) {
+        editorViewRef.current?.dispatch(
+          editorViewRef.current.state.update({
+            changes: {
+              from: 0,
+              to: docValue.length,
+              insert: value,
+            },
+          })
+        )
+      }
+    }
+  }, [value, editorViewRef.current])
+
+  const onKeyDown = (evt: KeyboardEvent) => {
+    const currentEditorView = editorViewRef.current
+    if (!currentEditorView) {
+      return
+    }
+
+    if (isEnter(evt)) {
+      evt.preventDefault()
+      const ranges = currentEditorView.state.selection.ranges
+
+      // don't perform split if current selection is a range
+      if (ranges.length !== 1 || ranges[0].from !== ranges[0].to) {
+        return
+      }
+      onSplit(ranges[0].from)
+    } else if (isTab(evt)) {
+      evt.preventDefault()
+
+      if (evt.shiftKey) {
+        onOutdent()
+      } else {
+        onIndent()
+      }
+    } else if (isUp(evt)) {
+      evt.preventDefault()
+      onFocusUp()
+    } else if (isDown(evt)) {
+      evt.preventDefault()
+      onFocusDown()
+    } else if (isBackspace(evt)) {
+      const ranges = currentEditorView.state.selection.ranges
+
+      // join with previous if cursor is at beginning of text
+      if (ranges.length === 1 && ranges[0].from === 0 && ranges[0].to === 0) {
+        evt.preventDefault()
+        onJoinWithPrev()
+      }
+    }
+  }
+
+  return <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus}></div>
 }
 
 async function mentionCompletionContext(context: CompletionContext) {

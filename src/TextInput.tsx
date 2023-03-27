@@ -13,6 +13,7 @@ import { getGraph, getLabelOfNode, getNode, Node } from "./graph"
 import { autocompletion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "./utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "./keyboardEvents"
+import { parseFormula } from "./formulas"
 
 interface TextInputProps {
   value: string
@@ -60,6 +61,7 @@ export function TextInput({
         EditorView.lineWrapping,
         refIdTokensPlugin,
         keywordHighlightPlugin,
+        expressionEvalPlugin,
         autocompletion({
           activateOnTyping: true,
           override: [mentionCompletionContext],
@@ -274,5 +276,65 @@ const keywordHighlightPlugin = ViewPlugin.fromClass(
       EditorView.decorations.of((view) => {
         return view.plugin(plugin)?.placeholders || Decoration.none
       }),
+  }
+)
+
+class ExpressionWidget extends WidgetType {
+  constructor(readonly source: string) {
+    super()
+  }
+
+  eq(other: ExpressionWidget) {
+    return false
+  }
+
+  toDOM() {
+    const graph = getGraph()
+
+    const container = document.createElement("span")
+    container.setAttribute("aria-hidden", "true")
+    container.className = "italic text-purple-600 ml-2"
+    container.innerText = "="
+
+    parseFormula(this.source)
+      ?.eval(graph)
+      .then((result: any) => {
+        container.innerText = `= ${JSON.stringify(result)}`
+      })
+
+    return container
+  }
+
+  ignoreEvent() {
+    return false
+  }
+}
+
+const expressionMatcher = new MatchDecorator({
+  regexp: /\{[^}]+}/g,
+  decorate: (add, from, to, [source]) => {
+    add(
+      to,
+      to,
+      Decoration.widget({
+        widget: new ExpressionWidget(source),
+        side: 1,
+      })
+    )
+  },
+})
+
+const expressionEvalPlugin = ViewPlugin.fromClass(
+  class {
+    placeholders: DecorationSet
+    constructor(view: EditorView) {
+      this.placeholders = expressionMatcher.createDeco(view)
+    }
+    update(update: ViewUpdate) {
+      this.placeholders = expressionMatcher.updateDeco(update, this.placeholders)
+    }
+  },
+  {
+    decorations: (instance) => instance.placeholders,
   }
 )

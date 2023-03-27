@@ -7,13 +7,37 @@ import { readLatLng, readProperty } from "./properties"
 const functionCache: { [key: string]: any } = {}
 
 const GRAMMAR_SRC = `
-Formula {
-  Formula
-    = "=" Exp
+Node {
+  Node
+    = InlineExp
+
+  Text
+    = TextPart+
+
+  TextPart
+    = TextLiteral
+    | InlineExp
+
+  InlineExp
+    = "{" Exp "}"
+
+  Property
+    = Key ":" Text
+
+  ComputedProperty
+    = Key "=" Exp
+
+  Key
+    = PropertyChar+
+
+  TextLiteral = textChar+
+
+  textChar
+    = ~"{" any
 
   Exp = AddExp
 
-  SimpleExp 
+  SimpleExp
     = AccessExp
     | FunctionExp
     | StringLiteral
@@ -22,21 +46,21 @@ Formula {
 
   AccessExp
     = SimpleExp "." PropertyName
-  
-  PropertyName 
+
+  PropertyName
     = PropertyChar+
-    
+
   PropertyChar
     = alnum+ | "_"
 
   StringLiteral
-    = "\\\"" StringChar+ "\\\""
+    = "\\"" StringChar+ "\\""
 
   NumberLiteral
     = digit+
 
   IdRefChar
-  	= alnum+ | "_" | "-"
+    = alnum+ | "_" | "-"
 
   IdRef
     = "@{" IdRefChar+ "}"
@@ -74,6 +98,12 @@ interface FunctionDef {
 }
 
 const functions: { [name: string]: FunctionDef } = {
+  Route: {
+    function: () => {
+      return promisify("= 61 mi, 1h 2m")
+    },
+  },
+
   Distance: {
     function: ([node1, node2], graph) => {
       const pos1 = readLatLng(graph, node1.id)
@@ -182,11 +212,13 @@ function deg2rad(deg: number) {
 const formulaGrammar = ohm.grammar(GRAMMAR_SRC)
 
 const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", {
-  Formula: (eq, e) => e.toAst(),
-  Exp: function (e) {
+  Text: (e) => e.toAst(),
+  Exp: (e) => e.toAst(),
+  SimpleExp: (e) => e.toAst(),
+  InlineExp: (_, e, __) => {
     return e.toAst()
   },
-  SimpleExp: (e) => e.toAst(),
+
   FunctionExp: function (fnName, _p1, args, _p2) {
     return new FnNode(fnName.sourceString, args.asIteration().toAst())
   },
@@ -337,8 +369,8 @@ class Formula implements AstNode {
     if (this.match.succeeded()) {
       return formulaSemantics(this.match).toAst().eval(graph)
     } else {
-      // console.error(`Couldn't parse formula: ${this.match.message}`)
-      return `Error: ${this.match.message}`
+      console.error(`Couldn't parse formula: ${this.match.message}`)
+      return Promise.reject(`Error: ${this.match.message}`)
     }
   }
 
@@ -357,7 +389,7 @@ class Formula implements AstNode {
 }
 
 export function parseFormula(source: string): Formula | null {
-  if (source === null || source[0] !== "=") {
+  if (source === null) {
     return null
   } else {
     return new Formula(source, formulaGrammar.match(source))

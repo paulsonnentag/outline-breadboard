@@ -8,7 +8,6 @@ import {
   ImageValue,
   isNodeCollapsed,
   Node,
-  NodeValue,
   RecordDef,
   useGraph,
 } from "./graph"
@@ -103,7 +102,7 @@ export function OutlineEditor({
     })
   }
 
-  const onChange = useStaticCallback((value: NodeValue) => {
+  const onChange = useStaticCallback((value: string) => {
     changeGraph((graph) => {
       const node = getNode(graph, nodeId)
       node.value = value
@@ -578,10 +577,10 @@ export function OutlineEditor({
 }
 
 export interface NodeValueViewProps {
-  value: NodeValue
+  value: string
   id: string
   innerRef: RefObject<HTMLElement>
-  onChange: (value: NodeValue) => void
+  onChange: (value: string) => void
   isFocused: boolean
   onBlur: () => void
   onReplaceNode: (newNodeId: string) => void

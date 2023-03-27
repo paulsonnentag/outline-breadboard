@@ -1,10 +1,10 @@
 import { KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useState } from "react"
 import ContentEditable from "react-contenteditable"
 import { NodeValueViewProps } from "./OutlineEditor"
-import { isDown, isUp, isBackspace, isEnter, isEscape } from "./keyboardEvents"
+import { isBackspace, isDown, isEnter, isEscape, isUp } from "./keyboardEvents"
 import { getCaretCharacterOffset, isString, mod, setCaretCharacterOffset } from "./utils"
 import { useStaticCallback } from "./hooks"
-import { createValueNode, getNode, Graph, useGraph, Node, createRefNode, NodeValue } from "./graph"
+import { createRefNode, createValueNode, getNode, Graph, Node, useGraph } from "./graph"
 import { createPlaceNode, InputProperty, LatLongProperty, useGoogleApi } from "./views/MapNodeView"
 import classNames from "classnames"
 
@@ -267,7 +267,7 @@ export function TextNodeValueView({
         evt.preventDefault()
         evt.stopPropagation()
         changeGraph((graph) => {
-          let node = getNode<string>(graph, id)
+          let node = getNode(graph, id)
           node.value = node.value.slice(0, -(commandSearch!.search.length + 1))
           selectedCommand.action(graph, id)
         })

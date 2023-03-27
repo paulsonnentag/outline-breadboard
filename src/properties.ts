@@ -1,6 +1,5 @@
 import { isString } from "./utils"
-import { parseFormula } from "./formulas"
-import { getNode, Graph, NodeValue, ValueNode } from "./graph"
+import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
@@ -29,7 +28,7 @@ export function readParsedProperty<T>(
   key: string,
   parse: (value: any) => T | undefined
 ): T | undefined {
-  const children: ValueNode<NodeValue>[] = getNode(graph, nodeId).children.map((childId: string) =>
+  const children: ValueNode[] = getNode(graph, nodeId).children.map((childId: string) =>
     getNode(graph, childId)
   )
 
@@ -73,7 +72,7 @@ export function readColor(graph: Graph, nodeId: string): string | undefined {
 export function getChildIdsWith(
   graph: Graph,
   nodeId: string,
-  filter: (node: ValueNode<NodeValue>, graph: Graph) => boolean
+  filter: (node: ValueNode, graph: Graph) => boolean
 ): string[] {
   const result: { [id: string]: boolean } = {}
   const node = getNode(graph, nodeId)

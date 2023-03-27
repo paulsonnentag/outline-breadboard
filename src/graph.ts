@@ -34,7 +34,7 @@ export function getGraph(): Graph {
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
   handle.change((doc) => {
-    const rootNode: ValueNode<string> = {
+    const rootNode: ValueNode = {
       id: v4(),
       type: "value",
       value: "",
@@ -60,13 +60,11 @@ export interface ImageValue {
   url: string
 }
 
-export type NodeValue = string | ImageValue
-
-export interface ValueNode<T extends NodeValue> {
+export interface ValueNode {
   type: "value"
   id: string
   key?: string
-  value: T
+  value: string
   children: string[]
   view?: string
   computations?: string[]
@@ -82,9 +80,9 @@ export interface RefNode {
   computations?: string[]
 }
 
-export type Node = ValueNode<NodeValue> | RefNode
+export type Node = ValueNode | RefNode
 
-type PropDef = [string, string | undefined] | NodeValue | undefined
+type PropDef = [string, string | undefined] | undefined
 
 export interface RecordDef {
   id?: string
@@ -92,11 +90,8 @@ export interface RecordDef {
   props: PropDef[]
 }
 
-export function createRecordNode(
-  graph: Graph,
-  { id = v4(), name, props }: RecordDef
-): ValueNode<string> {
-  const recordNode: ValueNode<string> = createValueNode(graph, { id, value: name })
+export function createRecordNode(graph: Graph, { id = v4(), name, props }: RecordDef): ValueNode {
+  const recordNode: ValueNode = createValueNode(graph, { id, value: name })
 
   for (const prop of props) {
     // key / property
@@ -119,23 +114,20 @@ export function createRecordNode(
   return recordNode
 }
 
-interface NodeDef<T extends NodeValue> {
+interface NodeDef {
   id?: string
-  value: T
+  value: string
   key?: string
   children?: string[]
 }
 
-export function createValueNode<T extends NodeValue>(
-  graph: Graph,
-  nodeDef: NodeDef<T>
-): ValueNode<T> {
+export function createValueNode(graph: Graph, nodeDef: NodeDef): ValueNode {
   const { id = v4(), value, key, children = [] } = nodeDef
 
-  const node: ValueNode<T> = {
+  const node: ValueNode = {
     type: "value",
     id,
-    value,
+    value: key ? `${key}: ${value}` : value,
     children,
     isCollapsed: false,
   }
@@ -146,7 +138,7 @@ export function createValueNode<T extends NodeValue>(
 
   graph[node.id] = node
 
-  return getNode<T>(graph, node.id)
+  return getNode(graph, node.id)
 }
 
 export function createRefNode(graph: Graph, nodeId: string): RefNode {
@@ -180,20 +172,16 @@ export function useGraph(): GraphContextProps {
   return context
 }
 
-export function getNode<T extends NodeValue>(graph: Graph, nodeId: string): ValueNode<T> {
+export function getNode(graph: Graph, nodeId: string): ValueNode {
   const node = graph[nodeId]
 
-  return node.type === "ref" ? getNode<T>(graph, node.refId) : node
+  return node.type === "ref" ? getNode(graph, node.refId) : node
 }
 
 export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
   return graph[nodeId].isCollapsed
 }
 
-export function getLabelOfNode(node: ValueNode<NodeValue>): string {
-  if (isString(node.value)) {
-    return node.value
-  }
-
-  return node.value.type
+export function getLabelOfNode(node: ValueNode): string {
+  return node.value
 }

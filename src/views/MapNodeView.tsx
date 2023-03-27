@@ -41,7 +41,7 @@ const loader = new Loader({
   libraries: ["places", "marker"],
 })
 
-const googleApi = loader.load()
+export const googleApi = loader.load()
 
 export function useGoogleApi(): typeof google | undefined {
   const [api, setApi] = useState<typeof google>()
@@ -583,7 +583,7 @@ const asyncPlacesService = googleApi.then(
 export async function createPlaceNode(
   changeGraph: (fn: (graph: Graph) => void) => void,
   placeId: string
-): Promise<ValueNode<string>> {
+): Promise<ValueNode> {
   return new Promise((resolve) => {
     asyncPlacesService.then((placesService) => {
       placesService.getDetails(
@@ -613,7 +613,7 @@ export async function createPlaceNode(
               id: placeId,
               name,
               props: [
-                { type: "image", url: photo } as ImageValue,
+                // { type: "image", url: photo } as ImageValue, todo: add back images
                 ["rating", rating],
                 ["address", address],
                 ["phone", phone],
@@ -651,7 +651,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
   if (latLongInputIndex !== undefined) {
     getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
   } else {
-    const latLngPropertyNode: ValueNode<string> = {
+    const latLngPropertyNode: ValueNode = {
       id: v4(),
       type: "value",
       value: latLongValue,
@@ -671,7 +671,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
       zoomPropertyNode.value = zoomValue
     }
   } else {
-    const zoomPropertyNode: ValueNode<string> = {
+    const zoomPropertyNode: ValueNode = {
       id: v4(),
       type: "value",
       value: zoomValue,

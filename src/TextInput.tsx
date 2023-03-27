@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useRef, useState } from "react"
+import { KeyboardEvent, useEffect, useRef } from "react"
 import {
   Decoration,
   DecorationSet,
@@ -9,11 +9,17 @@ import {
   WidgetType,
 } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { getGraph, getLabelOfNode, getNode, Node } from "./graph"
-import { autocompletion, CompletionContext, completionStatus } from "@codemirror/autocomplete"
+import { getGraph, getLabelOfNode, getNode, Graph, Node, useGraph } from "./graph"
+import {
+  autocompletion,
+  Completion,
+  CompletionContext,
+  completionStatus,
+} from "@codemirror/autocomplete"
 import { isString } from "./utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "./keyboardEvents"
 import { parseFormula } from "./formulas"
+import { createPlaceNode, googleApi } from "./views/MapNodeView"
 
 interface TextInputProps {
   value: string
@@ -30,6 +36,10 @@ interface TextInputProps {
   onOutdent: () => void
 }
 
+const placesAutocompleteApi = googleApi.then(
+  (google) => new google.maps.places.AutocompleteService()
+)
+
 export function TextInput({
   value,
   isFocused,
@@ -43,6 +53,7 @@ export function TextInput({
   onFocusDown,
   onFocus,
 }: TextInputProps) {
+  const { changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
 
@@ -63,7 +74,7 @@ export function TextInput({
         expressionEvalPlugin,
         autocompletion({
           activateOnTyping: true,
-          override: [mentionCompletionContext],
+          override: [getMentionCompletionContext(changeGraph)],
         }),
       ],
       parent: containerRef.current,
@@ -188,33 +199,80 @@ export function TextInput({
   return <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus}></div>
 }
 
-async function mentionCompletionContext(context: CompletionContext) {
-  let reference = context.matchBefore(/@[^@]*/)
+function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
+  return async function mentionCompletionContext(context: CompletionContext) {
+    let reference = context.matchBefore(/@[^@]*/)
 
-  if (reference === null) {
-    return null
-  }
+    if (reference === null) {
+      return null
+    }
 
-  const name = reference.text.toString().slice(1).trim()
-  const graph = getGraph()
+    const graph = getGraph()
+    const search = reference.text.toString().slice(1).trim()
 
-  return {
-    from: reference.from,
-    filter: false,
-    options: Object.values(graph).flatMap((node: Node) => {
+    const placesOptions = await getPlacesAutocompletion(search, graph, changeGraph)
+
+    const nodeOptions: Completion[] = Object.values(graph).flatMap((node: Node) => {
       if (
         node.type !== "value" ||
         !isString(node.value) ||
         node.value === "" ||
         node.value.startsWith("=") ||
-        !node.value.includes(name)
+        !node.value.includes(search)
       ) {
         return []
       }
 
       return [{ label: node.value, apply: `#[${node.id}]` }]
-    }),
+    })
+
+    return {
+      from: reference.from,
+      filter: false,
+      options: nodeOptions.concat(placesOptions),
+    }
   }
+}
+
+async function getPlacesAutocompletion(
+  search: string,
+  graph: Graph,
+  changeGraph: (fn: (graph: Graph) => void) => void
+): Promise<Completion[]> {
+  if (search === "") {
+    return []
+  }
+
+  const result: google.maps.places.AutocompleteResponse = await placesAutocompleteApi.then(
+    (autocomplete) => autocomplete.getPlacePredictions({ input: search })
+  )
+
+  return result.predictions.flatMap((prediction) => {
+    if (graph[prediction.place_id]) {
+      return []
+    }
+
+    return [
+      {
+        label: prediction.description,
+        apply: async (view, completion, from, to) => {
+          if (!graph[prediction.place_id]) {
+            await createPlaceNode(changeGraph, prediction.place_id)
+          }
+
+          view.dispatch(
+            view.state.update({
+              changes: {
+                from: from,
+                to: to,
+                insert: `#[${prediction.place_id}]`,
+              },
+            })
+          )
+        },
+      } as Completion,
+    ]
+  })
 }
 
 class RefIdWidget extends WidgetType {
@@ -253,9 +311,11 @@ const refIdMatcher = new MatchDecorator({
 const refIdTokensPlugin = ViewPlugin.fromClass(
   class {
     placeholders: DecorationSet
+
     constructor(view: EditorView) {
       this.placeholders = refIdMatcher.createDeco(view)
     }
+
     update(update: ViewUpdate) {
       this.placeholders = refIdMatcher.updateDeco(update, this.placeholders)
     }
@@ -277,9 +337,11 @@ const keywordMatcher = new MatchDecorator({
 const keywordHighlightPlugin = ViewPlugin.fromClass(
   class {
     placeholders: DecorationSet
+
     constructor(view: EditorView) {
       this.placeholders = keywordMatcher.createDeco(view)
     }
+
     update(update: ViewUpdate) {
       this.placeholders = keywordMatcher.updateDeco(update, this.placeholders)
     }
@@ -341,9 +403,11 @@ const expressionMatcher = new MatchDecorator({
 const expressionEvalPlugin = ViewPlugin.fromClass(
   class {
     placeholders: DecorationSet
+
     constructor(view: EditorView) {
       this.placeholders = expressionMatcher.createDeco(view)
     }
+
     update(update: ViewUpdate) {
       this.placeholders = expressionMatcher.updateDeco(update, this.placeholders)
     }

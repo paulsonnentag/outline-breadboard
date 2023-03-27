@@ -1,15 +1,6 @@
 import { NodeViewProps } from "./index"
 import { LatLongProperty } from "./MapNodeView"
-import {
-  createValueNode,
-  createRecordNode,
-  getNode,
-  Graph,
-  useGraph,
-  Node,
-  NodeValue,
-  ValueNode,
-} from "../graph"
+import { createRecordNode, createValueNode, getNode, Graph, useGraph, ValueNode } from "../graph"
 import { useEffect } from "react"
 import { Property } from "../property"
 import useDebounce from "../hooks"
@@ -71,7 +62,7 @@ const outputProperty = new Property("output", () => {
   return true
 })
 
-function getInputNode(graph: Graph, nodeId: string): ValueNode<NodeValue> | undefined {
+function getInputNode(graph: Graph, nodeId: string): ValueNode | undefined {
   const node = getNode(graph, nodeId)
 
   for (const childId of node.children) {

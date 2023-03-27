@@ -1,6 +1,6 @@
 // OLD METHOD that parse key value parse, use properties.ts instead
 
-import { getNode, Graph, NodeValue } from "./graph"
+import { getNode, Graph } from "./graph"
 import { isString } from "./utils"
 
 export interface NodeData {
@@ -54,11 +54,11 @@ export class Property<T> {
     this.regex = new RegExp(`^${key}:`)
   }
 
-  matchesValue(value: NodeValue): boolean {
+  matchesValue(value: string): boolean {
     return isString(value) && this.regex.test(value)
   }
 
-  parseValue(value: NodeValue): T | undefined {
+  parseValue(value: string): T | undefined {
     if (!isString(value)) {
       return
     }

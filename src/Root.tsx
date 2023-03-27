@@ -87,7 +87,7 @@ export function Root({ documentId }: RootProps) {
   }
 
   const firstRootNodeId = doc?.rootNodeIds[0]
-  const firstRootNode: ValueNode<any> | undefined =
+  const firstRootNode: ValueNode | undefined =
     firstRootNodeId && graphContext ? getNode(graphContext.graph, firstRootNodeId) : undefined
 
   useEffect(() => {

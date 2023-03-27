@@ -8,9 +8,9 @@ const functionCache: { [key: string]: any } = {}
 
 const GRAMMAR_SRC = `
 Node {
-  Node
-    = InlineExp
-
+  Bullet
+    = Text
+    
   Text
     = TextPart+
 
@@ -210,7 +210,9 @@ function deg2rad(deg: number) {
 const formulaGrammar = ohm.grammar(GRAMMAR_SRC)
 
 const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", {
-  Text: (e) => e.toAst(),
+  Text: (e) => e.children.map((child) => child.toAst()),
+  TextLiteral: (e) => new StringNode(e.sourceString),
+
   Exp: (e) => e.toAst(),
   SimpleExp: (e) => e.toAst(),
   InlineExp: (_, e, __) => {
@@ -276,6 +278,7 @@ class FnNode implements AstNode {
     if (!fn) {
       return null
     }
+
     return Promise.all(this.args.map((arg) => arg.eval(graph))).then((values) => {
       // Compute a cache key representing executing this function on these inputs
       // of the form "FunctionName:RowId:Arg1:Arg2".
@@ -300,7 +303,7 @@ class FnNode implements AstNode {
     const idMap: { [id: string]: boolean } = {}
 
     for (const arg of this.args) {
-      for (const id of arg.getIdRefs) {
+      for (const id of arg.getIdRefs()) {
         idMap[id] = true
       }
     }
@@ -349,47 +352,53 @@ class NumberNode implements AstNode {
   }
 }
 
-class Formula implements AstNode {
-  src: string
-  match: any
-
-  constructor(src: string, match: any) {
-    this.src = src
-    this.match = match
-  }
-
-  eval(graph: Graph) {
-    // A deleted formula evaluates to empty
-    if (this.src === "") {
-      return null
-    }
-
-    if (this.match.succeeded()) {
-      return formulaSemantics(this.match).toAst().eval(graph)
-    } else {
-      // console.error(`Couldn't parse formula: ${this.match.message}`)
-      return Promise.reject(`Error: ${this.match.message}`)
-    }
-  }
-
-  getIdRefs(): string[] {
-    if (this.src === "") {
-      return []
-    }
-
-    if (this.match.succeeded()) {
-      return formulaSemantics(this.match).toAst().getIdRefs()
-    }
-
-    console.error(`Couldn't parse formula: ${this.match.message}`)
-    return []
-  }
+interface Bullet {
+  key?: string // todo: implement key
+  value: any[]
 }
 
-export function parseFormula(source: string): Formula | null {
-  if (source === null) {
+export async function evalBullet(graph: Graph, source: string): Promise<Bullet | null> {
+  const match = formulaGrammar.match(source)
+
+  if (!match.succeeded()) {
     return null
-  } else {
-    return new Formula(source, formulaGrammar.match(source))
+  }
+
+  return {
+    value: await formulaSemantics(match).toAst().eval(graph),
+  } as Bullet
+}
+
+export function getReferencedNodeIds(source: string): string[] {
+  const match = formulaGrammar.match(source)
+
+  if (!match.succeeded()) {
+    return []
+  }
+
+  const idMap: { [id: string]: boolean } = {}
+
+  const parts = formulaSemantics(match).toAst()
+
+  for (const part of parts) {
+    for (const id of part.getIdRefs()) {
+      idMap[id] = true
+    }
+  }
+
+  return Object.keys(idMap)
+}
+
+export function evalInlineExp(graph: Graph, source: string): Promise<any> {
+  const match = formulaGrammar.match(source, "InlineExp")
+
+  if (!match.succeeded()) {
+    return Promise.resolve(null)
+  }
+
+  try {
+    return formulaSemantics(match).toAst().eval(graph)
+  } catch {
+    return Promise.resolve(null)
   }
 }

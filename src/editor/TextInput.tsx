@@ -18,7 +18,7 @@ import {
 } from "@codemirror/autocomplete"
 import { isString } from "../utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
-import { parseFormula } from "../formulas"
+import { evalInlineExp } from "../formulas"
 import { createPlaceNode, googleApi } from "../views/MapNodeView"
 
 interface TextInputProps {
@@ -200,7 +200,6 @@ export function TextInput({
   const _onBlur = () => {
     const currentEditorView = editorViewRef.current
     if (currentEditorView) {
-      console.log("blur hard")
       currentEditorView.dispatch({
         selection: {
           anchor: 0,
@@ -390,11 +389,9 @@ class ExpressionWidget extends WidgetType {
     container.className = "italic text-purple-600 ml-2"
     container.innerText = "="
 
-    parseFormula(this.source)
-      ?.eval(graph)
-      .then((result: any) => {
-        container.innerText = `= ${JSON.stringify(result)}`
-      })
+    evalInlineExp(graph, this.source).then((result: any) => {
+      container.innerText = `= ${JSON.stringify(result)}`
+    })
 
     return container
   }

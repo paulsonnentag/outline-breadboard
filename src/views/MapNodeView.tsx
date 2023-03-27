@@ -20,6 +20,7 @@ import { OutlineEditor } from "../editor/OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
 import { getChildIdsWith, readColor, readLatLng } from "../properties"
+import { getReferencedNodeIds } from "../formulas"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -90,13 +91,19 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const indexOfInput = InputProperty.getChildIndexesOfNode(graph, node.id)[0]
   const inputsNodeId = node.children[indexOfInput]
 
+  const referencedNodeIdsWithLatLng = getReferencedNodeIds(node.value).filter(
+    (id) => readLatLng(graph, id) !== undefined
+  )
+
+  /*
+
   const childNodeIdsWithLatLng = getChildIdsWith(
     graph,
     node.id,
     (node, graph) => readLatLng(graph, node.id) !== undefined
   )
 
-  node.children.flatMap(() => {})
+   */
 
   // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
   // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
@@ -114,7 +121,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const minBounds =
     google &&
     getMinBounds(
-      childNodeIdsWithLatLng.map(
+      referencedNodeIdsWithLatLng.map(
         (childId) => readLatLng(graph, childId) as google.maps.LatLngLiteral
       )
     )
@@ -222,13 +229,16 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
   // update bounds and zoom level if underlying data changes
 
+  /*
   useEffect(() => {
     const currentMap = mapRef.current
-    if (!currentMap || !google || childNodeIdsWithLatLng.length === 0 || isDragging || isPanning) {
+    if (!currentMap || !google || referencedNodeIdsWithLatLng.length === 0 || isDragging || isPanning) {
       return
     }
 
     // if there is a manual zoom and center value is set use that
+
+
 
     if (zoom !== undefined && center !== undefined) {
       if (currentMap.getZoom() !== zoom) {
@@ -242,7 +252,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       return
     }
     // but if we don't have this delay the zoom is not set correctly on initial load
-  }, [childNodeIdsWithLatLng, google, isDragging, isPanning])
+  }, [childNodeIdsWithLatLng, google, isDragging, isPanning]) */
 
   // render markers on map
 
@@ -251,7 +261,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       return
     }
 
-    const totalMarkers = childNodeIdsWithLatLng.length
+    const totalMarkers = referencedNodeIdsWithLatLng.length
 
     // cleanup unused markers and event listener
 
@@ -270,8 +280,8 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
     // update / create new markers
 
-    for (let i = 0; i < childNodeIdsWithLatLng.length; i++) {
-      const childNodeId = childNodeIdsWithLatLng[i]
+    for (let i = 0; i < referencedNodeIdsWithLatLng.length; i++) {
+      const childNodeId = referencedNodeIdsWithLatLng[i]
       const latLng = new google.maps.LatLng(
         readLatLng(graph, childNodeId) as google.maps.LatLngLiteral
       )
@@ -344,7 +354,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       mapsMarker.position = latLng
       // mapsMarker.zIndex = hoveredItemId === poiResult.id ? 10 : 0
     }
-  }, [childNodeIdsWithLatLng, mapRef.current])
+  }, [referencedNodeIdsWithLatLng, mapRef.current])
 
   useEffect(() => {
     if (popOverRef.current) {
@@ -353,7 +363,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   }, [Math.random()])
 
   const onFitBounds = () => {
-    if (childNodeIdsWithLatLng.length === 0) {
+    if (referencedNodeIdsWithLatLng.length === 0) {
       return
     }
 
@@ -367,7 +377,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       currentMap.fitBounds(minBounds, 25)
     }
 
-    if (childNodeIdsWithLatLng.length === 1) {
+    if (referencedNodeIdsWithLatLng.length === 1) {
       currentMap.setZoom(11)
     }
   }
@@ -396,7 +406,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       <div className="top-0 left-0 right-0 bottom-0 absolute pointer-events-none flex items-center justify-center">
         <div className="material-icons text-gray-500">add</div>
       </div>
-      {childNodeIdsWithLatLng.length > 0 && (
+      {referencedNodeIdsWithLatLng.length > 0 && (
         <button
           className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
           onClick={onFitBounds}

@@ -1,7 +1,8 @@
 import * as ohm from "ohm-js"
 import { getNode, Graph, ValueNode } from "./graph"
-import { isString } from "./utils"
 import { readLatLng, readProperty } from "./properties"
+import { point as turfPoint } from "@turf/helpers"
+import turfDistance from "@turf/distance"
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -105,7 +106,7 @@ const functions: { [name: string]: FunctionDef } = {
   },
 
   Distance: {
-    function: ([node1, node2], graph) => {
+    function: ([node1, node2, unit = "kilometers"], graph) => {
       const pos1 = readLatLng(graph, node1.id)
       const pos2 = readLatLng(graph, node2.id)
 
@@ -113,7 +114,9 @@ const functions: { [name: string]: FunctionDef } = {
         return undefined
       }
 
-      return getDistanceFromLatLonInKm(pos1, pos2)
+      return turfDistance(turfPoint([pos1.lat, pos1.lng]), turfPoint([pos2.lat, pos2.lng]), {
+        units: unit,
+      })
     },
   },
 

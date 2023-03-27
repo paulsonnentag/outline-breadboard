@@ -17,6 +17,8 @@
     "@codemirror/view": "^6.9.2",
     "@googlemaps/js-api-loader": "^1.15.1",
     "@radix-ui/react-icons": "^1.1.1",
+    "@turf/distance": "^6.5.0",
+    "@turf/helpers": "^6.5.0",
     "@types/lodash.debounce": "^4.0.7",
     "automerge-repo": "0.0.40",
     "automerge-repo-network-messagechannel": "^0.0.40",

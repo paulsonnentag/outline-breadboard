@@ -34,12 +34,8 @@ export function readParsedProperty<T>(
   )
 
   for (const childNode of children) {
-    if (childNode.key === key) {
-      const value = parse(
-        childNode.value && isString(childNode.value) && childNode.value.startsWith("=")
-          ? parseFormula(childNode.value)?.eval(graph)
-          : childNode?.value
-      )
+    if (childNode.value.startsWith(`${key}:`)) {
+      const value = parse(childNode.value.split(":")[1])
 
       if (value !== undefined) {
         return value

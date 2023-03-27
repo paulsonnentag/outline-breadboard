@@ -10,7 +10,7 @@ import {
 } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { getGraph, getLabelOfNode, getNode, Node } from "./graph"
-import { autocompletion, CompletionContext } from "@codemirror/autocomplete"
+import { autocompletion, CompletionContext, completionStatus } from "@codemirror/autocomplete"
 import { isString } from "./utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "./keyboardEvents"
 import { parseFormula } from "./formulas"
@@ -45,7 +45,6 @@ export function TextInput({
 }: TextInputProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
-  const [computedValue, setComputedValue] = useState<any>(null)
 
   // mount editor
 
@@ -138,6 +137,11 @@ export function TextInput({
     }
 
     if (isEnter(evt)) {
+      // ignore enter if auto complete is active
+      if (completionStatus(currentEditorView.state) !== null) {
+        return
+      }
+
       evt.preventDefault()
       const ranges = currentEditorView.state.selection.ranges
 
@@ -155,9 +159,19 @@ export function TextInput({
         onIndent()
       }
     } else if (isUp(evt)) {
+      // ignore up key if auto complete is active
+      if (completionStatus(currentEditorView.state) !== null) {
+        return
+      }
+
       evt.preventDefault()
       onFocusUp()
     } else if (isDown(evt)) {
+      // ignore down key if auto complete is active
+      if (completionStatus(currentEditorView.state) !== null) {
+        return
+      }
+
       evt.preventDefault()
       onFocusDown()
     } else if (isBackspace(evt)) {
@@ -198,7 +212,7 @@ async function mentionCompletionContext(context: CompletionContext) {
         return []
       }
 
-      return [{ label: node.value, apply: `@{${node.id}}` }]
+      return [{ label: node.value, apply: `#[${node.id}]` }]
     }),
   }
 }
@@ -229,7 +243,7 @@ class RefIdWidget extends WidgetType {
 }
 
 const refIdMatcher = new MatchDecorator({
-  regexp: /@{([^@]+)}/g,
+  regexp: /#\[([^\]]+)]/g,
   decoration: ([, id]) =>
     Decoration.replace({
       widget: new RefIdWidget(id),

@@ -63,7 +63,7 @@ Node {
     = alnum+ | "_" | "-"
 
   IdRef
-    = "@{" IdRefChar+ "}"
+    = "#[" IdRefChar+ "]"
 
   StringChar
     = alnum | "." | ":" | ">" | "-" | "(" | ")" | "[" | "]" | "=" | "'" | "/" | "*" | "!" | "$" | "_"
@@ -106,6 +106,8 @@ const functions: { [name: string]: FunctionDef } = {
 
   Distance: {
     function: ([node1, node2], graph) => {
+      console.log("disntace", readProperty(graph, node1.id, "position"))
+
       const pos1 = readLatLng(graph, node1.id)
       const pos2 = readLatLng(graph, node2.id)
 
@@ -369,7 +371,7 @@ class Formula implements AstNode {
     if (this.match.succeeded()) {
       return formulaSemantics(this.match).toAst().eval(graph)
     } else {
-      console.error(`Couldn't parse formula: ${this.match.message}`)
+      // console.error(`Couldn't parse formula: ${this.match.message}`)
       return Promise.reject(`Error: ${this.match.message}`)
     }
   }

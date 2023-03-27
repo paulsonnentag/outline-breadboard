@@ -9,17 +9,17 @@ import {
   WidgetType,
 } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { getGraph, getLabelOfNode, getNode, Graph, Node, useGraph } from "./graph"
+import { getGraph, getLabelOfNode, getNode, Graph, Node, useGraph } from "../graph"
 import {
   autocompletion,
   Completion,
   CompletionContext,
   completionStatus,
 } from "@codemirror/autocomplete"
-import { isString } from "./utils"
-import { isBackspace, isDown, isEnter, isTab, isUp } from "./keyboardEvents"
-import { parseFormula } from "./formulas"
-import { createPlaceNode, googleApi } from "./views/MapNodeView"
+import { isString } from "../utils"
+import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
+import { parseFormula } from "../formulas"
+import { createPlaceNode, googleApi } from "../views/MapNodeView"
 
 interface TextInputProps {
   value: string
@@ -52,6 +52,7 @@ export function TextInput({
   onFocusUp,
   onFocusDown,
   onFocus,
+  onBlur,
 }: TextInputProps) {
   const { changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -196,7 +197,24 @@ export function TextInput({
     }
   }
 
-  return <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus}></div>
+  const _onBlur = () => {
+    const currentEditorView = editorViewRef.current
+    if (currentEditorView) {
+      console.log("blur hard")
+      currentEditorView.dispatch({
+        selection: {
+          anchor: 0,
+          head: 0,
+        },
+      })
+    }
+
+    onBlur()
+  }
+
+  return (
+    <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
+  )
 }
 
 function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {

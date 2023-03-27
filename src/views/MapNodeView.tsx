@@ -9,16 +9,14 @@ import {
   Graph,
   GraphContext,
   GraphContextProps,
-  ImageValue,
   useGraph,
-  Node,
   ValueNode,
 } from "../graph"
-import { NodeData, Property, readChildrenWithProperties } from "../property"
+import { Property, readChildrenWithProperties } from "../property"
 import classNames from "classnames"
 import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
-import { OutlineEditor } from "../OutlineEditor"
+import { OutlineEditor } from "../editor/OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
 import { getChildIdsWith, readColor, readLatLng } from "../properties"
@@ -100,9 +98,9 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
   node.children.flatMap(() => {})
 
-  readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
-  const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
-  const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
+  // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
+  // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
+  // const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
 
   const google = useGoogleApi()
   const mapId = useId()
@@ -121,10 +119,10 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       )
     )
 
-  if (indexOfInput === undefined) {
+  /* if (indexOfInput === undefined) {
     console.log("No map inputs")
     return <></>
-  }
+  } */
 
   // mount map
 
@@ -137,7 +135,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
     const currentMap = (mapRef.current = new google.maps.Map(currentMapElement, {
       mapId,
       zoom: 11,
-      center,
+      center: { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
       gestureHandling: "greedy",
     }))

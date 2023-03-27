@@ -106,12 +106,8 @@ const functions: { [name: string]: FunctionDef } = {
 
   Distance: {
     function: ([node1, node2], graph) => {
-      console.log("disntace", readProperty(graph, node1.id, "position"))
-
       const pos1 = readLatLng(graph, node1.id)
       const pos2 = readLatLng(graph, node2.id)
-
-      console.log(readProperty(graph, node1.id, "position"))
 
       if (!pos1 || !pos2) {
         return undefined

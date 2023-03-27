@@ -5,29 +5,17 @@ import {
   getLabelOfNode,
   getNode,
   Graph,
-  ImageValue,
   isNodeCollapsed,
   Node,
   RecordDef,
   useGraph,
-} from "./graph"
-import {
-  DragEvent,
-  FocusEvent,
-  KeyboardEvent as ReactKeyboardEvent,
-  MouseEvent,
-  RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react"
+} from "../graph"
+import { DragEvent, MouseEvent, RefObject, useCallback, useRef, useState } from "react"
 import classNames from "classnames"
-import { getCaretCharacterOffset, isString, last, setCaretCharacterOffset } from "./utils"
-import { NodeView } from "./views"
-import { isDown, isUp, isBackspace, isEnter, isTab } from "./keyboardEvents"
+import { isString, last } from "../utils"
+import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
-import { useStaticCallback } from "./hooks"
+import { useStaticCallback } from "../hooks"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -417,127 +405,85 @@ export function OutlineEditor({
   }
 
   return (
-    <div draggable onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      className={classNames({
+        "text-gray-300": isBeingDragged || isParentDragged,
+      })}
+      onDragOver={onDragOver}
+      onDragEnter={onDragEnter}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <div
-        className={classNames({
-          "text-gray-300": isBeingDragged || isParentDragged,
-        })}
-        onDragOver={onDragOver}
-        onDragEnter={onDragEnter}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
+        className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
+        onClick={() => {
+          onChangeSelectedPath(path)
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="w-full flex cursor-text items-center">
+        {!isRoot && (
           <div
-            className={classNames("flex items-start w-full", {
-              "text-xl": isRoot,
+            className={classNames("material-icons cursor-pointer text-gray-500", {
+              invisible: !isHovered || !isCollapsable,
             })}
-            onClick={() => {
-              onChangeSelectedPath(path)
+            style={{
+              transform: isCollapsed ? "" : "rotate(90deg)",
             }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onClick={onToggleIsCollapsed}
           >
-            <div className={classNames("flex items-center", isRoot ? "mt-[6px]" : "mt-[1px]")}>
-              {!isRoot && (
-                <div
-                  className={classNames("material-icons cursor-pointer text-gray-500", {
-                    invisible: !isHovered || !isCollapsable,
-                  })}
-                  style={{
-                    transform: isCollapsed ? "" : "rotate(90deg)",
-                  }}
-                  onClick={onToggleIsCollapsed}
-                >
-                  chevron_right
-                </div>
-              )}
-
-              <div
-                className={classNames("bullet", {
-                  "is-transcluded": isReferenceNode,
-                  "is-collapsed": isCollapsed,
-                  invisible:
-                    !isFocused &&
-                    node.value == "" &&
-                    node.key === undefined &&
-                    node.view === undefined &&
-                    node.children.length === 0,
-                })}
-                onClick={(evt) => {
-                  evt.stopPropagation()
-                  onOpenNodeInNewPane(node.id)
-                }}
-              />
-            </div>
-            <div
-              className={classNames("pr-2 w-fit", {
-                "pl-2": isFocused || node.value !== "" || node.key !== undefined,
-              })}
-            >
-              <TextInput
-                value={node.value as string}
-                isFocused={isFocused}
-                focusOffset={focusOffset}
-                onChange={onChange}
-                onFocusUp={onFocusUp}
-                onFocusDown={onFocusDown}
-                onSplit={onSplit}
-                onJoinWithPrev={onJoinWithPrev}
-                onFocus={onFocus}
-                onBlur={onBlur}
-                onIndent={onIndent}
-                onOutdent={onOutdent}
-              />
-            </div>
-
-            {node.view !== undefined && (
-              <div className="rounded-sm bg-purple-200 text-purple-600 text-xs px-1 py-0.5 flex items-middle self-center mr-1">
-                <div>
-                  view: <span className="font-bold">{node.view}</span>
-                </div>
-                <button
-                  className="material-icons"
-                  style={{ fontSize: "16px" }}
-                  onClick={onRemoveView}
-                >
-                  close
-                </button>
-              </div>
-            )}
-
-            {node.computations?.map((computation) => (
-              <div
-                key={computation}
-                className="rounded-sm bg-blue-200 text-blue-600 font-bold text-xs px-1 py-0.5 flex items-middle self-center mr-1"
-              >
-                <div>{computation}</div>
-                <button
-                  className="material-icons"
-                  style={{ fontSize: "16px" }}
-                  onClick={() =>
-                    changeGraph((graph) => {
-                      const node = getNode(graph, nodeId)
-                      node.computations = node.computations?.filter((c) => c != computation)
-                      if (isString(node.value) && node.value.length === 0) {
-                        node.value = computation
-                          .split("-")
-                          .map((t) => t[0].toUpperCase() + t.substring(1))
-                          .join(" ")
-                      }
-                    })
-                  }
-                >
-                  close
-                </button>
-              </div>
-            ))}
+            chevron_right
           </div>
+        )}
+
+        <div
+          className={classNames("bullet", {
+            "is-transcluded": isReferenceNode,
+            "is-collapsed": isCollapsed,
+            invisible:
+              !isFocused &&
+              node.value == "" &&
+              node.key === undefined &&
+              node.view === undefined &&
+              node.children.length === 0,
+          })}
+          onClick={(evt) => {
+            evt.stopPropagation()
+            onOpenNodeInNewPane(node.id)
+          }}
+        />
+        <div
+          className={classNames("pr-2 flex-1", {
+            "pl-2": isFocused || node.value !== "" || node.key !== undefined,
+          })}
+        >
+          <TextInput
+            value={node.value as string}
+            isFocused={isFocused}
+            focusOffset={focusOffset}
+            onChange={onChange}
+            onFocusUp={onFocusUp}
+            onFocusDown={onFocusDown}
+            onSplit={onSplit}
+            onJoinWithPrev={onJoinWithPrev}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            onIndent={onIndent}
+            onOutdent={onOutdent}
+          />
         </div>
-        <div className="pl-6">
-          <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
-        </div>
+
+        <NodeViewOptions
+          node={node}
+          isFocused={isFocused || isHovered}
+          onOpenNodeInNewPane={onOpenNodeInNewPane}
+        />
       </div>
+
+      <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
 
       <div
         className={classNames(

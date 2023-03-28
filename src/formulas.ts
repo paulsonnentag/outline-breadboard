@@ -5,6 +5,7 @@ import { point as turfPoint } from "@turf/helpers"
 import turfDistance from "@turf/distance"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { googleApi } from "./google"
+import DirectionsResult = google.maps.DirectionsResult
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -123,6 +124,28 @@ const directionsServiceApi = googleApi.then((google) => {
   return new google.maps.DirectionsService()
 })
 
+function directionsResultToRoute(result: google.maps.DirectionsResult) {
+  const route: google.maps.DirectionsRoute = result.routes[0] // todo: just pick the first route for now
+
+  if (!route) {
+    return undefined
+  }
+
+  console.log(route)
+
+  return {
+    distance: route.legs[0].distance?.text,
+    duration: route.legs[0].duration?.text,
+    geometry: {
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: route.overview_path.map(({ lat, lng }) => [lat, lng]),
+      },
+    },
+  }
+}
+
 export const FUNCTIONS: { [name: string]: FunctionDef } = {
   Route: {
     function: async ([node1, node2], graph) => {
@@ -141,12 +164,10 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
       const doc = await graphDocHandle.value()
 
       const key = `${pos1.lat}:${pos1.lng}/${pos2.lat}:${pos2.lng}`
-      const routes: any = doc.cache[key] ? JSON.parse(doc.cache[key]) : undefined
+      const cachedResult: DirectionsResult = doc.cache[key] ? JSON.parse(doc.cache[key]) : undefined
 
-      if (routes) {
-        console.log(routes[0])
-
-        return routes[0]
+      if (cachedResult) {
+        return directionsResultToRoute(cachedResult)
       }
 
       const directionsService = await directionsServiceApi
@@ -160,14 +181,14 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
             destination: pos2,
             travelMode: google.maps.TravelMode.DRIVING,
           },
-          (result) => {
-            console.log("loaded")
+          (result: google.maps.DirectionsResult | null) => {
+            result = result ?? { routes: [] }
 
             graphDocHandle.change((graphDoc) => {
-              graphDoc.cache[key] = JSON.stringify(result?.routes) // store it as string, because otherwise it takes a long time to write it into automerge
+              graphDoc.cache[key] = JSON.stringify(result) // store it as string, because otherwise it takes a long time to write it into automerge
             })
 
-            resolve(result?.routes)
+            resolve(directionsResultToRoute(result))
           }
         )
       })

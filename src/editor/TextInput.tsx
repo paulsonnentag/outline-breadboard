@@ -21,6 +21,7 @@ import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
 import { evalInlineExp, FunctionDef, FUNCTIONS } from "../formulas"
 import { createPlaceNode } from "../views/MapNodeView"
 import { placesAutocompleteApi } from "../google"
+import { type } from "os"
 
 interface TextInputProps {
   value: string
@@ -442,10 +443,10 @@ class ExpressionWidget extends WidgetType {
     const container = document.createElement("span")
     container.setAttribute("aria-hidden", "true")
     container.className = "italic text-purple-600 ml-2"
-    container.innerText = "="
+    container.innerText = `=`
 
     evalInlineExp(graph, this.source).then((result: any) => {
-      container.innerText = `= ${JSON.stringify(result)}`
+      container.innerText = `= ${valueToString(result)}`
     })
 
     return container
@@ -454,6 +455,26 @@ class ExpressionWidget extends WidgetType {
   ignoreEvent() {
     return false
   }
+}
+
+function valueToString(x: any): string {
+  if (typeof x === "object") {
+    const keyValuePairs: string[] = []
+
+    for (const [key, value] of Object.entries(x)) {
+      if (value === undefined) {
+        continue
+      }
+
+      const stringValue = typeof value === "object" ? "{...}" : JSON.stringify(value)
+
+      keyValuePairs.push(`${key}: ${stringValue}`)
+    }
+
+    return keyValuePairs.join(" ")
+  }
+
+  return JSON.stringify(x)
 }
 
 const expressionMatcher = new MatchDecorator({

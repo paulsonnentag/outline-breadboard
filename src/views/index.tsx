@@ -3,6 +3,8 @@ import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { WeatherAveragesNodeView } from "./WeatherAveragesNodeView"
 import classNames from "classnames"
+import { readChildrenWithProperties } from "../property"
+import { readAllProperties } from "../properties"
 
 export interface NodeViewProps {
   node: ValueNode
@@ -24,11 +26,7 @@ export function NodeView(props: NodeViewProps) {
       break
   }
 
-  if (!view) {
-    return null
-  }
-
-  return <div className="pl-8 pt-2">{view}</div>
+  return <div className="pl-8 pt-2">{view || ""}{node.isCollapsed && <SummaryView {...props} />}</div>
 }
 
 // todo: the view options should be filtered depending on the data of the node
@@ -79,6 +77,19 @@ export function NodeViewOptions({ node, isFocused }: NodeViewProps) {
           table_chart
         </span>
       </button>
+    </div>
+  )
+}
+
+export function SummaryView(props: NodeViewProps) {
+  const { graph, changeGraph } = useGraph()
+  const properties = readAllProperties(graph, props.node.id)
+
+  return (
+    <div className="text-sm italic flex gap-2 relative -top-2">
+      {Object.keys(properties).map(key => (
+        <p><span className="text-gray-400">{key}:</span> {properties[key]}</p>
+      ))}
     </div>
   )
 }

@@ -128,3 +128,32 @@ export function extractDataInNodeAndBelow<T>(
       } as NodeWithExtractedData<T>)
   )
 }
+
+export function readAllProperties(
+  graph: Graph,
+  nodeId: string
+) {
+  interface KeyValueDict {
+    [key: string]: any
+  }
+
+  let allProps: KeyValueDict = {}
+
+  const children: ValueNode[] = getNode(graph, nodeId).children.map((childId: string) =>
+    getNode(graph, childId)
+  )
+
+  for (const childNode of children) {
+    if (childNode.value.includes(':')) {
+      const split = childNode.value.split(":")
+      const key = split[0]
+      const value = split[1]
+
+      if (key !== undefined && value !== undefined) {
+        allProps[key] = value
+      }
+    }
+  }
+
+  return allProps
+}

@@ -1,8 +1,10 @@
 import * as ohm from "ohm-js"
-import { getNode, Graph, ValueNode } from "./graph"
+import { getGraphDocHandle, getNode, Graph, ValueNode } from "./graph"
 import { readLatLng, readProperty } from "./properties"
 import { point as turfPoint } from "@turf/helpers"
 import turfDistance from "@turf/distance"
+import LatLngLiteral = google.maps.LatLngLiteral
+import { googleApi } from "./google"
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -102,15 +104,32 @@ export interface FunctionDef {
   }
 }
 
+function unitShortName(unit: string) {
+  switch (unit) {
+    case "meters":
+      return "m"
+
+    case "kilometers":
+      return "km"
+
+    case "miles":
+      return "mi"
+    default:
+      return unit
+  }
+}
+
+const directionsServiceApi = googleApi.then((google) => {
+  return new google.maps.DirectionsService()
+})
+
 export const FUNCTIONS: { [name: string]: FunctionDef } = {
   Route: {
-    function: () => {
-      return promisify("= 61 mi, 1h 2m")
-    },
-  },
+    function: async ([node1, node2], graph) => {
+      if (!node1 || !node1.id || !node2 || !node2.id) {
+        return
+      }
 
-  Distance: {
-    function: ([node1, node2, unit = "kilometers"], graph) => {
       const pos1 = readLatLng(graph, node1.id)
       const pos2 = readLatLng(graph, node2.id)
 
@@ -118,9 +137,70 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         return undefined
       }
 
-      return turfDistance(turfPoint([pos1.lat, pos1.lng]), turfPoint([pos2.lat, pos2.lng]), {
-        units: unit,
+      const graphDocHandle = getGraphDocHandle()
+      const doc = await graphDocHandle.value()
+
+      const key = `${pos1.lat}:${pos1.lng}/${pos2.lat}:${pos2.lng}`
+      const routes: any = doc.cache[key] ? JSON.parse(doc.cache[key]) : undefined
+
+      if (routes) {
+        console.log(routes[0])
+
+        return routes[0]
+      }
+
+      const directionsService = await directionsServiceApi
+
+      return new Promise((resolve, reject) => {
+        console.log("fetch route")
+
+        directionsService.route(
+          {
+            origin: pos1,
+            destination: pos2,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (result) => {
+            console.log("loaded")
+
+            graphDocHandle.change((graphDoc) => {
+              graphDoc.cache[key] = JSON.stringify(result?.routes) // store it as string, because otherwise it takes a long time to write it into automerge
+            })
+
+            resolve(result?.routes)
+          }
+        )
       })
+    },
+
+    autocomplete: {
+      label: "Route",
+      value: "{Route($)}",
+    },
+  },
+
+  Distance: {
+    function: ([node1, node2, unit = "kilometers"], graph) => {
+      if (!node1 || !node1.id || !node2 || !node2.id) {
+        return
+      }
+
+      const pos1 = readLatLng(graph, node1.id)
+      const pos2 = readLatLng(graph, node2.id)
+
+      if (!pos1 || !pos2) {
+        return undefined
+      }
+
+      const distance = turfDistance(
+        turfPoint([pos1.lat, pos1.lng]),
+        turfPoint([pos2.lat, pos2.lng]),
+        {
+          units: unit,
+        }
+      )
+
+      return `${Math.round(distance)} ${unitShortName(unit)}`
     },
 
     autocomplete: {

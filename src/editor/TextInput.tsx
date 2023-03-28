@@ -19,7 +19,8 @@ import {
 import { isString } from "../utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
 import { evalInlineExp, FunctionDef, FUNCTIONS } from "../formulas"
-import { createPlaceNode, googleApi } from "../views/MapNodeView"
+import { createPlaceNode } from "../views/MapNodeView"
+import { placesAutocompleteApi } from "../google"
 
 interface TextInputProps {
   value: string
@@ -35,10 +36,6 @@ interface TextInputProps {
   onIndent: () => void
   onOutdent: () => void
 }
-
-const placesAutocompleteApi = googleApi.then(
-  (google) => new google.maps.places.AutocompleteService()
-)
 
 export function TextInput({
   value,

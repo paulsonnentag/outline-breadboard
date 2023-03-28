@@ -6,10 +6,12 @@ import { parseFormula } from "./formulas"
 
 export interface GraphDoc {
   rootNodeIds: string[]
+  cache: { [key: string]: any }
   graph: Graph
 }
 
 let GRAPH_DOC: GraphDoc
+let GRAPH_DOC_HANDLE: DocHandle<GraphDoc>
 
 export async function registerGraphHandle(handle: DocHandle<GraphDoc>) {
   if (GRAPH_DOC) {
@@ -20,6 +22,7 @@ export async function registerGraphHandle(handle: DocHandle<GraphDoc>) {
     GRAPH_DOC = handle.doc
   })
 
+  GRAPH_DOC_HANDLE = handle
   GRAPH_DOC = await handle.value()
 }
 
@@ -29,6 +32,14 @@ export function getGraph(): Graph {
   }
 
   return GRAPH_DOC.graph
+}
+
+export function getGraphDocHandle() {
+  if (!GRAPH_DOC_HANDLE) {
+    throw new Error("not registered graph handle")
+  }
+
+  return GRAPH_DOC_HANDLE
 }
 
 export function createGraphDoc(repo: Repo) {
@@ -41,6 +52,8 @@ export function createGraphDoc(repo: Repo) {
       children: [],
       isCollapsed: false,
     }
+
+    doc.cache = {}
 
     doc.graph = {
       [rootNode.id]: rootNode,

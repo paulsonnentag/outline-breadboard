@@ -1,7 +1,4 @@
 import { NodeViewProps } from "./index"
-import { GOOGLE_MAPS_API_KEY } from "../api-keys"
-
-import { Loader } from "@googlemaps/js-api-loader"
 import { useEffect, useId, useRef, useState } from "react"
 import {
   createRecordNode,
@@ -12,7 +9,7 @@ import {
   useGraph,
   ValueNode,
 } from "../graph"
-import { Property, readChildrenWithProperties } from "../property"
+import { Property } from "../property"
 import classNames from "classnames"
 import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
@@ -25,9 +22,7 @@ import {
   readColor,
   readLatLng,
 } from "../properties"
-import { getReferencedNodeIds } from "../formulas"
-import LatLng = google.maps.LatLng
-import LatLngLiteral = google.maps.LatLngLiteral
+import { placesServiceApi, useGoogleApi } from "../google"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -41,26 +36,6 @@ const COLORS = [
   "bg-red-500",
 ]
 
-const loader = new Loader({
-  apiKey: GOOGLE_MAPS_API_KEY,
-  version: "beta",
-  libraries: ["places", "marker"],
-})
-
-export const googleApi = loader.load()
-
-export function useGoogleApi(): typeof google | undefined {
-  const [api, setApi] = useState<typeof google>()
-
-  useEffect(() => {
-    googleApi.then((google) => {
-      setApi(google)
-    })
-  }, [])
-
-  return api
-}
-
 const ZoomProperty = new Property<number>("zoom", (value) => {
   const parsedValue = parseInt(value, 10)
 
@@ -71,11 +46,8 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
-  const nodesWithLatLngData: NodeWithExtractedData<LatLngLiteral>[] = extractDataInNodeAndBelow(
-    graph,
-    node.id,
-    (graph, node) => readLatLng(graph, node.id)
-  )
+  const nodesWithLatLngData: NodeWithExtractedData<google.maps.LatLngLiteral>[] =
+    extractDataInNodeAndBelow(graph, node.id, (graph, node) => readLatLng(graph, node.id))
 
   /*
 
@@ -560,16 +532,12 @@ function PopoverOutlineView({
   )
 }
 
-const asyncPlacesService = googleApi.then(
-  (google) => new google.maps.places.PlacesService(document.createElement("div"))
-)
-
 export async function createPlaceNode(
   changeGraph: (fn: (graph: Graph) => void) => void,
   placeId: string
 ): Promise<ValueNode> {
   return new Promise((resolve) => {
-    asyncPlacesService.then((placesService) => {
+    placesServiceApi.then((placesService) => {
       placesService.getDetails(
         {
           placeId,

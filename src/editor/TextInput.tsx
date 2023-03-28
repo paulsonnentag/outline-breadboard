@@ -462,6 +462,8 @@ class ExpressionWidget extends WidgetType {
 const expressionMatcher = new MatchDecorator({
   regexp: /\{[^}]+}/g,
   decorate: (add, from, to, [source]) => {
+    add(from, from + 1, Decoration.mark({ class: "text-gray-300" }))
+    add(to - 1, to, Decoration.mark({ class: "text-gray-300" }))
     add(
       to,
       to,

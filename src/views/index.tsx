@@ -95,7 +95,7 @@ export function SummaryView(props: NodeViewProps) {
   return (
     <div className="text-sm italic flex gap-2">
       {Object.keys(properties).map(key => (
-        <p><span className="text-gray-400">{key}:</span> {properties[key]}</p>
+        <p key={key}><span className="text-gray-400">{key}:</span> {properties[key]}</p>
       ))}
     </div>
   )

@@ -131,17 +131,21 @@ function directionsResultToRoute(result: google.maps.DirectionsResult) {
     return undefined
   }
 
-  console.log(route)
-
   return {
     distance: route.legs[0].distance?.text,
     duration: route.legs[0].duration?.text,
     geometry: {
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: route.overview_path.map(({ lat, lng }) => [lat, lng]),
-      },
+      type: "FeatureCollection",
+
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: route.overview_path.map(({ lat, lng }) => [lng, lat]),
+          },
+        },
+      ],
     },
   }
 }
@@ -478,7 +482,11 @@ export async function evalBullet(graph: Graph, source: string): Promise<Bullet |
   }
 
   return {
-    value: await formulaSemantics(match).toAst().eval(graph),
+    value: await Promise.all(
+      formulaSemantics(match)
+        .toAst()
+        .map((expr: AstNode) => expr.eval(graph))
+    ),
   } as Bullet
 }
 

@@ -23,6 +23,7 @@ import {
   readLatLng,
 } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
+import { evalBullet } from "../formulas"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -45,6 +46,26 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
 export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
+
+  // todo: generalize and pull in any geoJson value that's in the subtree
+  const [geoJsonValues, setGeoJsonValues] = useState<any[]>([])
+  useEffect(() => {
+    evalBullet(graph, node.value).then((bullet) => {
+      if (!bullet) {
+        return
+      }
+
+      const geoJSONValues: any[] = []
+
+      for (const part of bullet.value) {
+        if (part && part.geometry) {
+          geoJSONValues.push(part.geometry)
+        }
+      }
+
+      setGeoJsonValues(geoJSONValues)
+    })
+  }, [node.value])
 
   const nodesWithLatLngData: NodeWithExtractedData<google.maps.LatLngLiteral>[] =
     extractDataInNodeAndBelow(graph, node.id, (graph, node) => readLatLng(graph, node.id))
@@ -303,6 +324,28 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       // mapsMarker.zIndex = hoveredItemId === poiResult.id ? 10 : 0
     }
   }, [nodesWithLatLngData, mapRef.current])
+
+  // render geoJson on map
+  useEffect(() => {
+    const currentMap = mapRef.current
+
+    if (!currentMap) {
+      return
+    }
+
+    for (const geoJsonValue of geoJsonValues) {
+      // there is probably a better way of doing this
+      currentMap.data.loadGeoJson(
+        "data:text/plain;base64," + btoa(JSON.stringify(geoJsonValue)),
+        {},
+        (features) => {
+          console.log("features", features)
+        }
+      )
+    }
+  }, [geoJsonValues, mapRef])
+
+  // render pop over
 
   useEffect(() => {
     if (popOverRef.current) {

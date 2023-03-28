@@ -46,7 +46,6 @@ export function OutlineEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const contentRef = useRef<HTMLElement>(null)
   const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
@@ -297,14 +296,9 @@ export function OutlineEditor({
   }
 
   const onDragOver = (evt: DragEvent) => {
-    if (isBeingDragged || isParentDragged || !contentRef.current) {
+    if (isBeingDragged || isParentDragged) {
       return
     }
-
-    const percentage =
-      (evt.clientY - contentRef.current.getBoundingClientRect().top) /
-      contentRef.current.clientHeight
-
     setIsDraggedOver(true)
 
     evt.preventDefault()
@@ -315,7 +309,6 @@ export function OutlineEditor({
     if (isBeingDragged || isParentDragged) {
       return
     }
-
     evt.preventDefault()
     evt.stopPropagation()
   }
@@ -325,6 +318,8 @@ export function OutlineEditor({
   }
 
   const onDrop = (evt: DragEvent) => {
+    evt.stopPropagation()
+
     setIsDraggedOver(false)
 
     if (evt.dataTransfer.files.length > 0) {

@@ -212,7 +212,14 @@ export function TextInput({
   }
 
   return (
-    <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
+    <div
+      ref={containerRef}
+      onKeyDownCapture={onKeyDown}
+      onFocus={onFocus}
+      onBlur={_onBlur}
+      onDragOverCapture={(evt) => evt.stopPropagation()}
+      onDragEnterCapture={(evt) => evt.stopPropagation()}
+    ></div>
   )
 }
 

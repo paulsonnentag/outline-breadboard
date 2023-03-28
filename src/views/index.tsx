@@ -26,7 +26,14 @@ export function NodeView(props: NodeViewProps) {
       break
   }
 
-  return <div className="pl-8 pt-2">{view || ""}{node.isCollapsed && <SummaryView {...props} />}</div>
+  return <>
+    {node.isCollapsed && 
+      <div className="pl-14"><SummaryView {...props} /></div>
+    }
+    {view && 
+      <div className="pl-8 pt-2">{view}</div>
+    }
+  </>
 }
 
 // todo: the view options should be filtered depending on the data of the node
@@ -86,7 +93,7 @@ export function SummaryView(props: NodeViewProps) {
   const properties = readAllProperties(graph, props.node.id)
 
   return (
-    <div className="text-sm italic flex gap-2 relative -top-2">
+    <div className="text-sm italic flex gap-2">
       {Object.keys(properties).map(key => (
         <p><span className="text-gray-400">{key}:</span> {properties[key]}</p>
       ))}

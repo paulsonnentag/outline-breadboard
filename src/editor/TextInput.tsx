@@ -18,7 +18,7 @@ import {
 } from "@codemirror/autocomplete"
 import { isString } from "../utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
-import { evalInlineExp } from "../formulas"
+import { evalInlineExp, FunctionDef, FUNCTIONS } from "../formulas"
 import { createPlaceNode, googleApi } from "../views/MapNodeView"
 
 interface TextInputProps {
@@ -75,7 +75,7 @@ export function TextInput({
         expressionEvalPlugin,
         autocompletion({
           activateOnTyping: true,
-          override: [getMentionCompletionContext(changeGraph)],
+          override: [getMentionCompletionContext(changeGraph), functionAutocompletionContext],
         }),
       ],
       parent: containerRef.current,
@@ -221,6 +221,57 @@ export function TextInput({
       onDragEnterCapture={(evt) => evt.stopPropagation()}
     ></div>
   )
+}
+
+function functionAutocompletionContext(context: CompletionContext) {
+  let reference = context.matchBefore(/\/.*/)
+
+  if (reference === null) {
+    return null
+  }
+
+  const search = reference.text.toString().slice(1).trim()
+
+  const options = Object.values(FUNCTIONS).flatMap((fn: FunctionDef) => {
+    if (!fn.autocomplete || !fn.autocomplete.label.includes(search)) {
+      return []
+    }
+
+    const { label, value } = fn.autocomplete
+
+    return [
+      {
+        label,
+        apply: (view, completion, from, to) => {
+          const indexOfDollarSign = value.indexOf("$")
+          const cursorOffset = indexOfDollarSign !== -1 ? indexOfDollarSign : value.length
+
+          view.dispatch(
+            view.state.update({
+              changes: {
+                from: from,
+                to: to,
+                insert:
+                  indexOfDollarSign !== -1
+                    ? value.slice(0, indexOfDollarSign) + value.slice(indexOfDollarSign + 1)
+                    : value,
+              },
+              selection: {
+                anchor: from + cursorOffset,
+                head: from + cursorOffset,
+              },
+            })
+          )
+        },
+      } as Completion,
+    ]
+  })
+
+  return {
+    from: reference.from,
+    filter: false,
+    options,
+  }
 }
 
 function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {

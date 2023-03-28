@@ -90,15 +90,19 @@ function promisify(value: any) {
   })
 }
 
-interface FunctionDef {
+export interface FunctionDef {
   function: (args: any[], graph: Graph) => any
   arguments?: {
     [arg: string]: string
   }
   description?: string
+  autocomplete?: {
+    label: string
+    value: string // the value that is inserted, use "$" to mark where cursor should be placed
+  }
 }
 
-const functions: { [name: string]: FunctionDef } = {
+export const FUNCTIONS: { [name: string]: FunctionDef } = {
   Route: {
     function: () => {
       return promisify("= 61 mi, 1h 2m")
@@ -117,6 +121,11 @@ const functions: { [name: string]: FunctionDef } = {
       return turfDistance(turfPoint([pos1.lat, pos1.lng]), turfPoint([pos2.lat, pos2.lng]), {
         units: unit,
       })
+    },
+
+    autocomplete: {
+      label: "Distance",
+      value: "{Distance($)}",
     },
   },
 
@@ -277,7 +286,7 @@ class FnNode implements AstNode {
   }
 
   eval(graph: Graph) {
-    let fn = functions[this.fnName]["function"]
+    let fn = FUNCTIONS[this.fnName]["function"]
     if (!fn) {
       return null
     }

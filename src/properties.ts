@@ -1,6 +1,7 @@
 import { isString } from "./utils"
 import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
+import { getReferencedNodeIds } from "./formulas"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
@@ -69,25 +70,61 @@ export function readColor(graph: Graph, nodeId: string): string | undefined {
   )
 }
 
-export function getChildIdsWith(
+function _extractDataInNodeAndBelow<T>(
   graph: Graph,
   nodeId: string,
-  filter: (node: ValueNode, graph: Graph) => boolean
-): string[] {
-  const result: { [id: string]: boolean } = {}
+  extractData: (graph: Graph, node: ValueNode) => T | undefined,
+  results: { [nodeId: string]: T } = {}
+) {
   const node = getNode(graph, nodeId)
 
-  for (const childId of node.children) {
-    const childNode = getNode(graph, childId)
-
-    if (filter(childNode, graph)) {
-      result[childId] = true
-    }
-
-    for (const childOfChildId of getChildIdsWith(graph, childId, filter)) {
-      result[childOfChildId] = true
+  for (const referencedId of getReferencedNodeIds(node.value)) {
+    const referencedNode = getNode(graph, referencedId)
+    const data = extractData(graph, referencedNode)
+    if (data) {
+      results[referencedNode.id] = data
     }
   }
 
-  return Object.keys(result)
+  const data = extractData(graph, node)
+  if (data) {
+    results[node.id] = data
+  }
+
+  for (const childId of node.children) {
+    _extractDataInNodeAndBelow(graph, childId, extractData, results)
+  }
+
+  return results
+}
+
+export interface NodeWithExtractedData<T> {
+  nodeId: string
+  data: T
+}
+
+// recursively traverses the graph and returns a match object that maps nodeId to extracted data
+
+// the recursion iterates over:
+// - the node itself
+// - all child nodes
+// - nodes referenced in expressions in the node or the children
+
+// if the extractData function returns undefined the node is discarded
+export function extractDataInNodeAndBelow<T>(
+  graph: Graph,
+  nodeId: string,
+  extractData: (graph: Graph, node: ValueNode) => T | undefined
+): NodeWithExtractedData<T>[] {
+  const results: { [nodeId: string]: T } = {}
+
+  _extractDataInNodeAndBelow<T>(graph, nodeId, extractData, results)
+
+  return Object.entries(results).map(
+    ([nodeId, data]) =>
+      ({
+        nodeId,
+        data,
+      } as NodeWithExtractedData<T>)
+  )
 }

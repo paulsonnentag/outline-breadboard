@@ -19,8 +19,15 @@ import { useStaticCallback } from "../hooks"
 import { OutlineEditor } from "../editor/OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
-import { getChildIdsWith, readColor, readLatLng } from "../properties"
+import {
+  extractDataInNodeAndBelow,
+  NodeWithExtractedData,
+  readColor,
+  readLatLng,
+} from "../properties"
 import { getReferencedNodeIds } from "../formulas"
+import LatLng = google.maps.LatLng
+import LatLngLiteral = google.maps.LatLngLiteral
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -54,30 +61,6 @@ export function useGoogleApi(): typeof google | undefined {
   return api
 }
 
-const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
-
-export const InputProperty = new Property("input", () => {
-  return true
-})
-
-export const LatLongProperty = new Property<google.maps.LatLngLiteral>("position", (value) => {
-  const match = value.match(LAT_LONG_REGEX)
-
-  if (!match) {
-    return
-  }
-
-  const [, rawLat, rawLng] = match
-  const lat = parseFloat(rawLat)
-  const lng = parseFloat(rawLng)
-
-  if (isNaN(lat) || isNaN(lng)) {
-    return
-  }
-
-  return { lat, lng }
-})
-
 const ZoomProperty = new Property<number>("zoom", (value) => {
   const parsedValue = parseInt(value, 10)
 
@@ -88,11 +71,10 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
-  const indexOfInput = InputProperty.getChildIndexesOfNode(graph, node.id)[0]
-  const inputsNodeId = node.children[indexOfInput]
-
-  const referencedNodeIdsWithLatLng = getReferencedNodeIds(node.value).filter(
-    (id) => readLatLng(graph, id) !== undefined
+  const nodesWithLatLngData: NodeWithExtractedData<LatLngLiteral>[] = extractDataInNodeAndBelow(
+    graph,
+    node.id,
+    (graph, node) => readLatLng(graph, node.id)
   )
 
   /*
@@ -100,7 +82,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const childNodeIdsWithLatLng = getChildIdsWith(
     graph,
     node.id,
-    (node, graph) => readLatLng(graph, node.id) !== undefined
+    (node, graph) =>!== undefined
   )
 
    */
@@ -118,13 +100,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
-  const minBounds =
-    google &&
-    getMinBounds(
-      referencedNodeIdsWithLatLng.map(
-        (childId) => readLatLng(graph, childId) as google.maps.LatLngLiteral
-      )
-    )
+  const minBounds = google && getMinBounds(nodesWithLatLngData.map((node) => node.data))
 
   /* if (indexOfInput === undefined) {
     console.log("No map inputs")
@@ -147,6 +123,10 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       gestureHandling: "greedy",
     }))
 
+    if (minBounds) {
+      currentMap.fitBounds(minBounds)
+    }
+
     const popup = (popOverRef.current = createPopoverOutline())
 
     popup.setMap(currentMap)
@@ -162,7 +142,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
           return
         }
 
-        writeBackMapState(graph, inputsNodeId, mapRef.current)
+        // writeBackMapState(graph, inputsNodeId, mapRef.current)
         setIsPanning(false)
       })
     })
@@ -189,7 +169,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       }
 
       changeGraph((graph) => {
-        writeBackMapState(graph, inputsNodeId, currentMap)
+        // writeBackMapState(graph, inputsNodeId, currentMap)
       })
     }, 500)
   )
@@ -261,7 +241,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       return
     }
 
-    const totalMarkers = referencedNodeIdsWithLatLng.length
+    const totalMarkers = nodesWithLatLngData.length
 
     // cleanup unused markers and event listener
 
@@ -280,13 +260,10 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
 
     // update / create new markers
 
-    for (let i = 0; i < referencedNodeIdsWithLatLng.length; i++) {
-      const childNodeId = referencedNodeIdsWithLatLng[i]
-      const latLng = new google.maps.LatLng(
-        readLatLng(graph, childNodeId) as google.maps.LatLngLiteral
-      )
+    for (let i = 0; i < nodesWithLatLngData.length; i++) {
+      const nodeWithLatLngData = nodesWithLatLngData[i]
 
-      const color = readColor(graph, childNodeId) ?? "blue"
+      const color = readColor(graph, nodeWithLatLngData.nodeId) ?? "blue"
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
@@ -296,7 +273,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
         mapsMarker = new google.maps.marker.AdvancedMarkerView({
           map: mapRef.current,
           content: element,
-          position: latLng,
+          position: nodeWithLatLngData.data,
         })
 
         prevMarkers.push(mapsMarker)
@@ -314,21 +291,20 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       listenersRef.current.push(
         mapsMarker.addListener("click", () => {
           changeGraph((graph) => {
-            const node = getNode(graph, childNodeId)
+            const node = getNode(graph, nodeWithLatLngData.nodeId)
 
             node.isCollapsed = false
           })
 
           if (popOverRef.current) {
-            popOverRef.current.position = latLng.toJSON()
-            popOverRef.current.rootId = childNodeId
+            popOverRef.current.position = nodeWithLatLngData.data
+            popOverRef.current.rootId = nodeWithLatLngData.nodeId
             popOverRef.current.show()
             popOverRef.current.draw()
             popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
           }
 
-          mapRef.current?.panTo(latLng)
-          mapRef.current?.setZoom(15)
+          mapRef.current?.panTo(nodeWithLatLngData.data)
         })
       )
 
@@ -351,10 +327,10 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
         setHoveredItemId(undefined)
       }))*/
 
-      mapsMarker.position = latLng
+      mapsMarker.position = nodeWithLatLngData.data
       // mapsMarker.zIndex = hoveredItemId === poiResult.id ? 10 : 0
     }
-  }, [referencedNodeIdsWithLatLng, mapRef.current])
+  }, [nodesWithLatLngData, mapRef.current])
 
   useEffect(() => {
     if (popOverRef.current) {
@@ -363,7 +339,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
   }, [Math.random()])
 
   const onFitBounds = () => {
-    if (referencedNodeIdsWithLatLng.length === 0) {
+    if (nodesWithLatLngData.length === 0) {
       return
     }
 
@@ -377,7 +353,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       currentMap.fitBounds(minBounds, 25)
     }
 
-    if (referencedNodeIdsWithLatLng.length === 1) {
+    if (nodesWithLatLngData.length === 1) {
       currentMap.setZoom(11)
     }
   }
@@ -406,7 +382,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       <div className="top-0 left-0 right-0 bottom-0 absolute pointer-events-none flex items-center justify-center">
         <div className="material-icons text-gray-500">add</div>
       </div>
-      {referencedNodeIdsWithLatLng.length > 0 && (
+      {nodesWithLatLngData.length > 0 && (
         <button
           className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
           onClick={onFitBounds}

@@ -1,4 +1,4 @@
-import { Node, useGraph, ValueNode } from "../graph"
+import { Node, useGraph, ValueNode, createRefNode } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { WeatherAveragesNodeView } from "./WeatherAveragesNodeView"
@@ -28,17 +28,17 @@ export function NodeView(props: NodeViewProps) {
 
   return <>
     {node.isCollapsed && 
-      <div className="pl-14"><SummaryView {...props} /></div>
+      <div className="pl-6"><SummaryView {...props} /></div>
     }
     {view && 
-      <div className="pl-8 pt-2">{view}</div>
+      <div className="pt-2">{view}</div>
     }
   </>
 }
 
 // todo: the view options should be filtered depending on the data of the node
 
-export function NodeViewOptions({ node, isFocused }: NodeViewProps) {
+export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeViewProps) {
   const { graph, changeGraph } = useGraph()
   const nodeId = node.id
   const isMap = node.view === "map"
@@ -56,6 +56,17 @@ export function NodeViewOptions({ node, isFocused }: NodeViewProps) {
     })
   }
 
+  const onPopoutView = (view: string) => {
+    // Create new node with refId = nodeId, view = view, add it to the root doc
+    console.log(view)
+
+    changeGraph(graph => {
+      let newNode = createRefNode(graph, nodeId)
+      newNode.view = view 
+      onOpenNodeInNewPane(newNode.id)
+    })
+  }
+
   if (!isFocused && !isMap && !isTable) {
     return null
   }
@@ -67,7 +78,7 @@ export function NodeViewOptions({ node, isFocused }: NodeViewProps) {
           "bg-gray-800 rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-800 hover:text-white",
           isMap ? "bg-gray-800 text-white" : "bg-transparent text-gray-600"
         )}
-        onClick={() => onToggleView("map")}
+        onClick={e => e.metaKey ? onPopoutView("map") : onToggleView("map")}
       >
         <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
           map
@@ -78,7 +89,7 @@ export function NodeViewOptions({ node, isFocused }: NodeViewProps) {
           "bg-gray-800 rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-800 hover:text-white",
           isTable ? "bg-gray-800 text-white" : "bg-transparent text-gray-600"
         )}
-        onClick={() => onToggleView("table")}
+        onClick={e => e.metaKey ? onPopoutView("table") : onToggleView("table")}
       >
         <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
           table_chart

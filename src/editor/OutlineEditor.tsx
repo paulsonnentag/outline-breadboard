@@ -9,6 +9,7 @@ import {
   Node,
   RecordDef,
   useGraph,
+  ValueNode,
 } from "../graph"
 import { DragEvent, MouseEvent, RefObject, useCallback, useRef, useState } from "react"
 import classNames from "classnames"
@@ -54,6 +55,7 @@ export function OutlineEditor({
   const isCollapsed = isNodeCollapsed(graph, nodeId) && !isRoot
   const isCollapsable = node.children.length > 0
   const isReferenceNode = node.id !== nodeId
+  const isReferenceView = isReferenceNode && graph[nodeId].view !== undefined
 
   const onReplaceChildNodeAt = (index: number, newNodeId: string) => {
     changeGraph((graph) => {
@@ -412,107 +414,118 @@ export function OutlineEditor({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <div
-        className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
-        onClick={() => {
-          onChangeSelectedPath(path)
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {!isRoot && (
-          <div
-            className={classNames("material-icons cursor-pointer text-gray-500", {
-              invisible: !isHovered || !isCollapsable,
-            })}
-            style={{
-              transform: isCollapsed ? "" : "rotate(90deg)",
-            }}
-            onClick={onToggleIsCollapsed}
-          >
-            chevron_right
-          </div>
-        )}
-
-        <div
-          className={classNames("bullet", {
-            "is-transcluded": isReferenceNode,
-            "is-collapsed": isCollapsed,
-            invisible:
-              !isFocused &&
-              node.value == "" &&
-              node.key === undefined &&
-              node.view === undefined &&
-              node.children.length === 0,
-          })}
-          onClick={(evt) => {
-            evt.stopPropagation()
-            onOpenNodeInNewPane(node.id)
-          }}
+      {isReferenceView ? <>
+        <NodeViewOptions
+          node={graph[nodeId] as ValueNode}
+          isFocused={true} // should this just be "showControls"?
+          onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
         />
+        <NodeView node={{...node, view: graph[nodeId].view }} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
+      </> : <>
         <div
-          className={classNames("pr-2 flex-1", {
-            "pl-2": isFocused || node.value !== "" || node.key !== undefined,
-          })}
+          className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
+          onClick={() => {
+            onChangeSelectedPath(path)
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
-          <TextInput
-            value={node.value as string}
-            isFocused={isFocused}
-            focusOffset={focusOffset}
-            onChange={onChange}
-            onFocusUp={onFocusUp}
-            onFocusDown={onFocusDown}
-            onSplit={onSplit}
-            onJoinWithPrev={onJoinWithPrev}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            onIndent={onIndent}
-            onOutdent={onOutdent}
+          {!isRoot && (
+            <div
+              className={classNames("material-icons cursor-pointer text-gray-500", {
+                invisible: !isHovered || !isCollapsable,
+              })}
+              style={{
+                transform: isCollapsed ? "" : "rotate(90deg)",
+              }}
+              onClick={onToggleIsCollapsed}
+            >
+              chevron_right
+            </div>
+          )}
+
+          <div
+            className={classNames("bullet", {
+              "is-transcluded": isReferenceNode,
+              "is-collapsed": isCollapsed,
+              invisible:
+                !isFocused &&
+                node.value == "" &&
+                node.key === undefined &&
+                node.view === undefined &&
+                node.children.length === 0,
+            })}
+            onClick={(evt) => {
+              evt.stopPropagation()
+              onOpenNodeInNewPane(node.id)
+            }}
+          />
+          <div
+            className={classNames("pr-2 flex-1", {
+              "pl-2": isFocused || node.value !== "" || node.key !== undefined,
+            })}
+          >
+            <TextInput
+              value={node.value as string}
+              isFocused={isFocused}
+              focusOffset={focusOffset}
+              onChange={onChange}
+              onFocusUp={onFocusUp}
+              onFocusDown={onFocusDown}
+              onSplit={onSplit}
+              onJoinWithPrev={onJoinWithPrev}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              onIndent={onIndent}
+              onOutdent={onOutdent}
+            />
+          </div>
+
+          <NodeViewOptions
+            node={node}
+            isFocused={isFocused || isHovered}
+            onOpenNodeInNewPane={onOpenNodeInNewPane}
           />
         </div>
 
-        <NodeViewOptions
-          node={node}
-          isFocused={isFocused || isHovered}
-          onOpenNodeInNewPane={onOpenNodeInNewPane}
-        />
-      </div>
-
-      <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
-
-      <div
-        className={classNames(
-          "w-full border-b-2",
-          {
-            "ml-4": node.children.length,
-          },
-          isDraggedOver ? "border-blue-500" : "border-white"
-        )}
-      />
-
-      {!isCollapsed && (
-        <div
-          className={classNames("w-full", {
-            "pl-4": !isRoot,
-          })}
-        >
-          {node.children.map((childId, index) => (
-            <OutlineEditor
-              isParentDragged={isBeingDragged}
-              key={index}
-              nodeId={childId}
-              index={index}
-              parentIds={parentIds.concat(node.id)}
-              path={path.concat(index)}
-              selectedPath={selectedPath}
-              focusOffset={focusOffset}
-              onChangeSelectedPath={onChangeSelectedPath}
-              onOpenNodeInNewPane={onOpenNodeInNewPane}
-              onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
-            />
-          ))}
+        <div className="pl-8">
+          <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
         </div>
-      )}
+
+        <div
+          className={classNames(
+            "w-full border-b-2",
+            {
+              "ml-4": node.children.length,
+            },
+            isDraggedOver ? "border-blue-500" : "border-white"
+          )}
+        />
+
+        {!isCollapsed && (
+          <div
+            className={classNames("w-full", {
+              "pl-4": !isRoot,
+            })}
+          >
+            {node.children.map((childId, index) => (
+              <OutlineEditor
+                isParentDragged={isBeingDragged}
+                key={index}
+                nodeId={childId}
+                index={index}
+                parentIds={parentIds.concat(node.id)}
+                path={path.concat(index)}
+                selectedPath={selectedPath}
+                focusOffset={focusOffset}
+                onChangeSelectedPath={onChangeSelectedPath}
+                onOpenNodeInNewPane={onOpenNodeInNewPane}
+                onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
+              />
+            ))}
+          </div>
+        )}
+      </>}
     </div>
   )
 }

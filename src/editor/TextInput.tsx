@@ -482,8 +482,13 @@ function valueToString(x: any): string {
 }
 
 class NamedArgumentWidget extends WidgetType {
+  container: HTMLElement
+
   constructor(readonly name: string) {
     super()
+
+    this.onClick = this.onClick.bind(this)
+    this.onClickOutside = this.onClickOutside.bind(this)
   }
 
   eq(other: NamedArgumentWidget) {
@@ -491,16 +496,40 @@ class NamedArgumentWidget extends WidgetType {
   }
 
   toDOM() {
-    const container = document.createElement("span")
+    const container = (this.container = document.createElement("span"))
     container.setAttribute("aria-hidden", "true")
-    container.className = "italic text-gray-500 pr-2"
+    container.className =
+      "italic text-gray-500 mr-2 border border-dashed border-white cursor-pointer"
     container.innerText = `${this.name}:`
+
+    container.addEventListener("click", this.onClick)
+    document.body.addEventListener("click", this.onClickOutside, true)
 
     return container
   }
 
+  onClick(event: MouseEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    this.container.classList.add("border-gray-500")
+    this.container.classList.remove("border-white")
+  }
+
+  onClickOutside(event: MouseEvent) {
+    if (event.target === this.container) {
+      return
+    }
+    this.container.classList.remove("border-gray-500")
+    this.container.classList.add("border-white")
+  }
+
   ignoreEvent() {
     return false
+  }
+
+  destroy(dom: HTMLElement) {
+    document.removeEventListener("click", this.onClickOutside)
+    super.destroy(dom)
   }
 }
 

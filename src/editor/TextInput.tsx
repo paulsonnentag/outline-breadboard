@@ -441,12 +441,17 @@ class ExpressionWidget extends WidgetType {
 
     const container = document.createElement("span")
     container.setAttribute("aria-hidden", "true")
-    container.className = "italic text-purple-600 ml-2"
     container.innerText = `=`
 
-    evalInlineExp(graph, this.source).then((result: any) => {
-      container.innerText = `= ${valueToString(result)}`
-    })
+    evalInlineExp(graph, this.source)
+      .then((result: any) => {
+        container.className = "italic text-purple-600 ml-2"
+        container.innerText = `= ${valueToString(result)}`
+      })
+      .catch((message: string) => {
+        container.className = "italic text-red-600 ml-2"
+        container.innerText = `= ${message}`
+      })
 
     return container
   }
@@ -476,10 +481,51 @@ function valueToString(x: any): string {
   return JSON.stringify(x)
 }
 
+class NamedArgumentWidget extends WidgetType {
+  constructor(readonly name: string) {
+    super()
+  }
+
+  eq(other: NamedArgumentWidget) {
+    return this.name == other.name
+  }
+
+  toDOM() {
+    const container = document.createElement("span")
+    container.setAttribute("aria-hidden", "true")
+    container.className = "italic text-gray-500 pr-2"
+    container.innerText = `${this.name}:`
+
+    return container
+  }
+
+  ignoreEvent() {
+    return false
+  }
+}
+
 const expressionMatcher = new MatchDecorator({
   regexp: /\{[^}]+}/g,
   decorate: (add, from, to, [source]) => {
     add(from, from + 1, Decoration.mark({ class: "text-gray-300" }))
+
+    // decorate keys
+    const keyRegex = /([a-zA-Z0-9_-]+):/g
+    let match
+    let isFirst = true
+    while ((match = keyRegex.exec(source)) != null) {
+      const [keySource, name] = match
+      const keyFrom = match.index + from
+      const keyTo = keyFrom + keySource.length
+      add(
+        keyFrom,
+        keyTo,
+        Decoration.replace({
+          widget: new NamedArgumentWidget(name),
+        })
+      )
+    }
+
     add(to - 1, to, Decoration.mark({ class: "text-gray-300" }))
     add(
       to,

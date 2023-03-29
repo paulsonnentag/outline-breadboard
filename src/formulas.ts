@@ -32,7 +32,7 @@ Node {
     = Key "=" Exp
 
   Key
-    = PropertyChar+
+    = propertyChar+
 
   TextLiteral = textChar+
 
@@ -45,22 +45,22 @@ Node {
     = AccessExp
     | FunctionExp
     | StringLiteral
-    | NumberLiteral
+    | numberLiteral
     | IdRef
 
   AccessExp
     = SimpleExp "." PropertyName
 
   PropertyName
-    = PropertyChar+
+    = propertyChar+
 
-  PropertyChar
-    = alnum+ | "_"
+  propertyChar
+    = alnum | "_"
 
   StringLiteral
     = "\\"" StringChar+ "\\""
 
-  NumberLiteral
+  numberLiteral
     = digit+
 
   IdRefChar
@@ -73,9 +73,9 @@ Node {
     = alnum | "." | ":" | ">" | "-" | "(" | ")" | "[" | "]" | "=" | "'" | "/" | "*" | "!" | "$" | "_"
 
   FunctionExp
-    = letter+ "(" ListOf<Argument, ","> ")"
+    = letter+ "(" Argument+ ")"
         
-  Argument = (Key ":")? Exp
+  Argument = (Key ":")? Exp ","?
 
   AddExp
     = AddExp "+" MulExp --plus
@@ -202,7 +202,7 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
     autocomplete: {
       label: "Route",
-      value: "{Route(from:$, to:)}",
+      value: "{Route(from:$ to:)}",
     },
   },
 
@@ -232,7 +232,7 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
     autocomplete: {
       label: "Distance",
-      value: "{Distance(from:$, to:)}",
+      value: "{Distance(from: $to:)}",
     },
   },
 
@@ -341,13 +341,13 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
   },
 
   FunctionExp: (fnName, _p1, args, _p2) => {
-    console.log("heyo")
-    console.log(args.asIteration().toAst())
-
-    return new FnNode(fnName.sourceString, args.asIteration().toAst())
+    return new FnNode(
+      fnName.sourceString,
+      args.children.map((arg) => arg.toAst())
+    )
   },
 
-  Argument: (name, _, exp) => {
+  Argument: (name, _, exp, __) => {
     return new ArgumentNode(name.sourceString.slice(0, -1), exp.toAst())
   },
 
@@ -355,7 +355,7 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
   StringLiteral: function (_q1, string, _q2) {
     return new StringNode(string.sourceString)
   },
-  NumberLiteral: (num) => new NumberNode(num.sourceString),
+  numberLiteral: (num) => new NumberNode(num.sourceString),
   MulExp_times: (a, _, b) =>
     new FnNode(
       "Multiply",
@@ -552,12 +552,13 @@ export function evalInlineExp(graph: Graph, source: string): Promise<any> {
   const match = formulaGrammar.match(source, "InlineExp")
 
   if (!match.succeeded()) {
-    return Promise.resolve(null)
+    return Promise.reject("")
   }
 
   try {
     return formulaSemantics(match).toAst().eval(graph)
-  } catch {
-    return Promise.resolve(null)
+  } catch (err: any) {
+    console.error(err.message)
+    return Promise.reject(err.message)
   }
 }

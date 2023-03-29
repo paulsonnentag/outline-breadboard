@@ -10,6 +10,8 @@ export interface NodeViewProps {
   node: ValueNode
   isFocused: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
 export function NodeView(props: NodeViewProps) {
@@ -37,8 +39,13 @@ export function NodeView(props: NodeViewProps) {
 }
 
 // todo: the view options should be filtered depending on the data of the node
+export interface NodeViewOptionsProps {
+  node: ValueNode
+  isFocused: boolean
+  onOpenNodeInNewPane: (nodeId: string) => void
+}
 
-export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeViewProps) {
+export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeViewOptionsProps) {
   const { graph, changeGraph } = useGraph()
   const nodeId = node.id
   const isMap = node.view === "map"

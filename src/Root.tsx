@@ -25,6 +25,7 @@ export function Root({ documentId }: RootProps) {
   const [focusOffset, setFocusOffset] = useState<number>(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isDraggedOverDelete, setIsDraggedOverDelete] = useState(false)
+  const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const onKeyPress = (evt: KeyboardEvent) => {
@@ -130,6 +131,8 @@ export function Root({ documentId }: RootProps) {
                 }}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
                 onReplaceNode={(newNodeId) => onReplaceRootNodeAt(index, newNodeId)}
+                isHoveringOverId={isHoveringOverId}
+                setIsHoveringOverId={setIsHoveringOverId}
               />
             </div>
           )

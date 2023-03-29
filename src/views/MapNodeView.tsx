@@ -43,7 +43,7 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
   return isNaN(parsedValue) ? undefined : parsedValue
 })
 
-export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
+export function MapNodeView({ node, onOpenNodeInNewPane, isHoveringOverId }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
@@ -256,7 +256,9 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
     for (let i = 0; i < nodesWithLatLngData.length; i++) {
       const nodeWithLatLngData = nodesWithLatLngData[i]
 
-      const color = readColor(graph, nodeWithLatLngData.nodeId) ?? "blue"
+      const isHovering = isHoveringOverId !== undefined && (nodeWithLatLngData.nodeId == isHoveringOverId || getNode(graph, isHoveringOverId).value.includes(nodeWithLatLngData.nodeId))
+
+      const color = (isHovering ? "red" : readColor(graph, nodeWithLatLngData.nodeId) ?? "blue")
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
@@ -323,7 +325,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane }: NodeViewProps) {
       mapsMarker.position = nodeWithLatLngData.data
       // mapsMarker.zIndex = hoveredItemId === poiResult.id ? 10 : 0
     }
-  }, [nodesWithLatLngData, mapRef.current])
+  }, [nodesWithLatLngData, mapRef.current, isHoveringOverId])
 
   // render geoJson on map
   useEffect(() => {
@@ -570,6 +572,8 @@ function PopoverOutlineView({
         }}
         onOpenNodeInNewPane={onOpenNodeInNewPane}
         onReplaceNode={() => {}} // it's not possible to replace the root nodeId in the pop over
+        isHoveringOverId={undefined} /* TODO */
+        setIsHoveringOverId={() => {}} /* TODO */
       />
     </GraphContext.Provider>
   )
@@ -652,6 +656,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
       value: latLongValue,
       children: [],
       isCollapsed: false,
+      isSelected: false,
     }
 
     graph[latLngPropertyNode.id] = latLngPropertyNode
@@ -672,6 +677,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
       value: zoomValue,
       children: [],
       isCollapsed: false,
+      isSelected: false,
     }
 
     graph[zoomPropertyNode.id] = zoomPropertyNode

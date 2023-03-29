@@ -29,6 +29,8 @@ interface OutlineEditorProps {
   onOpenNodeInNewPane: (nodeId: string) => void
   onChangeSelectedPath: (path: number[] | undefined, focusOffset?: number) => void
   onReplaceNode: (newNodeId: string) => void
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
 export function OutlineEditor({
@@ -42,6 +44,8 @@ export function OutlineEditor({
   onChangeSelectedPath,
   onOpenNodeInNewPane,
   onReplaceNode,
+  isHoveringOverId,
+  setIsHoveringOverId
 }: OutlineEditorProps) {
   const { graph, changeGraph, setIsDragging } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
@@ -54,6 +58,7 @@ export function OutlineEditor({
   const isRoot = parentId === undefined
   const isCollapsed = isNodeCollapsed(graph, nodeId) && !isRoot
   const isCollapsable = node.children.length > 0
+  const isSelected = node.isSelected
   const isReferenceNode = node.id !== nodeId
   const isReferenceView = isReferenceNode && graph[nodeId].view !== undefined
 
@@ -84,6 +89,13 @@ export function OutlineEditor({
     },
     [changeGraph]
   )
+
+  const onSelectNode = (nodeId: string) => {
+    changeGraph(graph => {
+      const node = getNode(graph, nodeId)
+      node.isSelected = !node.isSelected
+    })
+  }
 
   const onRemoveView = () => {
     changeGraph((graph) => {
@@ -420,7 +432,7 @@ export function OutlineEditor({
           isFocused={true} // should this just be "showControls"?
           onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
         />
-        <NodeView node={{...node, view: graph[nodeId].view }} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
+        <NodeView node={{...node, view: graph[nodeId].view }} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
       </> : <>
         <div
           className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
@@ -457,13 +469,21 @@ export function OutlineEditor({
             })}
             onClick={(evt) => {
               evt.stopPropagation()
-              onOpenNodeInNewPane(node.id)
+              if (evt.metaKey) {
+                onOpenNodeInNewPane(node.id)
+              }
+              else {
+                onSelectNode(node.id)
+              }
             }}
           />
           <div
             className={classNames("pr-2 flex-1", {
               "pl-2": isFocused || node.value !== "" || node.key !== undefined,
+              "bg-gray-200 rounded": (isHoveringOverId == node.id || isSelected) && !(isBeingDragged || isParentDragged),
             })}
+            onMouseEnter={() => setIsHoveringOverId(node.id)}
+            onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
           >
             <TextInput
               value={node.value as string}
@@ -489,7 +509,7 @@ export function OutlineEditor({
         </div>
 
         <div className="pl-8">
-          <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} />
+          <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
         </div>
 
         <div
@@ -521,6 +541,8 @@ export function OutlineEditor({
                 onChangeSelectedPath={onChangeSelectedPath}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
                 onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
+                isHoveringOverId={isHoveringOverId}
+                setIsHoveringOverId={setIsHoveringOverId}
               />
             ))}
           </div>

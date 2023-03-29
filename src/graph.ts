@@ -51,6 +51,7 @@ export function createGraphDoc(repo: Repo) {
       value: "",
       children: [],
       isCollapsed: false,
+      isSelected: false,
     }
 
     doc.cache = {}
@@ -82,6 +83,7 @@ export interface ValueNode {
   view?: string
   computations?: string[]
   isCollapsed: boolean
+  isSelected: boolean
 }
 
 export interface RefNode {
@@ -143,6 +145,7 @@ export function createValueNode(graph: Graph, nodeDef: NodeDef): ValueNode {
     value: key ? `${key}: ${value}` : value,
     children,
     isCollapsed: false,
+    isSelected: false,
   }
 
   if (key) {

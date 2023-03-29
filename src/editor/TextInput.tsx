@@ -21,7 +21,6 @@ import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
 import { evalInlineExp, FunctionDef, FUNCTIONS } from "../formulas"
 import { createPlaceNode } from "../views/MapNodeView"
 import { placesAutocompleteApi } from "../google"
-import { type } from "os"
 
 interface TextInputProps {
   value: string
@@ -403,7 +402,7 @@ const refIdTokensPlugin = ViewPlugin.fromClass(
 )
 
 const keywordMatcher = new MatchDecorator({
-  regexp: /^[^:]+:/g,
+  regexp: /^[a-zA-Z0-9_-]+:/g,
   decoration: () => Decoration.mark({ class: "text-gray-500" }),
 })
 
@@ -458,7 +457,7 @@ class ExpressionWidget extends WidgetType {
 }
 
 function valueToString(x: any): string {
-  if (typeof x === "object") {
+  if (typeof x === "object" && x !== null) {
     const keyValuePairs: string[] = []
 
     for (const [key, value] of Object.entries(x)) {

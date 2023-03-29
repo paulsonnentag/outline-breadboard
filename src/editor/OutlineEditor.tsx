@@ -17,6 +17,9 @@ import { isString, last } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
+import colors from "tailwindcss/colors"
+import { readColor } from "../properties"
+import { DefaultColors } from "tailwindcss/types/generated/colors"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -413,6 +416,26 @@ export function OutlineEditor({
     return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
   }
 
+
+  let accentColor: string | undefined = undefined
+  const setColor = readColor(graph, nodeId)?.trim() 
+
+  if (setColor) {
+    switch (setColor) {
+      case "red": accentColor = colors.red[600]; break;
+      case "orange": accentColor = colors.orange[600]; break;
+      case "yellow": accentColor = colors.yellow[600]; break;
+      case "green": accentColor = colors.green[600]; break;
+      case "blue": accentColor = colors.blue[600]; break;
+      case "purple": accentColor = colors.purple[600]; break;
+      case "pink": accentColor = colors.pink[600]; break;
+    }
+  }
+  
+  if (isRoot && accentColor === undefined) {
+    accentColor = colors.purple[600]
+  }
+
   return (
     <div
       draggable
@@ -421,6 +444,7 @@ export function OutlineEditor({
       className={classNames({
         "text-gray-300": isBeingDragged || isParentDragged,
       })}
+      style={accentColor ? { "--accent-color": accentColor } as React.CSSProperties : undefined}
       onDragOver={onDragOver}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}

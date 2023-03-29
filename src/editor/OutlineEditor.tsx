@@ -432,7 +432,7 @@ export function OutlineEditor({
           isFocused={true} // should this just be "showControls"?
           onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
         />
-        <NodeView node={{...node, view: graph[nodeId].view }} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
+        <NodeView node={{...node, view: graph[nodeId].view }} isFocused={isFocused} fullpane={true} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
       </> : <>
         <div
           className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
@@ -509,7 +509,7 @@ export function OutlineEditor({
         </div>
 
         <div className="pl-8">
-          <NodeView node={node} isFocused={isFocused} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
+          <NodeView node={node} isFocused={isFocused} fullpane={false} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
         </div>
 
         <div

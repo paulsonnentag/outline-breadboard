@@ -9,6 +9,7 @@ import { readAllProperties } from "../properties"
 export interface NodeViewProps {
   node: ValueNode
   isFocused: boolean
+  fullpane: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void

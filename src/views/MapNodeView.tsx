@@ -43,7 +43,7 @@ const ZoomProperty = new Property<number>("zoom", (value) => {
   return isNaN(parsedValue) ? undefined : parsedValue
 })
 
-export function MapNodeView({ node, onOpenNodeInNewPane, isHoveringOverId }: NodeViewProps) {
+export function MapNodeView({ node, fullpane, onOpenNodeInNewPane, isHoveringOverId }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
@@ -376,7 +376,7 @@ export function MapNodeView({ node, onOpenNodeInNewPane, isHoveringOverId }: Nod
   }
 
   return (
-    <div className="w-full h-[400px] border border-gray-200 relative">
+    <div className={fullpane ? "w-auto absolute left-0 right-0 bottom-0 top-16 min-h-[400px]" : "w-auto h-[400px] border border-gray-200 relative"}>
       <div
         onFocus={(event) => {
           event.stopPropagation()

@@ -18,12 +18,13 @@ import debounce from "lodash.debounce"
 import {
   extractComputedValuesInNodeAndBelow,
   extractDataInNodeAndBelow,
-  NodeWithExtractedData,
+  DataWithProvenance,
   readColor,
   readLatLng,
 } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
+import { data } from "autoprefixer"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -45,10 +46,13 @@ export function MapNodeView({
 }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
-  const [geoJsonValues, setGeoJsonValues] = useState<NodeWithExtractedData<any>[]>([])
+  const [geoJsonValues, setGeoJsonValues] = useState<DataWithProvenance<any>[]>([])
 
-  const nodesWithLatLngData: NodeWithExtractedData<google.maps.LatLngLiteral>[] =
-    extractDataInNodeAndBelow(graph, node.id, (graph, node) => readLatLng(graph, node.id))
+  const latLngData: DataWithProvenance<google.maps.LatLngLiteral>[] = extractDataInNodeAndBelow(
+    graph,
+    node.id,
+    (graph, node) => readLatLng(graph, node.id)
+  )
 
   useEffect(() => {
     extractComputedValuesInNodeAndBelow(graph, node.id, (value) => {
@@ -81,10 +85,10 @@ export function MapNodeView({
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
   const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
-  const featuresRef = useRef<google.maps.Data.Feature[]>([])
+  const dataLayersRef = useRef<DataWithProvenance<google.maps.Data>[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
-  const minBounds = google && getMinBounds(nodesWithLatLngData.map((node) => node.data))
+  const minBounds = google && getMinBounds(latLngData.map((node) => node.data))
 
   /* if (indexOfInput === undefined) {
     console.log("No map inputs")
@@ -231,7 +235,7 @@ export function MapNodeView({
       return
     }
 
-    const totalMarkers = nodesWithLatLngData.length
+    const totalMarkers = latLngData.length
 
     // cleanup unused markers and event listener
 
@@ -250,14 +254,10 @@ export function MapNodeView({
 
     // update / create new markers
 
-    for (let i = 0; i < nodesWithLatLngData.length; i++) {
-      const nodeWithLatLngData = nodesWithLatLngData[i]
+    for (let i = 0; i < latLngData.length; i++) {
+      const nodeWithLatLngData = latLngData[i]
 
-      const isHovering =
-        isHoveringOverId !== undefined &&
-        (nodeWithLatLngData.nodeId == isHoveringOverId ||
-          getNode(graph, isHoveringOverId).value.includes(nodeWithLatLngData.nodeId))
-
+      const isHovering = getIsHovering(graph, nodeWithLatLngData.nodeId, isHoveringOverId)
       const color = isHovering ? "red" : readColor(graph, nodeWithLatLngData.nodeId) ?? "blue"
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
@@ -331,10 +331,14 @@ export function MapNodeView({
       mapsMarker.position = nodeWithLatLngData.data
       mapsMarker.zIndex = isHovering ? 10 : 0
     }
-  }, [nodesWithLatLngData, mapRef.current, isHoveringOverId])
+  }, [latLngData, mapRef.current, isHoveringOverId])
 
   // render geoJson on map
-  const updateGeoJsonFeatures = () => {
+  useEffect(() => {
+    if (!google) {
+      return
+    }
+
     const currentMap = mapRef.current
 
     if (!currentMap) {
@@ -342,22 +346,32 @@ export function MapNodeView({
     }
 
     // delete previous features
-    for (const feature of featuresRef.current) {
-      currentMap.data.remove(feature)
+    for (const layerData of dataLayersRef.current) {
+      layerData.data.setMap(null)
     }
+
+    dataLayersRef.current = []
 
     for (const geoJsonValue of geoJsonValues) {
-      console.log(geoJsonValue)
+      const dataLayer = new google.maps.Data()
+      dataLayer.addGeoJson(geoJsonValue.data)
+      dataLayer.setStyle({
+        strokeColor: "blue",
+        strokeWeight: 2,
+      })
 
-      const features: google.maps.Data.Feature[] = currentMap.data.addGeoJson(geoJsonValue.data)
-
-      featuresRef.current = featuresRef.current.concat(features)
+      dataLayer.setMap(currentMap)
+      dataLayersRef.current.push({ nodeId: geoJsonValue.nodeId, data: dataLayer })
     }
-  }
+  }, [geoJsonValues, mapRef])
 
   useEffect(() => {
-    updateGeoJsonFeatures()
-  }, [geoJsonValues, mapRef])
+    for (const dataLayerValue of dataLayersRef.current) {
+      dataLayerValue.data.setStyle({
+        strokeColor: getIsHovering(graph, dataLayerValue.nodeId, isHoveringOverId) ? "red" : "blue",
+      })
+    }
+  }, [isHoveringOverId, dataLayersRef.current])
 
   // render pop over
 
@@ -368,7 +382,7 @@ export function MapNodeView({
   }, [Math.random()])
 
   const onFitBounds = () => {
-    if (nodesWithLatLngData.length === 0) {
+    if (latLngData.length === 0) {
       return
     }
 
@@ -382,7 +396,7 @@ export function MapNodeView({
       currentMap.fitBounds(minBounds, 25)
     }
 
-    if (nodesWithLatLngData.length === 1) {
+    if (latLngData.length === 1) {
       currentMap.setZoom(11)
     }
   }
@@ -417,7 +431,7 @@ export function MapNodeView({
       <div className="top-0 left-0 right-0 bottom-0 absolute pointer-events-none flex items-center justify-center">
         <div className="material-icons text-gray-500">add</div>
       </div>
-      {nodesWithLatLngData.length > 0 && (
+      {latLngData.length > 0 && (
         <button
           className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
           onClick={onFitBounds}
@@ -645,6 +659,13 @@ export async function createPlaceNode(
       )
     })
   })
+}
+
+function getIsHovering(graph: Graph, nodeId: string, isHoveringOverId: string | undefined) {
+  return (
+    isHoveringOverId !== undefined &&
+    (nodeId == isHoveringOverId || getNode(graph, isHoveringOverId).value.includes(nodeId))
+  )
 }
 
 function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBounds {

@@ -96,7 +96,7 @@ function _extractDataInNodeAndBelow<T>(
   }
 }
 
-export interface NodeWithExtractedData<T> {
+export interface DataWithProvenance<T> {
   nodeId: string
   data: T
 }
@@ -113,7 +113,7 @@ export function extractDataInNodeAndBelow<T>(
   graph: Graph,
   nodeId: string,
   extractData: (graph: Graph, node: ValueNode) => T | undefined
-): NodeWithExtractedData<T>[] {
+): DataWithProvenance<T>[] {
   const results: { [nodeId: string]: T } = {}
 
   _extractDataInNodeAndBelow<T>(graph, nodeId, extractData, results)
@@ -123,7 +123,7 @@ export function extractDataInNodeAndBelow<T>(
       ({
         nodeId,
         data,
-      } as NodeWithExtractedData<T>)
+      } as DataWithProvenance<T>)
   )
 }
 
@@ -134,12 +134,12 @@ export async function extractComputedValuesInNodeAndBelow<T>(
   graph: Graph,
   nodeId: string,
   extractData: (value: any) => T | undefined
-): Promise<NodeWithExtractedData<T>[]> {
+): Promise<DataWithProvenance<T>[]> {
   const node = getNode(graph, nodeId)
 
   const bullet = await evalBullet(graph, node.value)
 
-  let results: NodeWithExtractedData<T>[] = []
+  let results: DataWithProvenance<T>[] = []
 
   for (const value of bullet?.value ?? []) {
     const data = extractData(value)

@@ -30,6 +30,7 @@ import { placesAutocompleteApi } from "../google"
 import {
   registerSelectionHandler,
   SelectionHandler,
+  triggerSelect,
   unregisterSelectionHandler,
 } from "../selectionHandler"
 
@@ -375,6 +376,11 @@ class RefIdWidget extends WidgetType {
     wrap.setAttribute("aria-hidden", "true")
     wrap.className = "px-1 rounded border border-blue-700 bg-blue-500 text-white"
     wrap.innerText = getLabelOfNode(node)
+
+    wrap.addEventListener("click", () => {
+      triggerSelect(this.id)
+    })
+
     return wrap
   }
 

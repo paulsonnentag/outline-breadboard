@@ -1,17 +1,17 @@
 import { NodeViewProps } from "./index"
-import { LatLongProperty } from "./MapNodeView"
 import { createRecordNode, createValueNode, getNode, Graph, useGraph, ValueNode } from "../graph"
 import { useEffect } from "react"
-import { Property } from "../property"
 import useDebounce from "../hooks"
 import { isString } from "../utils"
+import LatLngLiteral = google.maps.LatLngLiteral
 
 export function WeatherAveragesNodeView({ node }: NodeViewProps) {
   const { graph, changeGraph } = useGraph()
 
   const nodeId = node.id
   const inputNode = getInputNode(graph, node.id)
-  const location = inputNode ? LatLongProperty.readValueOfNode(graph, inputNode.id)[0] : undefined
+  // const location = inputNode ? LatLongProperty.readValueOfNode(graph, inputNode.id)[0] : undefined
+  const location: LatLngLiteral | undefined = undefined
   const debouncedLocation = useDebounce(location, 500)
 
   useEffect(() => {
@@ -57,10 +57,6 @@ export function WeatherAveragesNodeView({ node }: NodeViewProps) {
 
   return null
 }
-
-const outputProperty = new Property("output", () => {
-  return true
-})
 
 function getInputNode(graph: Graph, nodeId: string): ValueNode | undefined {
   const node = getNode(graph, nodeId)

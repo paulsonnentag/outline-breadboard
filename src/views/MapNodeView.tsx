@@ -9,7 +9,6 @@ import {
   useGraph,
   ValueNode,
 } from "../graph"
-import { Property } from "../property"
 import classNames from "classnames"
 import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
@@ -38,13 +37,12 @@ const COLORS = [
   "bg-red-500",
 ]
 
-const ZoomProperty = new Property<number>("zoom", (value) => {
-  const parsedValue = parseInt(value, 10)
-
-  return isNaN(parsedValue) ? undefined : parsedValue
-})
-
-export function MapNodeView({ node, fullpane, onOpenNodeInNewPane, isHoveringOverId }: NodeViewProps) {
+export function MapNodeView({
+  node,
+  fullpane,
+  onOpenNodeInNewPane,
+  isHoveringOverId,
+}: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
 
@@ -263,9 +261,12 @@ export function MapNodeView({ node, fullpane, onOpenNodeInNewPane, isHoveringOve
     for (let i = 0; i < nodesWithLatLngData.length; i++) {
       const nodeWithLatLngData = nodesWithLatLngData[i]
 
-      const isHovering = isHoveringOverId !== undefined && (nodeWithLatLngData.nodeId == isHoveringOverId || getNode(graph, isHoveringOverId).value.includes(nodeWithLatLngData.nodeId))
+      const isHovering =
+        isHoveringOverId !== undefined &&
+        (nodeWithLatLngData.nodeId == isHoveringOverId ||
+          getNode(graph, isHoveringOverId).value.includes(nodeWithLatLngData.nodeId))
 
-      const color = (isHovering ? "red" : readColor(graph, nodeWithLatLngData.nodeId) ?? "blue")
+      const color = isHovering ? "red" : readColor(graph, nodeWithLatLngData.nodeId) ?? "blue"
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
@@ -389,7 +390,13 @@ export function MapNodeView({ node, fullpane, onOpenNodeInNewPane, isHoveringOve
   }
 
   return (
-    <div className={fullpane ? "w-auto absolute left-0 right-0 bottom-0 top-16 min-h-[400px]" : "w-auto h-[400px] border border-gray-200 relative"}>
+    <div
+      className={
+        fullpane
+          ? "w-auto absolute left-0 right-0 bottom-0 top-16 min-h-[400px]"
+          : "w-auto h-[400px] border border-gray-200 relative"
+      }
+    >
       <div
         onFocus={(event) => {
           event.stopPropagation()

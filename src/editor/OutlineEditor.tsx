@@ -11,7 +11,7 @@ import {
   useGraph,
   ValueNode,
 } from "../graph"
-import { DragEvent, MouseEvent, RefObject, useCallback, useRef, useState } from "react"
+import { DragEvent, MouseEvent, RefObject, useCallback, useState } from "react"
 import classNames from "classnames"
 import { isString, last } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
@@ -19,7 +19,6 @@ import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
 import colors from "tailwindcss/colors"
 import { readColor } from "../properties"
-import { DefaultColors } from "tailwindcss/types/generated/colors"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -48,7 +47,7 @@ export function OutlineEditor({
   onOpenNodeInNewPane,
   onReplaceNode,
   isHoveringOverId,
-  setIsHoveringOverId
+  setIsHoveringOverId,
 }: OutlineEditorProps) {
   const { graph, changeGraph, setIsDragging } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
@@ -94,7 +93,7 @@ export function OutlineEditor({
   )
 
   const onSelectNode = (nodeId: string) => {
-    changeGraph(graph => {
+    changeGraph((graph) => {
       const node = getNode(graph, nodeId)
       node.isSelected = !node.isSelected
     })
@@ -416,22 +415,35 @@ export function OutlineEditor({
     return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
   }
 
-
   let accentColor: string | undefined = undefined
-  const setColor = readColor(graph, nodeId)?.trim() 
+  const setColor = readColor(graph, nodeId)?.trim()
 
   if (setColor) {
     switch (setColor) {
-      case "red": accentColor = colors.red[600]; break;
-      case "orange": accentColor = colors.orange[600]; break;
-      case "yellow": accentColor = colors.yellow[600]; break;
-      case "green": accentColor = colors.green[600]; break;
-      case "blue": accentColor = colors.blue[600]; break;
-      case "purple": accentColor = colors.purple[600]; break;
-      case "pink": accentColor = colors.pink[600]; break;
+      case "red":
+        accentColor = colors.red[600]
+        break
+      case "orange":
+        accentColor = colors.orange[600]
+        break
+      case "yellow":
+        accentColor = colors.yellow[600]
+        break
+      case "green":
+        accentColor = colors.green[600]
+        break
+      case "blue":
+        accentColor = colors.blue[600]
+        break
+      case "purple":
+        accentColor = colors.purple[600]
+        break
+      case "pink":
+        accentColor = colors.pink[600]
+        break
     }
   }
-  
+
   if (isRoot && accentColor === undefined) {
     accentColor = colors.purple[600]
   }
@@ -444,134 +456,153 @@ export function OutlineEditor({
       className={classNames({
         "text-gray-300": isBeingDragged || isParentDragged,
       })}
-      style={accentColor ? { "--accent-color": accentColor } as React.CSSProperties : undefined}
+      style={accentColor ? ({ "--accent-color": accentColor } as React.CSSProperties) : undefined}
       onDragOver={onDragOver}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      {isReferenceView ? <>
-        <NodeViewOptions
-          node={graph[nodeId] as ValueNode}
-          isFocused={true} // should this just be "showControls"?
-          onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
-        />
-        <NodeView node={{...node, view: graph[nodeId].view }} isFocused={isFocused} fullpane={true} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
-      </> : <>
-        <div
-          className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
-          onClick={() => {
-            onChangeSelectedPath(path)
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {!isRoot && (
-            <div
-              className={classNames("material-icons cursor-pointer text-gray-500", {
-                invisible: !isHovered || !isCollapsable,
-              })}
-              style={{
-                transform: isCollapsed ? "" : "rotate(90deg)",
-              }}
-              onClick={onToggleIsCollapsed}
-            >
-              chevron_right
-            </div>
-          )}
-
-          <div
-            className={classNames("bullet", {
-              "is-transcluded": isReferenceNode,
-              "is-collapsed": isCollapsed,
-              invisible:
-                !isFocused &&
-                node.value == "" &&
-                node.key === undefined &&
-                node.view === undefined &&
-                node.children.length === 0,
-            })}
-            onClick={(evt) => {
-              evt.stopPropagation()
-              if (evt.metaKey) {
-                onOpenNodeInNewPane(node.id)
-              }
-              else {
-                onSelectNode(node.id)
-              }
-            }}
+      {isReferenceView ? (
+        <>
+          <NodeViewOptions
+            node={graph[nodeId] as ValueNode}
+            isFocused={true} // should this just be "showControls"?
+            onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
           />
+          <NodeView
+            node={{ ...node, view: graph[nodeId].view }}
+            isFocused={isFocused}
+            fullpane={true}
+            onOpenNodeInNewPane={onOpenNodeInNewPane}
+            isHoveringOverId={isHoveringOverId}
+            setIsHoveringOverId={setIsHoveringOverId}
+          />
+        </>
+      ) : (
+        <>
           <div
-            className={classNames("pr-2 flex-1", {
-              "pl-2": isFocused || node.value !== "" || node.key !== undefined,
-              "bg-gray-200 rounded": (isHoveringOverId == node.id || isSelected) && !(isBeingDragged || isParentDragged),
-            })}
-            onMouseEnter={() => setIsHoveringOverId(node.id)}
-            onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
+            className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
+            onClick={() => {
+              onChangeSelectedPath(path)
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
-            <TextInput
-              value={node.value as string}
-              isFocused={isFocused}
-              focusOffset={focusOffset}
-              onChange={onChange}
-              onFocusUp={onFocusUp}
-              onFocusDown={onFocusDown}
-              onSplit={onSplit}
-              onJoinWithPrev={onJoinWithPrev}
-              onFocus={onFocus}
-              onBlur={onBlur}
-              onIndent={onIndent}
-              onOutdent={onOutdent}
+            {!isRoot && (
+              <div
+                className={classNames("material-icons cursor-pointer text-gray-500", {
+                  invisible: !isHovered || !isCollapsable,
+                })}
+                style={{
+                  transform: isCollapsed ? "" : "rotate(90deg)",
+                }}
+                onClick={onToggleIsCollapsed}
+              >
+                chevron_right
+              </div>
+            )}
+
+            <div
+              className={classNames("bullet", {
+                "is-transcluded": isReferenceNode,
+                "is-collapsed": isCollapsed,
+                invisible:
+                  !isFocused &&
+                  node.value == "" &&
+                  node.key === undefined &&
+                  node.view === undefined &&
+                  node.children.length === 0,
+              })}
+              onClick={(evt) => {
+                evt.stopPropagation()
+                if (evt.metaKey) {
+                  onOpenNodeInNewPane(node.id)
+                } else {
+                  onSelectNode(node.id)
+                }
+              }}
+            />
+            <div
+              className={classNames("pr-2 flex-1", {
+                "pl-2": isFocused || node.value !== "" || node.key !== undefined,
+                "bg-gray-200 rounded":
+                  (isHoveringOverId == node.id || isSelected) &&
+                  !(isBeingDragged || isParentDragged),
+              })}
+              onMouseEnter={() => setIsHoveringOverId(node.id)}
+              onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
+            >
+              <TextInput
+                value={node.value as string}
+                isFocused={isFocused}
+                focusOffset={focusOffset}
+                onChange={onChange}
+                onFocusUp={onFocusUp}
+                onFocusDown={onFocusDown}
+                onSplit={onSplit}
+                onJoinWithPrev={onJoinWithPrev}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onIndent={onIndent}
+                onOutdent={onOutdent}
+              />
+            </div>
+
+            <NodeViewOptions
+              node={node}
+              isFocused={isFocused || isHovered}
+              onOpenNodeInNewPane={onOpenNodeInNewPane}
             />
           </div>
 
-          <NodeViewOptions
-            node={node}
-            isFocused={isFocused || isHovered}
-            onOpenNodeInNewPane={onOpenNodeInNewPane}
-          />
-        </div>
-
-        <div className="pl-8">
-          <NodeView node={node} isFocused={isFocused} fullpane={false} onOpenNodeInNewPane={onOpenNodeInNewPane} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
-        </div>
-
-        <div
-          className={classNames(
-            "w-full border-b-2",
-            {
-              "ml-4": node.children.length,
-            },
-            isDraggedOver ? "border-blue-500" : "border-white"
-          )}
-        />
-
-        {!isCollapsed && (
-          <div
-            className={classNames("w-full", {
-              "pl-4": !isRoot,
-            })}
-          >
-            {node.children.map((childId, index) => (
-              <OutlineEditor
-                isParentDragged={isBeingDragged}
-                key={index}
-                nodeId={childId}
-                index={index}
-                parentIds={parentIds.concat(node.id)}
-                path={path.concat(index)}
-                selectedPath={selectedPath}
-                focusOffset={focusOffset}
-                onChangeSelectedPath={onChangeSelectedPath}
-                onOpenNodeInNewPane={onOpenNodeInNewPane}
-                onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
-                isHoveringOverId={isHoveringOverId}
-                setIsHoveringOverId={setIsHoveringOverId}
-              />
-            ))}
+          <div className="pl-8">
+            <NodeView
+              node={node}
+              isFocused={isFocused}
+              fullpane={false}
+              onOpenNodeInNewPane={onOpenNodeInNewPane}
+              isHoveringOverId={isHoveringOverId}
+              setIsHoveringOverId={setIsHoveringOverId}
+            />
           </div>
-        )}
-      </>}
+
+          <div
+            className={classNames(
+              "w-full border-b-2",
+              {
+                "ml-4": node.children.length,
+              },
+              isDraggedOver ? "border-blue-500" : "border-white"
+            )}
+          />
+
+          {!isCollapsed && (
+            <div
+              className={classNames("w-full", {
+                "pl-4": !isRoot,
+              })}
+            >
+              {node.children.map((childId, index) => (
+                <OutlineEditor
+                  isParentDragged={isBeingDragged}
+                  key={index}
+                  nodeId={childId}
+                  index={index}
+                  parentIds={parentIds.concat(node.id)}
+                  path={path.concat(index)}
+                  selectedPath={selectedPath}
+                  focusOffset={focusOffset}
+                  onChangeSelectedPath={onChangeSelectedPath}
+                  onOpenNodeInNewPane={onOpenNodeInNewPane}
+                  onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
+                  isHoveringOverId={isHoveringOverId}
+                  setIsHoveringOverId={setIsHoveringOverId}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

@@ -25,6 +25,7 @@ import {
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import { data } from "autoprefixer"
+import colors from "../colors"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -258,7 +259,8 @@ export function MapNodeView({
       const nodeWithLatLngData = latLngData[i]
 
       const isHovering = getIsHovering(graph, nodeWithLatLngData.nodeId, isHoveringOverId)
-      const color = isHovering ? "red" : readColor(graph, nodeWithLatLngData.nodeId) ?? "blue"
+      const setColor = readColor(graph, nodeWithLatLngData.nodeId)?.trim()
+      const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
@@ -277,12 +279,18 @@ export function MapNodeView({
       const markerContent = mapsMarker.content as HTMLDivElement
 
       markerContent.className = classNames(
-        `w-[16px] h-[16px] rounded-full cursor-pointer border bg-${color}-500 border-${color}-700`
+        `w-[16px] h-[16px] rounded-full cursor-pointer border border-white`
         // hoveredItemId === poiResult.id ? "bg-lime-500 border-lime-700" : "bg-red-500 border-red-700"
       )
 
       markerContent.style.transform = `translate(0, 8px)`
 
+      if (isHovering) {
+        markerContent.style.backgroundColor = accentColors[5]
+      } else {
+        markerContent.style.backgroundColor = accentColors[2]
+      }
+      
       listenersRef.current.push(
         mapsMarker.addListener("click", () => {
           // defer to selection handler if active
@@ -353,10 +361,13 @@ export function MapNodeView({
     dataLayersRef.current = []
 
     for (const geoJsonValue of geoJsonValues) {
+      const setColor = readColor(graph, geoJsonValue.nodeId)?.trim()
+      const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
+
       const dataLayer = new google.maps.Data()
       dataLayer.addGeoJson(geoJsonValue.data)
       dataLayer.setStyle({
-        strokeColor: "blue",
+        strokeColor: accentColors[2],
         strokeWeight: 2,
       })
 
@@ -368,8 +379,11 @@ export function MapNodeView({
   // update hover effect of geoJson
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
+      const setColor = readColor(graph, dataLayerValue.nodeId)?.trim()
+      const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
+
       dataLayerValue.data.setStyle({
-        strokeColor: getIsHovering(graph, dataLayerValue.nodeId, isHoveringOverId) ? "red" : "blue",
+        strokeColor: getIsHovering(graph, dataLayerValue.nodeId, isHoveringOverId) ? accentColors[5] : accentColors[2],
       })
     }
   }, [isHoveringOverId, dataLayersRef.current])

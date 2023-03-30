@@ -488,7 +488,7 @@ class ExpressionWidget extends WidgetType {
     evalInlineExp(graph, this.source)
       .then((result: any) => {
         container.className = "italic text-purple-600 ml-2"
-        container.style.color = "var(--accent-color)"
+        container.style.color = "var(--accent-color-6)"
         container.innerText = `= ${valueToString(result)}`
       })
       .catch((message: string) => {

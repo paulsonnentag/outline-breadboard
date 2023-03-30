@@ -17,8 +17,8 @@ import { isString, last } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
-import colors from "tailwindcss/colors"
 import { readColor } from "../properties"
+import colors from "../colors"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -415,47 +415,13 @@ export function OutlineEditor({
     return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
   }
 
-  let accentColor: string | undefined = undefined
-  let hoverColor: string | undefined = undefined
-  const setColor = readColor(graph, nodeId)?.trim() 
+  let setColor = readColor(graph, nodeId)?.trim() 
 
-  if (setColor) {
-    switch (setColor) {
-      case "red": 
-        accentColor = colors.red[600]
-        hoverColor = colors.red[200]
-        break
-      case "orange": 
-        accentColor = colors.orange[600] 
-        hoverColor = colors.orange[200] 
-        break
-      case "yellow": 
-        accentColor = colors.yellow[600] 
-        hoverColor = colors.yellow[200]
-        break
-      case "green": 
-        accentColor = colors.green[600] 
-        hoverColor = colors.green[200] 
-        break
-      case "blue": 
-        accentColor = colors.blue[600] 
-        hoverColor = colors.blue[200] 
-        break
-      case "purple": 
-        accentColor = colors.purple[600] 
-        hoverColor =colors.purple[200] 
-        break
-      case "pink": 
-        accentColor = colors.pink[600] 
-        hoverColor = colors.pink[200] 
-        break
-    }
+  if (setColor === undefined && isRoot) {
+    setColor = "default"
   }
 
-  if (isRoot && accentColor === undefined) {
-    accentColor = colors.purple[600]
-    hoverColor = colors.gray[200]
-  }
+  const accentColors = setColor ? colors.accentColors(setColor) : undefined
 
   return (
     <div
@@ -466,9 +432,13 @@ export function OutlineEditor({
         "text-gray-300": isBeingDragged || isParentDragged,
       })}
       style={
-        accentColor ? ({ 
-          "--accent-color": accentColor,
-          "--hover-color": hoverColor,
+        accentColors ? ({ 
+          "--accent-color-1": accentColors[0],
+          "--accent-color-2": accentColors[1],
+          "--accent-color-3": accentColors[2],
+          "--accent-color-4": accentColors[3],
+          "--accent-color-5": accentColors[4],
+          "--accent-color-6": accentColors[5],
         } as React.CSSProperties) : {}
       }
       onDragOver={onDragOver}
@@ -539,13 +509,13 @@ export function OutlineEditor({
             <div
               className={classNames("pr-2 flex-1 rounded", {
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
-                "bg-gray-200 rounded":
-                  (isHoveringOverId == node.id || isSelected) &&
+                "bg-slate-200 rounded":
+                  (isHoveringOverId == node.id) &&
+                  !(isBeingDragged || isParentDragged),
+                  "bg-slate-100 rounded":
+                  isSelected &&
                   !(isBeingDragged || isParentDragged),
               })}
-              style={(isHoveringOverId == node.id || isSelected) && !(isBeingDragged || isParentDragged) ? ({
-                "background-color": "var(--hover-color)"
-              } as React.CSSProperties) : {}}
               onMouseEnter={() => setIsHoveringOverId(node.id)}
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
             >
@@ -579,6 +549,7 @@ export function OutlineEditor({
               node={node}
               isFocused={isFocused}
               fullpane={false}
+              accentColors={accentColors} 
               onOpenNodeInNewPane={onOpenNodeInNewPane}
               isHoveringOverId={isHoveringOverId}
               setIsHoveringOverId={setIsHoveringOverId}

@@ -141,17 +141,11 @@ function directionsResultToRoute(result: google.maps.DirectionsResult) {
     distance: route.legs[0].distance?.text,
     duration: route.legs[0].duration?.text,
     geometry: {
-      type: "FeatureCollection",
-
-      features: [
-        {
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: route.overview_path.map(({ lat, lng }) => [lng, lat]),
-          },
-        },
-      ],
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: route.overview_path.map(({ lat, lng }) => [lng, lat]),
+      },
     },
   }
 }
@@ -231,7 +225,19 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         }
       )
 
-      return `${Math.round(distance)} ${unitShortName(unit)}`
+      return {
+        distance: `${Math.round(distance)} ${unitShortName(unit)}`,
+        geometry: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [pos1.lng, pos1.lat],
+              [pos2.lng, pos2.lat],
+            ],
+          },
+        },
+      }
     },
 
     autocomplete: {

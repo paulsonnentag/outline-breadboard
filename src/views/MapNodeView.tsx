@@ -329,7 +329,7 @@ export function MapNodeView({
       }))*/
 
       mapsMarker.position = nodeWithLatLngData.data
-      // mapsMarker.zIndex = hoveredItemId === poiResult.id ? 10 : 0
+      mapsMarker.zIndex = isHovering ? 10 : 0
     }
   }, [nodesWithLatLngData, mapRef.current, isHoveringOverId])
 

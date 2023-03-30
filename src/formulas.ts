@@ -335,9 +335,8 @@ const formulaGrammar = ohm.grammar(GRAMMAR_SRC)
 
 const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", {
   Text: (e) => e.children.map((child) => child.toAst()),
-  TextLiteral: (e: Node) => {
-    new StringNode(e.source.startIdx, e.source.endIdx, e.sourceString)
-  },
+
+  TextLiteral: (e: Node) => new StringNode(e.source.startIdx, e.source.endIdx, e.sourceString),
 
   Exp: (e) => e.toAst(),
 
@@ -532,7 +531,7 @@ class ArgumentNode implements AstNode {
   }
 
   getIdRefs(): string[] {
-    return []
+    return this.exp.getIdRefs()
   }
 }
 
@@ -592,12 +591,10 @@ export async function evalBullet(graph: Graph, source: string): Promise<Bullet |
     return null
   }
 
+  const astNodes = formulaSemantics(match).toAst()
+
   return {
-    value: await Promise.all(
-      formulaSemantics(match)
-        .toAst()
-        .map((expr: AstNode) => expr.eval(graph))
-    ),
+    value: await Promise.all(astNodes.map((expr: AstNode) => expr.eval(graph))),
   } as Bullet
 }
 
@@ -613,11 +610,6 @@ export function getReferencedNodeIds(source: string): string[] {
   const parts = formulaSemantics(match).toAst()
 
   for (const part of parts) {
-    if (!part) {
-      // TODO: fix
-      continue
-    }
-
     for (const id of part.getIdRefs()) {
       idMap[id] = true
     }

@@ -16,13 +16,13 @@ import { OutlineEditor } from "../editor/OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
 import {
+  extractComputedValuesInNodeAndBelow,
   extractDataInNodeAndBelow,
   NodeWithExtractedData,
   readColor,
   readLatLng,
 } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
-import { evalBullet } from "../formulas"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 
 // this is necessary for tailwind to include the css classes
@@ -45,29 +45,20 @@ export function MapNodeView({
 }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
-
-  // todo: generalize and pull in any geoJson value that's in the subtree
-  const [geoJsonValues, setGeoJsonValues] = useState<any[]>([])
-  useEffect(() => {
-    evalBullet(graph, node.value).then((bullet) => {
-      if (!bullet) {
-        return
-      }
-
-      const geoJSONValues: any[] = []
-
-      for (const part of bullet.value) {
-        if (part && part.geometry) {
-          geoJSONValues.push(part.geometry)
-        }
-      }
-
-      setGeoJsonValues(geoJSONValues)
-    })
-  }, [node.value])
+  const [geoJsonValues, setGeoJsonValues] = useState<NodeWithExtractedData<any>[]>([])
 
   const nodesWithLatLngData: NodeWithExtractedData<google.maps.LatLngLiteral>[] =
     extractDataInNodeAndBelow(graph, node.id, (graph, node) => readLatLng(graph, node.id))
+
+  useEffect(() => {
+    extractComputedValuesInNodeAndBelow(graph, node.id, (value) => {
+      if (typeof value === "object" && value.geometry) {
+        return value.geometry
+      }
+    }).then((data) => {
+      setGeoJsonValues(data)
+    })
+  }, [graph, node.id])
 
   /*
 
@@ -90,6 +81,7 @@ export function MapNodeView({
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
   const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
+  const featuresRef = useRef<google.maps.Data.Feature[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
   const minBounds = google && getMinBounds(nodesWithLatLngData.map((node) => node.data))
@@ -342,23 +334,29 @@ export function MapNodeView({
   }, [nodesWithLatLngData, mapRef.current, isHoveringOverId])
 
   // render geoJson on map
-  useEffect(() => {
+  const updateGeoJsonFeatures = () => {
     const currentMap = mapRef.current
 
     if (!currentMap) {
       return
     }
 
-    for (const geoJsonValue of geoJsonValues) {
-      // there is probably a better way of doing this
-      currentMap.data.loadGeoJson(
-        "data:text/plain;base64," + btoa(JSON.stringify(geoJsonValue)),
-        {},
-        (features) => {
-          console.log("features", features)
-        }
-      )
+    // delete previous features
+    for (const feature of featuresRef.current) {
+      currentMap.data.remove(feature)
     }
+
+    for (const geoJsonValue of geoJsonValues) {
+      console.log(geoJsonValue)
+
+      const features: google.maps.Data.Feature[] = currentMap.data.addGeoJson(geoJsonValue.data)
+
+      featuresRef.current = featuresRef.current.concat(features)
+    }
+  }
+
+  useEffect(() => {
+    updateGeoJsonFeatures()
   }, [geoJsonValues, mapRef])
 
   // render pop over

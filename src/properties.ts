@@ -1,7 +1,7 @@
 import { isString } from "./utils"
 import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
-import { getReferencedNodeIds } from "./formulas"
+import { evalBullet, getReferencedNodeIds } from "./formulas"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
@@ -94,8 +94,6 @@ function _extractDataInNodeAndBelow<T>(
   for (const childId of node.children) {
     _extractDataInNodeAndBelow(graph, childId, extractData, results)
   }
-
-  return results
 }
 
 export interface NodeWithExtractedData<T> {
@@ -129,10 +127,42 @@ export function extractDataInNodeAndBelow<T>(
   )
 }
 
-export function readAllProperties(
+// we should combine extractComputedValuesInNodeAndBelow with extractDataInNodeAndBelow
+// currently we haven't bridget the gap between data that's in the tree and data that is computed in expressions
+
+export async function extractComputedValuesInNodeAndBelow<T>(
   graph: Graph,
-  nodeId: string
-) {
+  nodeId: string,
+  extractData: (value: any) => T | undefined
+): Promise<NodeWithExtractedData<T>[]> {
+  const node = getNode(graph, nodeId)
+
+  const bullet = await evalBullet(graph, node.value)
+
+  let results: NodeWithExtractedData<T>[] = []
+
+  for (const value of bullet?.value ?? []) {
+    const data = extractData(value)
+
+    if (data) {
+      results.push({ nodeId, data })
+    }
+  }
+
+  const childResults = await Promise.all(
+    node.children.map((childId) => {
+      return extractComputedValuesInNodeAndBelow(graph, childId, extractData)
+    })
+  )
+
+  for (const childResult of childResults) {
+    results = results.concat(childResult)
+  }
+
+  return results
+}
+
+export function readAllProperties(graph: Graph, nodeId: string) {
   interface KeyValueDict {
     [key: string]: any
   }
@@ -144,7 +174,7 @@ export function readAllProperties(
   )
 
   for (const childNode of children) {
-    if (childNode.value.includes(':')) {
+    if (childNode.value.includes(":")) {
       const split = childNode.value.split(":")
       const key = split[0]
       const value = split[1]

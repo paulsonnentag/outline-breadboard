@@ -416,36 +416,45 @@ export function OutlineEditor({
   }
 
   let accentColor: string | undefined = undefined
-  const setColor = readColor(graph, nodeId)?.trim()
+  let hoverColor: string | undefined = undefined
+  const setColor = readColor(graph, nodeId)?.trim() 
 
   if (setColor) {
     switch (setColor) {
-      case "red":
+      case "red": 
         accentColor = colors.red[600]
+        hoverColor = colors.red[200]
         break
-      case "orange":
-        accentColor = colors.orange[600]
+      case "orange": 
+        accentColor = colors.orange[600] 
+        hoverColor = colors.orange[200] 
         break
-      case "yellow":
-        accentColor = colors.yellow[600]
+      case "yellow": 
+        accentColor = colors.yellow[600] 
+        hoverColor = colors.yellow[200]
         break
-      case "green":
-        accentColor = colors.green[600]
+      case "green": 
+        accentColor = colors.green[600] 
+        hoverColor = colors.green[200] 
         break
-      case "blue":
-        accentColor = colors.blue[600]
+      case "blue": 
+        accentColor = colors.blue[600] 
+        hoverColor = colors.blue[200] 
         break
-      case "purple":
-        accentColor = colors.purple[600]
+      case "purple": 
+        accentColor = colors.purple[600] 
+        hoverColor =colors.purple[200] 
         break
-      case "pink":
-        accentColor = colors.pink[600]
+      case "pink": 
+        accentColor = colors.pink[600] 
+        hoverColor = colors.pink[200] 
         break
     }
   }
 
   if (isRoot && accentColor === undefined) {
     accentColor = colors.purple[600]
+    hoverColor = colors.gray[200]
   }
 
   return (
@@ -456,7 +465,12 @@ export function OutlineEditor({
       className={classNames({
         "text-gray-300": isBeingDragged || isParentDragged,
       })}
-      style={accentColor ? ({ "--accent-color": accentColor } as React.CSSProperties) : undefined}
+      style={
+        accentColor ? ({ 
+          "--accent-color": accentColor,
+          "--hover-color": hoverColor,
+        } as React.CSSProperties) : {}
+      }
       onDragOver={onDragOver}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
@@ -523,12 +537,15 @@ export function OutlineEditor({
               }}
             />
             <div
-              className={classNames("pr-2 flex-1", {
+              className={classNames("pr-2 flex-1 rounded", {
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
                 "bg-gray-200 rounded":
                   (isHoveringOverId == node.id || isSelected) &&
                   !(isBeingDragged || isParentDragged),
               })}
+              style={(isHoveringOverId == node.id || isSelected) && !(isBeingDragged || isParentDragged) ? ({
+                "background-color": "var(--hover-color)"
+              } as React.CSSProperties) : {}}
               onMouseEnter={() => setIsHoveringOverId(node.id)}
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
             >

@@ -6,7 +6,7 @@ export function accentColors(setColor: string) {
       return [
         colors.red[100],
         colors.red[200],
-        colors.red[300],
+        colors.red[400],
         colors.red[400],
         colors.red[500],
         colors.red[600],
@@ -15,7 +15,7 @@ export function accentColors(setColor: string) {
       return [
         colors.orange[100],
         colors.orange[200],
-        colors.orange[300],
+        colors.orange[400],
         colors.orange[400],
         colors.orange[500],
         colors.orange[600],
@@ -24,7 +24,7 @@ export function accentColors(setColor: string) {
       return [
         colors.yellow[100],
         colors.yellow[200],
-        colors.yellow[300],
+        colors.yellow[400],
         colors.yellow[400],
         colors.yellow[500],
         colors.yellow[600],
@@ -33,7 +33,7 @@ export function accentColors(setColor: string) {
       return [
         colors.green[100],
         colors.green[200],
-        colors.green[300],
+        colors.green[400],
         colors.green[400],
         colors.green[500],
         colors.green[600],
@@ -41,8 +41,8 @@ export function accentColors(setColor: string) {
     case "blue": 
       return [
         colors.blue[100],
-        colors.blue[200],
         colors.blue[300],
+        colors.blue[400],
         colors.blue[400],
         colors.blue[500],
         colors.blue[600],
@@ -51,7 +51,7 @@ export function accentColors(setColor: string) {
       return [
         colors.purple[100],
         colors.purple[200],
-        colors.purple[300],
+        colors.purple[400],
         colors.purple[400],
         colors.purple[500],
         colors.purple[600],
@@ -60,7 +60,7 @@ export function accentColors(setColor: string) {
       return [
         colors.pink[100],
         colors.pink[200],
-        colors.pink[300],
+        colors.pink[400],
         colors.pink[400],
         colors.pink[500],
         colors.pink[600],

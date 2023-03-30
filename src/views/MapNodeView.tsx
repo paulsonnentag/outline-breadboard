@@ -21,6 +21,7 @@ import {
   DataWithProvenance,
   readColor,
   readLatLng,
+  readColorFromList,
 } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
@@ -259,7 +260,7 @@ export function MapNodeView({
       const nodeWithLatLngData = latLngData[i]
 
       const isHovering = getIsHovering(graph, nodeWithLatLngData.nodeId, isHoveringOverId)
-      const setColor = readColor(graph, nodeWithLatLngData.nodeId)?.trim()
+      const setColor = readColorFromList(graph, [nodeWithLatLngData.nodeId, ...nodeWithLatLngData.parentIds.slice().reverse()])?.trim()
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
@@ -361,7 +362,7 @@ export function MapNodeView({
     dataLayersRef.current = []
 
     for (const geoJsonValue of geoJsonValues) {
-      const setColor = readColor(graph, geoJsonValue.nodeId)?.trim()
+      const setColor = readColorFromList(graph, [geoJsonValue.nodeId, ...geoJsonValue.parentIds.slice().reverse()])?.trim()
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       const dataLayer = new google.maps.Data()
@@ -372,14 +373,14 @@ export function MapNodeView({
       })
 
       dataLayer.setMap(currentMap)
-      dataLayersRef.current.push({ nodeId: geoJsonValue.nodeId, data: dataLayer })
+      dataLayersRef.current.push({ nodeId: geoJsonValue.nodeId, parentIds: geoJsonValue.parentIds, data: dataLayer })
     }
   }, [google, geoJsonValues, mapRef])
 
   // update hover effect of geoJson
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
-      const setColor = readColor(graph, dataLayerValue.nodeId)?.trim()
+      const setColor = readColorFromList(graph, [dataLayerValue.nodeId, ...dataLayerValue.parentIds.slice().reverse()])?.trim()
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       dataLayerValue.data.setStyle({

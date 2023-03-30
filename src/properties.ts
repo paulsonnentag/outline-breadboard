@@ -64,6 +64,18 @@ export function readLatLng(graph: Graph, nodeId: string): LatLngLiteral | undefi
   })
 }
 
+export function readColorFromList(graph: Graph, nodeIds: string[]): string | undefined {
+  for (var nodeId of nodeIds) {
+    let color = readColor(graph, nodeId)
+
+    if (color) {
+      return color
+    }
+  }
+
+  return undefined
+}
+
 export function readColor(graph: Graph, nodeId: string): string | undefined {
   return readParsedProperty<string>(graph, nodeId, "color", (value) =>
     isString(value) ? value : undefined
@@ -74,7 +86,8 @@ function _extractDataInNodeAndBelow<T>(
   graph: Graph,
   nodeId: string,
   extractData: (graph: Graph, node: ValueNode) => T | undefined,
-  results: { [nodeId: string]: T } = {}
+  parentIds: string[],
+  results: [nodeId: string, parentIds: string[], data: T][] = []
 ) {
   const node = getNode(graph, nodeId)
 
@@ -82,22 +95,23 @@ function _extractDataInNodeAndBelow<T>(
     const referencedNode = getNode(graph, referencedId)
     const data = extractData(graph, referencedNode)
     if (data) {
-      results[referencedNode.id] = data
+      results.push([referencedNode.id, parentIds, data])
     }
   }
 
   const data = extractData(graph, node)
   if (data) {
-    results[node.id] = data
+    results.push([node.id, parentIds, data])
   }
 
   for (const childId of node.children) {
-    _extractDataInNodeAndBelow(graph, childId, extractData, results)
+    _extractDataInNodeAndBelow(graph, childId, extractData, [...parentIds, node.id], results)
   }
 }
 
 export interface DataWithProvenance<T> {
   nodeId: string
+  parentIds: string[]
   data: T
 }
 
@@ -114,14 +128,15 @@ export function extractDataInNodeAndBelow<T>(
   nodeId: string,
   extractData: (graph: Graph, node: ValueNode) => T | undefined
 ): DataWithProvenance<T>[] {
-  const results: { [nodeId: string]: T } = {}
+  const results: [nodeId: string, parentIds: string[], data: T][] = []
 
-  _extractDataInNodeAndBelow<T>(graph, nodeId, extractData, results)
+  _extractDataInNodeAndBelow<T>(graph, nodeId, extractData, [], results)
 
-  return Object.entries(results).map(
-    ([nodeId, data]) =>
+  return results.map(
+    ([nodeId, parentIds, data]) =>
       ({
         nodeId,
+        parentIds,
         data,
       } as DataWithProvenance<T>)
   )
@@ -135,6 +150,15 @@ export async function extractComputedValuesInNodeAndBelow<T>(
   nodeId: string,
   extractData: (value: any) => T | undefined
 ): Promise<DataWithProvenance<T>[]> {
+  return _extractComputedValuesInNodeAndBelow(graph, nodeId, [], extractData)
+}
+
+async function _extractComputedValuesInNodeAndBelow<T>(
+  graph: Graph,
+  nodeId: string,
+  parentIds: string[],
+  extractData: (value: any) => T | undefined
+): Promise<DataWithProvenance<T>[]> {
   const node = getNode(graph, nodeId)
 
   const bullet = await evalBullet(graph, node.value)
@@ -145,13 +169,13 @@ export async function extractComputedValuesInNodeAndBelow<T>(
     const data = extractData(value)
 
     if (data) {
-      results.push({ nodeId, data })
+      results.push({ nodeId, parentIds, data })
     }
   }
 
   const childResults = await Promise.all(
     node.children.map((childId) => {
-      return extractComputedValuesInNodeAndBelow(graph, childId, extractData)
+      return _extractComputedValuesInNodeAndBelow(graph, childId, [...parentIds, nodeId], extractData)
     })
   )
 

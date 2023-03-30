@@ -363,7 +363,7 @@ export function MapNodeView({
       dataLayer.setMap(currentMap)
       dataLayersRef.current.push({ nodeId: geoJsonValue.nodeId, data: dataLayer })
     }
-  }, [geoJsonValues, mapRef])
+  }, [google, geoJsonValues, mapRef])
 
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {

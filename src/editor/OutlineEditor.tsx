@@ -545,6 +545,8 @@ export function OutlineEditor({
                 onBlur={onBlur}
                 onIndent={onIndent}
                 onOutdent={onOutdent}
+                isHoveringOverId={isHoveringOverId}
+                setIsHoveringOverId={setIsHoveringOverId}
               />
             </div>
 

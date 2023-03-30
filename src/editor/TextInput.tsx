@@ -47,6 +47,8 @@ interface TextInputProps {
   onBlur: () => void
   onIndent: () => void
   onOutdent: () => void
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
 export function TextInput({
@@ -62,6 +64,8 @@ export function TextInput({
   onFocusDown,
   onFocus,
   onBlur,
+  isHoveringOverId,
+  setIsHoveringOverId,
 }: TextInputProps) {
   const { changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -79,7 +83,7 @@ export function TextInput({
       extensions: [
         minimalSetup,
         EditorView.lineWrapping,
-        refIdTokensPlugin,
+        getRefIdTokensPlugin(setIsHoveringOverId),
         keywordHighlightPlugin,
         expressionEvalPlugin,
         autocompletion({
@@ -360,7 +364,10 @@ async function getPlacesAutocompletion(
 }
 
 class RefIdWidget extends WidgetType {
-  constructor(readonly id: string) {
+  constructor(
+    readonly id: string,
+    readonly setIsHoveringOverId: (nodeId: string | undefined) => void
+  ) {
     super()
   }
 
@@ -381,6 +388,22 @@ class RefIdWidget extends WidgetType {
       triggerSelect(this.id)
     })
 
+    wrap.addEventListener("mouseenter", () => {
+      wrap.classList.remove("bg-blue-500")
+      wrap.classList.remove("border-blue-700")
+      wrap.classList.add("bg-red-500")
+      wrap.classList.add("border-red-700")
+      this.setIsHoveringOverId(this.id)
+    })
+
+    wrap.addEventListener("mouseleave", () => {
+      wrap.classList.add("bg-blue-500")
+      wrap.classList.add("border-blue-700")
+      wrap.classList.remove("bg-red-500")
+      wrap.classList.remove("border-red-700")
+      this.setIsHoveringOverId(this.id)
+    })
+
     return wrap
   }
 
@@ -389,34 +412,36 @@ class RefIdWidget extends WidgetType {
   }
 }
 
-const refIdMatcher = new MatchDecorator({
-  regexp: /#\[([^\]]+)]/g,
-  decoration: ([, id]) =>
-    Decoration.replace({
-      widget: new RefIdWidget(id),
-    }),
-})
-
-const refIdTokensPlugin = ViewPlugin.fromClass(
-  class {
-    placeholders: DecorationSet
-
-    constructor(view: EditorView) {
-      this.placeholders = refIdMatcher.createDeco(view)
-    }
-
-    update(update: ViewUpdate) {
-      this.placeholders = refIdMatcher.updateDeco(update, this.placeholders)
-    }
-  },
-  {
-    decorations: (instance) => instance.placeholders,
-    provide: (plugin) =>
-      EditorView.atomicRanges.of((view) => {
-        return view.plugin(plugin)?.placeholders || Decoration.none
+function getRefIdTokensPlugin(setIsHoveringOverId: (nodeId: string | undefined) => void) {
+  const refIdMatcher = new MatchDecorator({
+    regexp: /#\[([^\]]+)]/g,
+    decoration: ([, id]) =>
+      Decoration.replace({
+        widget: new RefIdWidget(id, setIsHoveringOverId),
       }),
-  }
-)
+  })
+
+  return ViewPlugin.fromClass(
+    class {
+      placeholders: DecorationSet
+
+      constructor(view: EditorView) {
+        this.placeholders = refIdMatcher.createDeco(view)
+      }
+
+      update(update: ViewUpdate) {
+        this.placeholders = refIdMatcher.updateDeco(update, this.placeholders)
+      }
+    },
+    {
+      decorations: (instance) => instance.placeholders,
+      provide: (plugin) =>
+        EditorView.atomicRanges.of((view) => {
+          return view.plugin(plugin)?.placeholders || Decoration.none
+        }),
+    }
+  )
+}
 
 const keywordMatcher = new MatchDecorator({
   regexp: /^[a-zA-Z0-9_-]+:/g,

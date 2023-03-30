@@ -18,9 +18,20 @@ import {
 } from "@codemirror/autocomplete"
 import { isString } from "../utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
-import { evalInlineExp, FunctionDef, FUNCTIONS } from "../formulas"
+import {
+  evalInlineExp,
+  FunctionDef,
+  FUNCTIONS,
+  iterateOverArgumentNodes,
+  parseInlineExp,
+} from "../formulas"
 import { createPlaceNode } from "../views/MapNodeView"
 import { placesAutocompleteApi } from "../google"
+import {
+  registerSelectionHandler,
+  SelectionHandler,
+  unregisterSelectionHandler,
+} from "../selectionHandler"
 
 interface TextInputProps {
   value: string
@@ -483,17 +494,24 @@ function valueToString(x: any): string {
 }
 
 class NamedArgumentWidget extends WidgetType {
-  container: HTMLElement
+  container: HTMLElement | undefined
+  selectionHandler: SelectionHandler | undefined
 
-  constructor(readonly name: string) {
+  constructor(
+    readonly from: number,
+    readonly to: number,
+    readonly name: string,
+    private view: EditorView
+  ) {
     super()
 
     this.onClick = this.onClick.bind(this)
     this.onClickOutside = this.onClickOutside.bind(this)
+    this.onSelectNodeId = this.onSelectNodeId.bind(this)
   }
 
   eq(other: NamedArgumentWidget) {
-    return this.name == other.name
+    return false
   }
 
   toDOM() {
@@ -512,17 +530,50 @@ class NamedArgumentWidget extends WidgetType {
   onClick(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
-    this.container.classList.add("border-gray-500")
-    this.container.classList.remove("border-white")
+    this.container!.classList.add("border-gray-500")
+    this.container!.classList.remove("border-white")
+
+    this.selectionHandler = {
+      onSelect: (nodeId) => {
+        this.view.dispatch(
+          this.view.state.update({
+            changes: {
+              from: this.from,
+              to: this.to,
+              insert: `${this.name}:#[${nodeId}]`,
+            },
+          })
+        )
+      },
+      onUnregister: () => {
+        this.container!.classList.remove("border-gray-500")
+        this.container!.classList.add("border-white")
+      },
+    }
+
+    registerSelectionHandler(this.selectionHandler)
   }
 
   onClickOutside(event: MouseEvent) {
     if (event.target === this.container) {
       return
     }
-    this.container.classList.remove("border-gray-500")
-    this.container.classList.add("border-white")
+
+    // this is hacky, but if we unregister the selection handler on the next frame
+    // it can be still called if the outside click event triggers a selection
+    setTimeout(() => {
+      this.container!.classList.remove("border-gray-500")
+      this.container!.classList.add("border-white")
+
+      if (this.selectionHandler) {
+        unregisterSelectionHandler(this.selectionHandler)
+      }
+
+      this.selectionHandler = undefined
+    })
   }
+
+  onSelectNodeId(nodeId: string) {}
 
   ignoreEvent() {
     return false
@@ -536,27 +587,36 @@ class NamedArgumentWidget extends WidgetType {
 
 const expressionMatcher = new MatchDecorator({
   regexp: /\{[^}]+}/g,
-  decorate: (add, from, to, [source]) => {
+  decorate: (add, from, to, [source], view) => {
+    // decorate "{"
     add(from, from + 1, Decoration.mark({ class: "text-gray-300" }))
 
-    // decorate keys
-    const keyRegex = /([a-zA-Z0-9_-]+):/g
-    let match
-    let isFirst = true
-    while ((match = keyRegex.exec(source)) != null) {
-      const [keySource, name] = match
-      const keyFrom = match.index + from
-      const keyTo = keyFrom + keySource.length
-      add(
-        keyFrom,
-        keyTo,
-        Decoration.replace({
-          widget: new NamedArgumentWidget(name),
-        })
-      )
+    const ast = parseInlineExp(source)
+
+    if (ast) {
+      iterateOverArgumentNodes(ast, (arg) => {
+        if (arg.name === "") {
+          return
+        }
+
+        const keyFrom = arg.from + from
+        const keyTo = keyFrom + arg.name.length + 1
+        const argTo = arg.to + from
+
+        add(
+          keyFrom,
+          keyTo,
+          Decoration.replace({
+            widget: new NamedArgumentWidget(keyFrom, argTo, arg.name, view),
+          })
+        )
+      })
     }
 
+    // decorate "}"
     add(to - 1, to, Decoration.mark({ class: "text-gray-300" }))
+
+    // add result of computation
     add(
       to,
       to,

@@ -6,6 +6,8 @@ import turfDistance from "@turf/distance"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { googleApi } from "./google"
 import DirectionsResult = google.maps.DirectionsResult
+import { isArray } from "./utils"
+import { Node } from "ohm-js"
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -75,7 +77,9 @@ Node {
   FunctionExp
     = letter+ "(" Argument+ ")"
         
-  Argument = (Key ":")? Exp ","?
+  Argument 
+    = (Key ":")? Exp ","?
+    | Key ":" Exp? ","?
 
   AddExp
     = AddExp "+" MulExp --plus
@@ -232,7 +236,7 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
     autocomplete: {
       label: "Distance",
-      value: "{Distance(from: $to:)}",
+      value: "{Distance(from:$ to:)}",
     },
   },
 
@@ -331,7 +335,9 @@ const formulaGrammar = ohm.grammar(GRAMMAR_SRC)
 
 const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", {
   Text: (e) => e.children.map((child) => child.toAst()),
-  TextLiteral: (e) => new StringNode(e.sourceString),
+  TextLiteral: (e: Node) => {
+    new StringNode(e.source.startIdx, e.source.endIdx, e.sourceString)
+  },
 
   Exp: (e) => e.toAst(),
 
@@ -341,80 +347,134 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
   },
 
   FunctionExp: (fnName, _p1, args, _p2) => {
+    const from = fnName.source.startIdx
+    const to = _p2.source.endIdx
+
     return new FnNode(
+      from,
+      to,
       fnName.sourceString,
       args.children.map((arg) => arg.toAst())
     )
   },
 
-  Argument: (name, _, exp, __) => {
-    return new ArgumentNode(name.sourceString.slice(0, -1), exp.toAst())
+  Argument: (nameNode, _, exp, __) => {
+    const from = nameNode.source.startIdx
+    const to = __.source.endIdx
+    // I should fix this in the grammar, depending on the rule that matches sometimes the name has ":" at the end sometimes not
+    const name = nameNode.sourceString.endsWith(":")
+      ? nameNode.sourceString.slice(0, -1)
+      : nameNode.sourceString
+
+    const rawValue = exp.toAst()
+    const value = isArray(rawValue) ? undefined : rawValue // empty array means there is no value
+    return new ArgumentNode(from, to, name, value)
   },
 
-  IdRef: (fo, chars, bar) => new IdRefNode(chars.sourceString),
-  StringLiteral: function (_q1, string, _q2) {
-    return new StringNode(string.sourceString)
+  IdRef: (_, chars, __) => {
+    const from = _.source.startIdx
+    const to = __.source.endIdx
+    return new IdRefNode(from, to, chars.sourceString)
   },
-  numberLiteral: (num) => new NumberNode(num.sourceString),
-  MulExp_times: (a, _, b) =>
-    new FnNode(
+  StringLiteral: function (_q1, string, _q2) {
+    const from = _q1.source.startIdx
+    const to = _q2.source.endIdx
+    return new StringNode(from, to, string.sourceString)
+  },
+  numberLiteral: (num) => new NumberNode(num.source.startIdx, num.source.endIdx, num.sourceString),
+  MulExp_times: (a, _, b) => {
+    const from = a.source.startIdx
+    const to = b.source.endIdx
+
+    return new FnNode(
+      from,
+      to,
       "Multiply",
       [a, b].map((x) => x.toAst())
-    ),
-  MulExp_divide: (a, _, b) =>
-    new FnNode(
+    )
+  },
+  MulExp_divide: (a, _, b) => {
+    const from = a.source.startIdx
+    const to = b.source.endIdx
+
+    return new FnNode(
+      from,
+      to,
       "Divide",
-      [a, b].map((x) => x.toAst())
-    ),
-  AddExp_plus: (a, _, b) =>
-    new FnNode(
+      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, x.toAst()))
+    )
+  },
+  AddExp_plus: (a, _, b) => {
+    const from = a.source.startIdx
+    const to = b.source.endIdx
+
+    return new FnNode(
+      from,
+      to,
       "Plus",
-      [a, b].map((x) => x.toAst())
-    ),
-  AddExp_minus: (a, _, b) =>
-    new FnNode(
+      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
+    )
+  },
+  AddExp_minus: (a, _, b) => {
+    const from = a.source.startIdx
+    const to = b.source.endIdx
+
+    return new FnNode(
+      from,
+      to,
       "Minus",
-      [a, b].map((x) => x.toAst())
-    ),
+      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
+    )
+  },
 
-  AccessExp: (obj, _, key) =>
-    new FnNode(
+  AccessExp: (obj, _, key) => {
+    const from = obj.source.startIdx
+    const to = obj.source.endIdx
+
+    return new FnNode(
+      from,
+      to,
       "Get",
-      [obj, key].map((x) => x.toAst())
-    ),
+      [key].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
+    )
+  },
 
-  PropertyName: (name) => new StringNode(name.sourceString),
+  PropertyName: (name) =>
+    new StringNode(name.source.startIdx, name.source.endIdx, name.sourceString),
 
   _iter: (...args) => args.map((arg) => arg.toAst()),
 })
 
 interface AstNode {
+  from: number
+  to: number
   eval: (graph: Graph) => any
   getIdRefs: () => string[]
 }
 
+class UndefinedNode implements AstNode {
+  constructor(readonly from: number, readonly to: number) {}
+
+  eval() {
+    return undefined
+  }
+
+  getIdRefs() {
+    return []
+  }
+}
+
 class FnNode implements AstNode {
+  from: number
+  to: number
   name: string
-  positionalArgs: AstNode[]
-  namedArgs: { [name: string]: AstNode }
+  args: ArgumentNode[]
 
-  constructor(fnName: string, args: AstNode[]) {
+  constructor(from: number, to: number, fnName: string, args: ArgumentNode[]) {
+    this.from = from
+    this.to = to
     this.name = fnName
-
-    this.positionalArgs = []
-    this.namedArgs = {}
-
-    for (const arg of args) {
-      if (arg instanceof ArgumentNode) {
-        if (arg.name) {
-          this.namedArgs[arg.name] = arg.exp
-        } else {
-          this.positionalArgs.push(arg.exp)
-        }
-      } else {
-        this.positionalArgs.push(arg)
-      }
-    }
+    this.args = args
   }
 
   async eval(graph: Graph) {
@@ -423,15 +483,20 @@ class FnNode implements AstNode {
       return null
     }
 
-    const positionalArgs = await Promise.all(this.positionalArgs.map((arg) => arg.eval(graph)))
-    const namedArgs = (
-      await Promise.all(
-        Object.entries(this.namedArgs).map(async ([name, value]) => [name, await value.eval(graph)])
-      )
-    ).reduce((argMap: { [name: string]: any }, [name, value]) => {
-      argMap[name] = value
-      return argMap
-    }, {})
+    const namedArgs: { [name: string]: any } = {}
+    const positionalArgs: any[] = []
+
+    const evaledArgs = await Promise.all(
+      this.args.map(async (arg) => [arg.name, await arg.eval(graph)])
+    )
+
+    for (const [name, value] of evaledArgs) {
+      if (name === "") {
+        positionalArgs.push(value)
+      } else {
+        namedArgs[name] = value
+      }
+    }
 
     return fn(graph, positionalArgs, namedArgs)
   }
@@ -439,7 +504,7 @@ class FnNode implements AstNode {
   getIdRefs(): string[] {
     const idMap: { [id: string]: boolean } = {}
 
-    for (const arg of this.positionalArgs.concat(Object.values(this.namedArgs))) {
+    for (const arg of this.args) {
       for (const id of arg.getIdRefs()) {
         idMap[id] = true
       }
@@ -450,10 +515,14 @@ class FnNode implements AstNode {
 }
 
 class ArgumentNode implements AstNode {
+  from: number
+  to: number
   name: string
   exp: AstNode
 
-  constructor(name: string, exp: AstNode) {
+  constructor(from: number, to: number, name: string, exp: AstNode = new UndefinedNode(to, to)) {
+    this.from = from
+    this.to = to
     this.name = name
     this.exp = exp
   }
@@ -468,7 +537,7 @@ class ArgumentNode implements AstNode {
 }
 
 class IdRefNode implements AstNode {
-  constructor(readonly id: string) {}
+  constructor(readonly from: number, readonly to: number, readonly id: string) {}
 
   eval(graph: Graph) {
     return promisify(getNode(graph, this.id))
@@ -480,7 +549,7 @@ class IdRefNode implements AstNode {
 }
 
 class StringNode implements AstNode {
-  constructor(readonly string: string) {}
+  constructor(readonly from: number, readonly to: number, readonly string: string) {}
 
   eval(graph: Graph) {
     return promisify(this.string)
@@ -492,9 +561,13 @@ class StringNode implements AstNode {
 }
 
 class NumberNode implements AstNode {
+  from: number
+  to: number
   number: number
 
-  constructor(num: string) {
+  constructor(from: number, to: number, num: string) {
+    this.from = from
+    this.to = to
     this.number = parseFloat(num)
   }
 
@@ -540,6 +613,11 @@ export function getReferencedNodeIds(source: string): string[] {
   const parts = formulaSemantics(match).toAst()
 
   for (const part of parts) {
+    if (!part) {
+      // TODO: fix
+      continue
+    }
+
     for (const id of part.getIdRefs()) {
       idMap[id] = true
     }
@@ -560,5 +638,28 @@ export function evalInlineExp(graph: Graph, source: string): Promise<any> {
   } catch (err: any) {
     console.error(err.message)
     return Promise.reject(err.message)
+  }
+}
+
+export function parseInlineExp(source: string): AstNode | undefined {
+  const match = formulaGrammar.match(source, "InlineExp")
+
+  if (!match.succeeded()) {
+    return undefined
+  }
+
+  return formulaSemantics(match).toAst()
+}
+
+export function iterateOverArgumentNodes(node: AstNode, fn: (arg: ArgumentNode) => void) {
+  if (node instanceof FnNode) {
+    for (const arg of node.args) {
+      iterateOverArgumentNodes(arg, fn)
+    }
+  }
+
+  if (node instanceof ArgumentNode) {
+    fn(node)
+    iterateOverArgumentNodes(node.exp, fn)
   }
 }

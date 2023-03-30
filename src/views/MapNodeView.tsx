@@ -24,6 +24,7 @@ import {
 } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { evalBullet } from "../formulas"
+import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -187,10 +188,16 @@ export function MapNodeView({ node, fullpane, onOpenNodeInNewPane, isHoveringOve
       await createPlaceNode(changeGraph, placeId)
     }
 
+    // defer to selection handler if it's active
+    if (isSelectionHandlerActive()) {
+      triggerSelect(placeId)
+      return
+    }
+
     // todo: hacky, we don't mutate the graph here, we just use the mutation function to reference the new update graph
     // the graph in the current scope contains still the old data
     changeGraph((graph) => {
-      const position = LatLongProperty.readValueOfNode(graph, placeId)[0]
+      const position = readLatLng(graph, placeId)
 
       currentPopOver.position = position
       currentPopOver.rootId = placeId
@@ -285,6 +292,12 @@ export function MapNodeView({ node, fullpane, onOpenNodeInNewPane, isHoveringOve
 
       listenersRef.current.push(
         mapsMarker.addListener("click", () => {
+          // defer to selection handler if active
+          if (isSelectionHandlerActive()) {
+            triggerSelect(nodeWithLatLngData.nodeId)
+            return
+          }
+
           changeGraph((graph) => {
             const node = getNode(graph, nodeWithLatLngData.nodeId)
 

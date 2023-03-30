@@ -22,6 +22,10 @@ export function isString(value: any): value is string {
   return typeof value === "string"
 }
 
+export function isArray(value: any): value is any[] {
+  return value instanceof Array
+}
+
 // adapted from: https://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
 export function getCaretCharacterOffset(element: HTMLElement) {
   var caretOffset = 0

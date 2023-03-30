@@ -365,6 +365,7 @@ export function MapNodeView({
     }
   }, [google, geoJsonValues, mapRef])
 
+  // update hover effect of geoJson
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
       dataLayerValue.data.setStyle({

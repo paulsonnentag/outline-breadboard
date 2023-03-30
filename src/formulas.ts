@@ -192,7 +192,7 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
               graphDoc.cache[key] = JSON.stringify(result) // store it as string, because otherwise it takes a long time to write it into automerge
             })
 
-            resolve(directionsResultToRoute(result))
+            resolve(directionsResultToRoute(JSON.parse(JSON.stringify(result)))) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
           }
         )
       })

@@ -391,15 +391,18 @@ export function MapNodeView({
       ])?.trim()
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
+      const isHovering = getIsHovering(
+        graph,
+        dataLayerValue.nodeId,
+        dataLayerValue.parentIds,
+        isHoveringOverId
+      ) 
+
       dataLayerValue.data.setStyle({
-        strokeColor: getIsHovering(
-          graph,
-          dataLayerValue.nodeId,
-          dataLayerValue.parentIds,
-          isHoveringOverId
-        )
+        strokeColor: isHovering
           ? accentColors[5]
           : accentColors[2],
+          zIndex: isHovering ? 10 : 0
       })
     }
   }, [isHoveringOverId, dataLayersRef.current])

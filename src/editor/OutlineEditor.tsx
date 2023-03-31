@@ -13,7 +13,7 @@ import {
 } from "../graph"
 import { DragEvent, MouseEvent, RefObject, useCallback, useState } from "react"
 import classNames from "classnames"
-import { isString, last } from "../utils"
+import { getIsHovering, isString, last } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
@@ -352,8 +352,6 @@ export function OutlineEditor({
         try {
           const recordDefs: RecordDef[] = JSON.parse(fileReader.result as string)
 
-          console.log("add records", recordDefs.length)
-
           changeGraph((graph) => {
             const node = getNode(graph, nodeId)
 
@@ -512,7 +510,8 @@ export function OutlineEditor({
               className={classNames("pr-2 flex-1 rounded", {
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
                 "bg-slate-200 rounded":
-                  isHoveringOverId == node.id && !(isBeingDragged || isParentDragged),
+                  getIsHovering(graph, node.id, parentIds, isHoveringOverId) &&
+                  !(isBeingDragged || isParentDragged),
                 "bg-slate-100 rounded": isSelected && !(isBeingDragged || isParentDragged),
               })}
               onMouseEnter={() => setIsHoveringOverId(node.id)}
@@ -546,6 +545,7 @@ export function OutlineEditor({
 
           <div className="pl-8">
             <NodeView
+              parentIds={parentIds}
               node={node}
               isFocused={isFocused}
               fullpane={false}

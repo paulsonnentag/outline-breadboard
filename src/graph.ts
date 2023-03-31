@@ -97,7 +97,7 @@ export interface RefNode {
 
 export type Node = ValueNode | RefNode
 
-type PropDef = [string, string | undefined] | undefined
+type PropDef = [string, string | undefined] | undefined | RecordDef
 
 export interface RecordDef {
   id?: string
@@ -109,7 +109,7 @@ export function createRecordNode(graph: Graph, { id = v4(), name, props }: Recor
   const recordNode: ValueNode = createValueNode(graph, { id, value: name })
 
   for (const prop of props) {
-    // key / property
+    // key / value
     if (prop instanceof Array) {
       const [key, value] = prop
 
@@ -118,6 +118,11 @@ export function createRecordNode(graph: Graph, { id = v4(), name, props }: Recor
         const propertyNode = createValueNode(graph, { value, key })
         recordNode.children.push(propertyNode.id)
       }
+
+      // record def
+    } else if (typeof prop === "object") {
+      const propertyNode = createRecordNode(graph, prop)
+      recordNode.children.push(propertyNode.id)
 
       // property without key
     } else if (prop !== undefined) {

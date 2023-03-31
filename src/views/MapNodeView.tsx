@@ -16,17 +16,16 @@ import { OutlineEditor } from "../editor/OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
 import {
+  DataWithProvenance,
   extractComputedValuesInNodeAndBelow,
   extractDataInNodeAndBelow,
-  DataWithProvenance,
-  readColor,
-  readLatLng,
   readColorFromList,
+  readLatLng,
 } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
-import { data } from "autoprefixer"
 import colors from "../colors"
+import { getIsHovering } from "../utils"
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -260,7 +259,12 @@ export function MapNodeView({
     for (let i = 0; i < latLngData.length; i++) {
       const nodeWithLatLngData = latLngData[i]
 
-      const isHovering = getIsHovering(graph, nodeWithLatLngData.nodeId, isHoveringOverId)
+      const isHovering = getIsHovering(
+        graph,
+        nodeWithLatLngData.nodeId,
+        nodeWithLatLngData.parentIds,
+        isHoveringOverId
+      )
       const setColor = readColorFromList(graph, [
         nodeWithLatLngData.nodeId,
         ...nodeWithLatLngData.parentIds.slice().reverse(),
@@ -388,7 +392,7 @@ export function MapNodeView({
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       dataLayerValue.data.setStyle({
-        strokeColor: getIsHovering(graph, dataLayerValue.nodeId, isHoveringOverId)
+        strokeColor: getIsHovering(graph, dataLayerValue.nodeId, parentIds, isHoveringOverId)
           ? accentColors[5]
           : accentColors[2],
       })
@@ -681,13 +685,6 @@ export async function createPlaceNode(
       )
     })
   })
-}
-
-function getIsHovering(graph: Graph, nodeId: string, isHoveringOverId: string | undefined) {
-  return (
-    isHoveringOverId !== undefined &&
-    (nodeId == isHoveringOverId || getNode(graph, isHoveringOverId).value.includes(nodeId))
-  )
 }
 
 function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBounds {

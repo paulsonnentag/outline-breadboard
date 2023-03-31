@@ -175,7 +175,12 @@ async function _extractComputedValuesInNodeAndBelow<T>(
 
   const childResults = await Promise.all(
     node.children.map((childId) => {
-      return _extractComputedValuesInNodeAndBelow(graph, childId, [...parentIds, nodeId], extractData)
+      return _extractComputedValuesInNodeAndBelow(
+        graph,
+        childId,
+        [...parentIds, nodeId],
+        extractData
+      )
     })
   )
 

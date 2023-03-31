@@ -1,4 +1,5 @@
 import { Prop } from "@automerge/automerge"
+import { getNode, Graph } from "./graph"
 
 export function last<T>(arr: T[]) {
   return arr[arr.length - 1]
@@ -68,4 +69,19 @@ export function setCaretCharacterOffset(element: HTMLElement, offset: number) {
 // adapted from: https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers#answer-4467559
 export function mod(value: number, n: number) {
   return ((value % n) + n) % n
+}
+
+export function getIsHovering(
+  graph: Graph,
+  nodeId: string,
+  parentIds: string[],
+  isHoveringOverId: string | undefined
+): boolean {
+  if (isHoveringOverId === undefined) {
+    return false
+  }
+
+  return [nodeId]
+    .concat(parentIds)
+    .some((id) => id == isHoveringOverId || getNode(graph, isHoveringOverId).value.includes(id))
 }

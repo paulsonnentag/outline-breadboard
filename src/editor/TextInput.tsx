@@ -35,6 +35,7 @@ import {
 } from "../selectionHandler"
 
 interface TextInputProps {
+  nodeId: string
   value: string
   isFocused: boolean
   focusOffset: number
@@ -52,6 +53,7 @@ interface TextInputProps {
 }
 
 export function TextInput({
+  nodeId,
   value,
   isFocused,
   focusOffset,
@@ -88,7 +90,10 @@ export function TextInput({
         expressionEvalPlugin,
         autocompletion({
           activateOnTyping: true,
-          override: [getMentionCompletionContext(changeGraph), functionAutocompletionContext],
+          override: [
+            getMentionCompletionContext(nodeId, changeGraph),
+            functionAutocompletionContext,
+          ],
         }),
       ],
       parent: containerRef.current,
@@ -246,7 +251,7 @@ function functionAutocompletionContext(context: CompletionContext) {
   const search = reference.text.toString().slice(1).trim()
 
   const options = Object.values(FUNCTIONS).flatMap((fn: FunctionDef) => {
-    if (!fn.autocomplete || !fn.autocomplete.label.includes(search)) {
+    if (!fn.autocomplete || !fn.autocomplete.label.toLowerCase().includes(search.toLowerCase())) {
       return []
     }
 
@@ -287,7 +292,10 @@ function functionAutocompletionContext(context: CompletionContext) {
   }
 }
 
-function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
+function getMentionCompletionContext(
+  nodeId: string,
+  changeGraph: (fn: (graph: Graph) => void) => void
+) {
   return async function mentionCompletionContext(context: CompletionContext) {
     let reference = context.matchBefore(/@[^@]*/)
 
@@ -302,11 +310,14 @@ function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) =
 
     const nodeOptions: Completion[] = Object.values(graph).flatMap((node: Node) => {
       if (
+        nodeId == node.id ||
         node.type !== "value" ||
+        node.value.match(KEYWORD_REGEX) || // don't suggest nodes that are a property
         !isString(node.value) ||
         node.value === "" ||
         node.value.startsWith("=") ||
-        !node.value.includes(search)
+        !node.value.toLowerCase().includes(search.toLowerCase()) ||
+        node.value.includes("{") // don't suggest nodes that contain an expression
       ) {
         return []
       }
@@ -443,8 +454,10 @@ function getRefIdTokensPlugin(setIsHoveringOverId: (nodeId: string | undefined) 
   )
 }
 
+const KEYWORD_REGEX = /^[a-zA-Z0-9_-]+:/g
+
 const keywordMatcher = new MatchDecorator({
-  regexp: /^[a-zA-Z0-9_-]+:/g,
+  regexp: KEYWORD_REGEX,
   decoration: () => Decoration.mark({ class: "text-gray-500" }),
 })
 

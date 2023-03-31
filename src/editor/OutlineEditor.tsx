@@ -415,7 +415,7 @@ export function OutlineEditor({
     return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
   }
 
-  let setColor = readColor(graph, nodeId)?.trim() 
+  let setColor = readColor(graph, nodeId)?.trim()
 
   if (setColor === undefined && isRoot) {
     setColor = "default"
@@ -432,14 +432,16 @@ export function OutlineEditor({
         "text-gray-300": isBeingDragged || isParentDragged,
       })}
       style={
-        accentColors ? ({ 
-          "--accent-color-1": accentColors[0],
-          "--accent-color-2": accentColors[1],
-          "--accent-color-3": accentColors[2],
-          "--accent-color-4": accentColors[3],
-          "--accent-color-5": accentColors[4],
-          "--accent-color-6": accentColors[5],
-        } as React.CSSProperties) : {}
+        accentColors
+          ? ({
+              "--accent-color-1": accentColors[0],
+              "--accent-color-2": accentColors[1],
+              "--accent-color-3": accentColors[2],
+              "--accent-color-4": accentColors[3],
+              "--accent-color-5": accentColors[4],
+              "--accent-color-6": accentColors[5],
+            } as React.CSSProperties)
+          : {}
       }
       onDragOver={onDragOver}
       onDragEnter={onDragEnter}
@@ -510,16 +512,14 @@ export function OutlineEditor({
               className={classNames("pr-2 flex-1 rounded", {
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
                 "bg-slate-200 rounded":
-                  (isHoveringOverId == node.id) &&
-                  !(isBeingDragged || isParentDragged),
-                  "bg-slate-100 rounded":
-                  isSelected &&
-                  !(isBeingDragged || isParentDragged),
+                  isHoveringOverId == node.id && !(isBeingDragged || isParentDragged),
+                "bg-slate-100 rounded": isSelected && !(isBeingDragged || isParentDragged),
               })}
               onMouseEnter={() => setIsHoveringOverId(node.id)}
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
             >
               <TextInput
+                nodeId={node.id}
                 value={node.value as string}
                 isFocused={isFocused}
                 focusOffset={focusOffset}
@@ -549,7 +549,7 @@ export function OutlineEditor({
               node={node}
               isFocused={isFocused}
               fullpane={false}
-              accentColors={accentColors} 
+              accentColors={accentColors}
               onOpenNodeInNewPane={onOpenNodeInNewPane}
               isHoveringOverId={isHoveringOverId}
               setIsHoveringOverId={setIsHoveringOverId}

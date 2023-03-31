@@ -5,7 +5,11 @@ import { evalBullet, getReferencedNodeIds } from "./formulas"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
-function parseLatLng(value: string): google.maps.LatLngLiteral | undefined {
+export function parseLatLng(value: any): google.maps.LatLngLiteral | undefined {
+  if (typeof value != "string") {
+    return undefined
+  }
+
   const match = value.match(LAT_LONG_REGEX)
 
   if (!match) {

@@ -1,12 +1,12 @@
 import * as ohm from "ohm-js"
 import { getGraphDocHandle, getNode, Graph, ValueNode } from "./graph"
-import { readLatLng, readProperty } from "./properties"
+import { parseLatLng, readLatLng, readProperty } from "./properties"
 import { point as turfPoint } from "@turf/helpers"
 import turfDistance from "@turf/distance"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { googleApi } from "./google"
 import DirectionsResult = google.maps.DirectionsResult
-import { isArray } from "./utils"
+import { isArray, last } from "./utils"
 import { Node } from "ohm-js"
 
 // An object to store results of calling functions
@@ -159,22 +159,31 @@ function directionsResultToRoute(result: google.maps.DirectionsResult) {
 
 export const FUNCTIONS: { [name: string]: FunctionDef } = {
   Route: {
-    function: async (graph, _, { from, to }) => {
-      if (!from || !from.id || !to || !to.id) {
-        return
+    function: async (graph, [stops], { from, to }) => {
+      let waypoints = stops ? [...stops] : []
+
+      if (!from && waypoints[0]) {
+        from = waypoints.shift()
       }
 
-      const pos1 = readLatLng(graph, from.id)
-      const pos2 = readLatLng(graph, to.id)
+      if (!to && last(waypoints)) {
+        to = waypoints.pop()
+      }
 
-      if (!pos1 || !pos2) {
+      const pos1 = from && from.id ? readLatLng(graph, from.id) : parseLatLng(from)
+      const pos2 = to && to.id ? readLatLng(graph, to.id) : parseLatLng(to)
+      const waypointPos = waypoints.map((waypoint) =>
+        waypoint.id ? readLatLng(graph, waypoint.id) : parseLatLng(from)
+      )
+
+      if (!pos1 || !pos2 || waypointPos.some((pos) => !pos)) {
         return undefined
       }
 
       const graphDocHandle = getGraphDocHandle()
       const doc = await graphDocHandle.value()
 
-      const key = `${pos1.lat}:${pos1.lng}/${pos2.lat}:${pos2.lng}`
+      const key = JSON.stringify({ pos1, pos2, waypointPos })
       const cachedResult: DirectionsResult = doc.cache[key] ? JSON.parse(doc.cache[key]) : undefined
 
       if (cachedResult) {
@@ -191,6 +200,9 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
             origin: pos1,
             destination: pos2,
             travelMode: google.maps.TravelMode.DRIVING,
+            waypoints: waypoints.map((latLng) => ({
+              location: latLng as google.maps.LatLngLiteral,
+            })),
           },
           (result: google.maps.DirectionsResult | null) => {
             result = result ?? { routes: [] }

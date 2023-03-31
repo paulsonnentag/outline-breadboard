@@ -139,7 +139,7 @@ export function TextInput({
   useEffect(() => {
     const currentEditorView = editorViewRef.current
 
-    if (!currentEditorView) {
+    if (!currentEditorView || isFocused) {
       return
     }
 
@@ -158,7 +158,7 @@ export function TextInput({
         )
       }
     }
-  }, [value, editorViewRef.current])
+  }, [value, editorViewRef.current, isFocused])
 
   const onKeyDown = (evt: KeyboardEvent) => {
     const currentEditorView = editorViewRef.current

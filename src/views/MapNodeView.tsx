@@ -45,6 +45,7 @@ export function MapNodeView({
   fullpane,
   onOpenNodeInNewPane,
   isHoveringOverId,
+  setIsHoveringOverId,
 }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
@@ -260,7 +261,10 @@ export function MapNodeView({
       const nodeWithLatLngData = latLngData[i]
 
       const isHovering = getIsHovering(graph, nodeWithLatLngData.nodeId, isHoveringOverId)
-      const setColor = readColorFromList(graph, [nodeWithLatLngData.nodeId, ...nodeWithLatLngData.parentIds.slice().reverse()])?.trim()
+      const setColor = readColorFromList(graph, [
+        nodeWithLatLngData.nodeId,
+        ...nodeWithLatLngData.parentIds.slice().reverse(),
+      ])?.trim()
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
@@ -291,9 +295,11 @@ export function MapNodeView({
       } else {
         markerContent.style.backgroundColor = accentColors[2]
       }
-      
+
       listenersRef.current.push(
         mapsMarker.addListener("click", () => {
+          console.log("click")
+
           // defer to selection handler if active
           if (isSelectionHandlerActive()) {
             triggerSelect(nodeWithLatLngData.nodeId)
@@ -318,24 +324,12 @@ export function MapNodeView({
         })
       )
 
-      /*
-      markerContent.className = `w-[16px] h-[16px] rounded-full shadow cursor-pointer ${
-        geoMarker.entity.data.isHovered ? "bg-red-500" : "bg-blue-500"
-      }`
       markerContent.onmouseenter = () => {
-        geoMarker.entity.replace("isHovered", true)
+        setIsHoveringOverId(nodeWithLatLngData.nodeId)
       }
       markerContent.onmouseleave = () => {
-        geoMarker.entity.retract("isHovered")
+        setIsHoveringOverId(undefined)
       }
-
-      listenersRef.current.push(mapsMarker.addListener("mouseenter", () => {
-        console.log("enter")
-        setHoveredItemId(poiResult.id)
-      }))
-      listenersRef.current.push(mapsMarker.addListener("mouseleave", () => {
-        setHoveredItemId(undefined)
-      }))*/
 
       mapsMarker.position = nodeWithLatLngData.data
       mapsMarker.zIndex = isHovering ? 10 : 0
@@ -362,7 +356,10 @@ export function MapNodeView({
     dataLayersRef.current = []
 
     for (const geoJsonValue of geoJsonValues) {
-      const setColor = readColorFromList(graph, [geoJsonValue.nodeId, ...geoJsonValue.parentIds.slice().reverse()])?.trim()
+      const setColor = readColorFromList(graph, [
+        geoJsonValue.nodeId,
+        ...geoJsonValue.parentIds.slice().reverse(),
+      ])?.trim()
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       const dataLayer = new google.maps.Data()
@@ -373,18 +370,27 @@ export function MapNodeView({
       })
 
       dataLayer.setMap(currentMap)
-      dataLayersRef.current.push({ nodeId: geoJsonValue.nodeId, parentIds: geoJsonValue.parentIds, data: dataLayer })
+      dataLayersRef.current.push({
+        nodeId: geoJsonValue.nodeId,
+        parentIds: geoJsonValue.parentIds,
+        data: dataLayer,
+      })
     }
   }, [google, geoJsonValues, mapRef])
 
   // update hover effect of geoJson
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
-      const setColor = readColorFromList(graph, [dataLayerValue.nodeId, ...dataLayerValue.parentIds.slice().reverse()])?.trim()
+      const setColor = readColorFromList(graph, [
+        dataLayerValue.nodeId,
+        ...dataLayerValue.parentIds.slice().reverse(),
+      ])?.trim()
       const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
 
       dataLayerValue.data.setStyle({
-        strokeColor: getIsHovering(graph, dataLayerValue.nodeId, isHoveringOverId) ? accentColors[5] : accentColors[2],
+        strokeColor: getIsHovering(graph, dataLayerValue.nodeId, isHoveringOverId)
+          ? accentColors[5]
+          : accentColors[2],
       })
     }
   }, [isHoveringOverId, dataLayersRef.current])

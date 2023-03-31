@@ -189,8 +189,6 @@ export function OutlineEditor({
         onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
       } else {
         node.children.unshift(newNode.id)
-        console.log(path, path.concat(0))
-
         onChangeSelectedPath(path.concat(0))
       }
     })
@@ -521,7 +519,6 @@ export function OutlineEditor({
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />
-              {JSON.stringify(path)}
             </div>
 
             <NodeViewOptions

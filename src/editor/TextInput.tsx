@@ -33,7 +33,6 @@ import {
   triggerSelect,
   unregisterSelectionHandler,
 } from "../selectionHandler"
-import { type } from "os"
 
 interface TextInputProps {
   nodeId: string
@@ -523,7 +522,7 @@ class ExpressionWidget extends WidgetType {
 }
 
 function valueToString(x: any): string {
-  if (typeof x === "object" && x !== null) {
+  if (typeof x === "object" && x !== null && !(x instanceof Array)) {
     // special property that defines a custom summary value
     if (x.__summary) {
       return x.__summary

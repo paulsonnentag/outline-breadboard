@@ -260,10 +260,30 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
   Get: {
     function: (graph, [object, key]) => {
       if (!object || !object.children || !key) {
-        return undefined
+        return promisify(undefined)
       }
 
-      return promisify(readProperty(graph, object.id, key))
+      // try to access property on node itself
+
+      const value = readProperty(graph, object.id, key)
+
+      if (value !== undefined) {
+        return promisify(value)
+      }
+
+      // otherwise interpret node as list
+
+      return promisify(
+        object.children.flatMap((childId: string) => {
+          const value = readProperty(graph, childId, key)
+
+          if (value === undefined) {
+            return []
+          }
+
+          return value
+        })
+      )
     },
   },
 
@@ -451,7 +471,7 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
       from,
       to,
       "Get",
-      [key].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
+      [obj, key].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
     )
   },
 

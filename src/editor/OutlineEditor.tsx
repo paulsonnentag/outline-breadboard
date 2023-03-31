@@ -188,23 +188,10 @@ export function OutlineEditor({
         parent.children.splice(index + 1, 0, newNode.id)
         onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
       } else {
-        if (parentId) {
-          const parent = getNode(graph, parentId)
+        node.children.unshift(newNode.id)
+        console.log(path, path.concat(0))
 
-          if (splitIndex === 0) {
-            node.value = newNode.value
-            newNode.value = ""
-
-            parent.children.splice(index, 0, newNode.id)
-          } else {
-            parent.children.splice(index + 1, 0, newNode.id)
-          }
-
-          onChangeSelectedPath(path.slice(0, -2).concat(index + 1))
-        } else {
-          node.children.unshift(newNode.id)
-          onChangeSelectedPath(path.concat(0))
-        }
+        onChangeSelectedPath(path.concat(0))
       }
     })
   })
@@ -534,6 +521,7 @@ export function OutlineEditor({
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />
+              {JSON.stringify(path)}
             </div>
 
             <NodeViewOptions

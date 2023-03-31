@@ -125,6 +125,14 @@ export function TextInput({
 
       setTimeout(() => {
         currentEditorView.dispatch({
+          // update the value preemptively because value doesn't get updated if input is focused
+          // this is necessary to fix bugs when new focus is caused by a split line action
+          // very janky, but it kinda works
+          changes: currentEditorView.state.changes({
+            insert: value,
+            from: 0,
+            to: currentEditorView.state.doc.length,
+          }),
           selection: {
             anchor: focusOffset,
             head: focusOffset,

@@ -401,7 +401,7 @@ class RefIdWidget extends WidgetType {
 
     const wrap = document.createElement("span")
     wrap.setAttribute("aria-hidden", "true")
-    wrap.className = "px-1 rounded border border-blue-700 bg-blue-500 text-white"
+    wrap.className = "px-1 rounded border border-gray-300 bg-gray-100"
     wrap.innerText = getLabelOfNode(node)
 
     wrap.addEventListener("click", () => {
@@ -409,18 +409,14 @@ class RefIdWidget extends WidgetType {
     })
 
     wrap.addEventListener("mouseenter", () => {
-      wrap.classList.remove("bg-blue-500")
-      wrap.classList.remove("border-blue-700")
-      wrap.classList.add("bg-red-500")
-      wrap.classList.add("border-red-700")
+      wrap.classList.remove("bg-gray-100")
+      wrap.classList.add("bg-gray-200")
       this.setIsHoveringOverId(this.id)
     })
 
     wrap.addEventListener("mouseleave", () => {
-      wrap.classList.add("bg-blue-500")
-      wrap.classList.add("border-blue-700")
-      wrap.classList.remove("bg-red-500")
-      wrap.classList.remove("border-red-700")
+      wrap.classList.add("bg-gray-100")
+      wrap.classList.remove("bg-gray-200")
       this.setIsHoveringOverId(this.id)
     })
 

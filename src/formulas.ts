@@ -109,6 +109,8 @@ export interface FunctionDef {
     label: string
     value: string // the value that is inserted, use "$" to mark where cursor should be placed
   }
+
+  resultSummary?: () => {}
 }
 
 function unitShortName(unit: string) {
@@ -137,9 +139,14 @@ function directionsResultToRoute(result: google.maps.DirectionsResult) {
     return undefined
   }
 
+  const duration = route.legs[0].duration?.text
+  const distance = route.legs[0].distance?.text
+  const shortDuration = duration?.replace("hours", "h").replace("mins", "m")
+
   return {
-    distance: route.legs[0].distance?.text,
-    duration: route.legs[0].duration?.text,
+    __summary: `${distance}, ${shortDuration}`,
+    distance,
+    duration,
     geometry: {
       type: "Feature",
       geometry: {
@@ -176,7 +183,7 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
       const directionsService = await directionsServiceApi
 
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         console.log("fetch route")
 
         directionsService.route(
@@ -225,8 +232,12 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         }
       )
 
+      const formattedDistance = `${Math.round(distance)} ${unitShortName(unit)}`
+
       return {
-        distance: `${Math.round(distance)} ${unitShortName(unit)}`,
+        // this special summary property is used in the collapsed state
+        __summary: formattedDistance,
+        distance: formattedDistance,
         geometry: {
           type: "Feature",
           geometry: {

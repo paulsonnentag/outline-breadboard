@@ -6,7 +6,7 @@ import turfDistance from "@turf/distance"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { googleApi } from "./google"
 import DirectionsResult = google.maps.DirectionsResult
-import { isArray, last } from "./utils"
+import { isArray, last, round } from "./utils"
 import { Node } from "ohm-js"
 
 // An object to store results of calling functions
@@ -139,9 +139,15 @@ function directionsResultToRoute(result: google.maps.DirectionsResult) {
     return undefined
   }
 
-  const duration = route.legs[0].duration?.text
-  const distance = route.legs[0].distance?.text
+  const duration = `${round(
+    route.legs.reduce((sum, leg) => (leg.duration?.value ?? 0) + sum, 0) / 60 / 60
+  )} h`
+  const distance = `${round(
+    route.legs.reduce((sum, leg) => (leg.distance?.value ?? 0) + sum, 0) / 1000
+  )} km`
   const shortDuration = duration?.replace("hours", "h").replace("mins", "m")
+
+  console.log(route)
 
   return {
     __summary: `${distance}, ${shortDuration}`,

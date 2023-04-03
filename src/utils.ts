@@ -85,3 +85,7 @@ export function getIsHovering(
     .concat(parentIds)
     .some((id) => id == isHoveringOverId || getNode(graph, isHoveringOverId).value.includes(id))
 }
+
+export function round(value: number, precision = 1) {
+  return Math.round(value * Math.pow(2, precision)) / Math.pow(2, precision)
+}

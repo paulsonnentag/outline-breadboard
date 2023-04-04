@@ -9,7 +9,17 @@ import {
   WidgetType,
 } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { getGraph, getLabelOfNode, getNode, Graph, Node, useGraph } from "../graph"
+import { isValid } from "date-fns/fp"
+import {
+  createRecordNode,
+  createValueNode,
+  getGraph,
+  getLabelOfNode,
+  getNode,
+  Graph,
+  Node,
+  useGraph,
+} from "../graph"
 import {
   autocompletion,
   Completion,
@@ -316,6 +326,8 @@ function getMentionCompletionContext(
 
     const placesOptions = await getPlacesAutocompletion(search, graph, changeGraph)
 
+    const dateOptions = getDatesAutocompletion(search, graph, changeGraph)
+
     const nodeOptions: Completion[] = Object.values(graph).flatMap((node: Node) => {
       if (
         nodeId == node.id ||
@@ -336,7 +348,7 @@ function getMentionCompletionContext(
     return {
       from: reference.from,
       filter: false,
-      options: nodeOptions.concat(placesOptions),
+      options: dateOptions.concat(nodeOptions).concat(placesOptions),
     }
   }
 }
@@ -380,6 +392,64 @@ async function getPlacesAutocompletion(
       } as Completion,
     ]
   })
+}
+
+const DATE_REGEX = /^([0-9]{1,2})\/([0-9]{1,2})(\/([0-9]{2}|[0-9]{4}))?$/
+
+function getDatesAutocompletion(
+  search: string,
+  graph: Graph,
+  changeGraph: (fn: (graph: Graph) => void) => void
+): Completion[] {
+  const match = search.match(DATE_REGEX)
+
+  console.log(match)
+
+  if (!match) {
+    return []
+  }
+
+  // where going here with the peculiar convention where month comes before day
+  const yearString = match[4]
+  const month = parseInt(match[1], 10)
+  const day = parseInt(match[2], 10)
+  const year =
+    yearString !== undefined
+      ? parseInt(yearString.length === 2 ? `20${yearString}` : yearString)
+      : new Date().getFullYear()
+
+  // todo: doesn't check if date is valid
+  const date = `${month}/${day}/${year}`
+
+  // if date node already exists and search matches canonical form we don't need to add a suggestion
+  // because the default node search will already suggest the date node
+  if (graph[date] && search === date) {
+    return []
+  }
+
+  return [
+    {
+      label: date,
+      apply: (view, completion, from, to) => {
+        if (!graph[date]) {
+          changeGraph((graph) => {
+            createValueNode(graph, { id: date, value: date })
+          })
+        }
+        setTimeout(() => {
+          view.dispatch(
+            view.state.update({
+              changes: {
+                from: from,
+                to: to,
+                insert: `#[${date}]`,
+              },
+            })
+          )
+        })
+      },
+    },
+  ]
 }
 
 class RefIdWidget extends WidgetType {

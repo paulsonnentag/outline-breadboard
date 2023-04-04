@@ -1,6 +1,8 @@
 import * as ohm from "ohm-js"
-import { getGraphDocHandle, getNode, Graph, ValueNode } from "./graph"
+import { Node } from "ohm-js"
+import { getGraphDocHandle, getNode, Graph } from "./graph"
 import {
+  DataWithProvenance,
   parseDateRefsInString,
   parseLatLng,
   readLatLng,
@@ -10,9 +12,9 @@ import {
 import { point as turfPoint } from "@turf/helpers"
 import turfDistance from "@turf/distance"
 import { googleApi } from "./google"
-import DirectionsResult = google.maps.DirectionsResult
 import { isArray, last, round } from "./utils"
-import { Node } from "ohm-js"
+import { addDays, differenceInDays, isAfter, isBefore, isEqual, startOfDay } from "date-fns"
+import DirectionsResult = google.maps.DirectionsResult
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -238,11 +240,14 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
   Weather: {
     function: (graph, [node]) => {
       interface WeatherContext {
-        dates: Date[]
-        locations: google.maps.LatLngLiteral[]
+        dates: DataWithProvenance<Date>[]
+        locations: DataWithProvenance<google.maps.LatLngLiteral>[]
       }
 
-      const parameters: [Date, google.maps.LatLngLiteral][] = []
+      const parameters: [
+        DataWithProvenance<Date>,
+        DataWithProvenance<google.maps.LatLngLiteral>
+      ][] = []
 
       const context = {
         dates: parseDateRefsInString(node.value),
@@ -262,7 +267,8 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         const newLocations = readLatLngsOfNode(graph, nodeId).filter((newLocation) =>
           context.locations.every(
             (oldLocation) =>
-              oldLocation.lat !== newLocation.lat && oldLocation.lng !== newLocation.lng
+              oldLocation.data.lat !== newLocation.data.lat &&
+              oldLocation.data.lng !== newLocation.data.lng
           )
         )
 
@@ -283,8 +289,6 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
           locations: context.locations.concat(newLocations),
         }
 
-        console.log(node.value, context)
-
         node.children.forEach((childId) => {
           collectWeatherInputParameters(graph, childId, newContext)
         })
@@ -292,7 +296,14 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
       collectWeatherInputParameters(graph, node.id, context)
 
-      return parameters
+      // todo: return actual outline
+      return Promise.all(
+        parameters.map(async ([date, location]) => ({
+          date: getNode(graph, date.nodeId).value,
+          location: getNode(graph, location.nodeId).value,
+          temperature: await getTemperature(date.data, location.data),
+        }))
+      )
     },
 
     autocomplete: {
@@ -781,4 +792,66 @@ export function iterateOverArgumentNodes(node: AstNode, fn: (arg: ArgumentNode) 
     fn(node)
     iterateOverArgumentNodes(node.exp, fn)
   }
+}
+
+interface Temperature {
+  min: number
+  max: number
+}
+
+async function getTemperature(
+  date: Date,
+  location: google.maps.LatLngLiteral
+): Promise<Temperature | undefined> {
+  const day = startOfDay(date)
+  const currentDay = startOfDay(Date.now())
+  const lastDayWithPrediction = addDays(currentDay, 16)
+
+  const hasPrediction =
+    isEqual(day, currentDay) ||
+    isEqual(day, lastDayWithPrediction) ||
+    (isAfter(day, currentDay) && isBefore(day, lastDayWithPrediction))
+
+  if (hasPrediction) {
+    const forecast = await fetchForecast(location)
+
+    const offset = differenceInDays(day, currentDay)
+
+    return {
+      min: forecast.daily.temperature_2m_min[offset],
+      max: forecast.daily.temperature_2m_max[offset],
+    }
+  }
+
+  return undefined
+}
+
+const FORECAST_CACHE: { [key: string]: any } = {}
+
+const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> {
+  const key = `${location.lat}:${location.lng}`
+
+  const cachedForecast = FORECAST_CACHE[key]
+  if (cachedForecast) {
+    return cachedForecast
+  }
+
+  console.log("fetch")
+
+  const forecast = await fetch(
+    [
+      "https://api.open-meteo.com/v1/forecast",
+      `?latitude=${location.lat}`,
+      `&longitude=${location.lng}`,
+      "&daily=temperature_2m_max,temperature_2m_min",
+      "&forecast_days=16",
+      `&timezone=${encodeURIComponent(currentTimezone)}`,
+    ].join("")
+  ).then((res) => res.json())
+
+  FORECAST_CACHE[key] = forecast
+
+  return forecast
 }

@@ -52,7 +52,7 @@ export function readParsedProperty<T>(
 
 const DATE_REF_REGEX = /([0-9]{2})\/([0-9]{2})\/([0-9]{4})/
 
-export function parseDateRefsInString(string: string): Date[] {
+export function parseDateRefsInString(string: string): DataWithProvenance<Date>[] {
   return getReferencedNodeIds(string).flatMap((nodeId) => {
     const match = nodeId.match(DATE_REF_REGEX)
 
@@ -64,23 +64,31 @@ export function parseDateRefsInString(string: string): Date[] {
     const day = parseInt(match[2], 10)
     const year = parseInt(match[3], 10)
 
-    return [new Date(year, month - 1, day)]
+    return [{ nodeId, data: new Date(year, month - 1, day), parentIds: [] }] // todo: add properParentIds
   })
 }
 
 // read position property or referencedLocations
-export function readLatLngsOfNode(graph: Graph, nodeId: string): LatLngLiteral[] {
+export function readLatLngsOfNode(
+  graph: Graph,
+  nodeId: string
+): DataWithProvenance<LatLngLiteral>[] {
   const node = getNode(graph, nodeId)
 
   const ownPosition = readLatLng(graph, nodeId)
   const referencedNodesPosition = parseReferencedLocationsInString(graph, node.value)
-  return ownPosition ? referencedNodesPosition.concat(ownPosition) : referencedNodesPosition
+  return ownPosition
+    ? referencedNodesPosition.concat({ nodeId, data: ownPosition, parentIds: [] }) // todo: add proper parentIds
+    : referencedNodesPosition
 }
 
-export function parseReferencedLocationsInString(graph: Graph, string: string): LatLngLiteral[] {
+export function parseReferencedLocationsInString(
+  graph: Graph,
+  string: string
+): DataWithProvenance<LatLngLiteral>[] {
   return getReferencedNodeIds(string).flatMap((referencedNodeId) => {
     const latLng = readLatLng(graph, referencedNodeId)
-    return latLng ? [latLng] : []
+    return latLng ? [{ nodeId: referencedNodeId, data: latLng, parentIds: [] }] : [] // todo: add proper parentIds
   })
 }
 

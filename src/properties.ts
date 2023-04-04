@@ -50,6 +50,40 @@ export function readParsedProperty<T>(
   return undefined
 }
 
+const DATE_REF_REGEX = /([0-9]{2})\/([0-9]{2})\/([0-9]{4})/
+
+export function parseDateRefsInString(string: string): Date[] {
+  return getReferencedNodeIds(string).flatMap((nodeId) => {
+    const match = nodeId.match(DATE_REF_REGEX)
+
+    if (!match) {
+      return []
+    }
+
+    const month = parseInt(match[1], 10)
+    const day = parseInt(match[2], 10)
+    const year = parseInt(match[3], 10)
+
+    return [new Date(year, month - 1, day)]
+  })
+}
+
+// read position property or referencedLocations
+export function readLatLngsOfNode(graph: Graph, nodeId: string): LatLngLiteral[] {
+  const node = getNode(graph, nodeId)
+
+  const ownPosition = readLatLng(graph, nodeId)
+  const referencedNodesPosition = parseReferencedLocationsInString(graph, node.value)
+  return ownPosition ? referencedNodesPosition.concat(ownPosition) : referencedNodesPosition
+}
+
+export function parseReferencedLocationsInString(graph: Graph, string: string): LatLngLiteral[] {
+  return getReferencedNodeIds(string).flatMap((referencedNodeId) => {
+    const latLng = readLatLng(graph, referencedNodeId)
+    return latLng ? [latLng] : []
+  })
+}
+
 export function readProperty(graph: Graph, nodeId: string, key: string): any {
   return readParsedProperty(graph, nodeId, key, (value) => value)
 }

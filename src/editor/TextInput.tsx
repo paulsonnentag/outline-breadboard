@@ -403,8 +403,6 @@ function getDatesAutocompletion(
 ): Completion[] {
   const match = search.match(DATE_REGEX)
 
-  console.log(match)
-
   if (!match) {
     return []
   }
@@ -419,7 +417,7 @@ function getDatesAutocompletion(
       : new Date().getFullYear()
 
   // todo: doesn't check if date is valid
-  const date = `${month}/${day}/${year}`
+  const date = `${month.toString().padStart(2, "0")}/${day.toString().padStart(2, "0")}/${year}`
 
   // if date node already exists and search matches canonical form we don't need to add a suggestion
   // because the default node search will already suggest the date node

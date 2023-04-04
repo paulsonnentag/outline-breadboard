@@ -1,9 +1,14 @@
 import * as ohm from "ohm-js"
 import { getGraphDocHandle, getNode, Graph, ValueNode } from "./graph"
-import { parseLatLng, readLatLng, readProperty } from "./properties"
+import {
+  parseDateRefsInString,
+  parseLatLng,
+  readLatLng,
+  readLatLngsOfNode,
+  readProperty,
+} from "./properties"
 import { point as turfPoint } from "@turf/helpers"
 import turfDistance from "@turf/distance"
-import LatLngLiteral = google.maps.LatLngLiteral
 import { googleApi } from "./google"
 import DirectionsResult = google.maps.DirectionsResult
 import { isArray, last, round } from "./utils"
@@ -21,8 +26,9 @@ Node {
     = TextPart+
 
   TextPart
-    = TextLiteral
-    | InlineExp
+    = InlineExp
+    | IdRef
+    | TextLiteral
 
   InlineExp
     = "{" Exp "}"
@@ -39,7 +45,7 @@ Node {
   TextLiteral = textChar+
 
   textChar
-    = ~"{" any
+    = ~("{"| "#[") any
 
   Exp = AddExp
   
@@ -66,7 +72,7 @@ Node {
     = digit+
 
   IdRefChar
-    = alnum+ | "_" | "-"
+    = alnum | "_" | "-" | "/" 
 
   IdRef
     = "#[" IdRefChar+ "]"
@@ -226,6 +232,72 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
     autocomplete: {
       label: "Route",
       value: "{Route(from:$ to:)}",
+    },
+  },
+
+  Weather: {
+    function: (graph, [node]) => {
+      interface WeatherContext {
+        dates: Date[]
+        locations: google.maps.LatLngLiteral[]
+      }
+
+      const parameters: [Date, google.maps.LatLngLiteral][] = []
+
+      const context = {
+        dates: parseDateRefsInString(node.value),
+        locations: readLatLngsOfNode(graph, node.id),
+      }
+
+      function collectWeatherInputParameters(
+        graph: Graph,
+        nodeId: string,
+        context: WeatherContext
+      ) {
+        const node = getNode(graph, nodeId)
+
+        const newDates = parseDateRefsInString(node.value).filter((newDate) =>
+          context.dates.every((oldDate) => oldDate.toString() !== newDate.toString())
+        )
+        const newLocations = readLatLngsOfNode(graph, nodeId).filter((newLocation) =>
+          context.locations.every(
+            (oldLocation) =>
+              oldLocation.lat !== newLocation.lat && oldLocation.lng !== newLocation.lng
+          )
+        )
+
+        for (const location of context.locations) {
+          for (const newDate of newDates) {
+            parameters.push([newDate, location])
+          }
+        }
+
+        for (const date of context.dates) {
+          for (const newLocation of newLocations) {
+            parameters.push([date, newLocation])
+          }
+        }
+
+        const newContext = {
+          dates: context.dates.concat(newDates),
+          locations: context.locations.concat(newLocations),
+        }
+
+        console.log(node.value, context)
+
+        node.children.forEach((childId) => {
+          collectWeatherInputParameters(graph, childId, newContext)
+        })
+      }
+
+      collectWeatherInputParameters(graph, node.id, context)
+
+      return parameters
+    },
+
+    autocomplete: {
+      label: "Weather",
+      value: "{Weather($)}",
     },
   },
 

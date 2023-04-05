@@ -196,6 +196,7 @@ export function TextInput({
 
               if (child === undefined) {
                 child = createValueNode(graph, { value: match[1] })
+                child.isCollapsed = true
                 node.children.push(child.id)
               }
 

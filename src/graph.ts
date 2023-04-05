@@ -181,6 +181,7 @@ export function createNodeTree(graph: Graph, parentId: string, data: any): NodeD
   if (Array.isArray(data)) {
     data.forEach((childData, index) => {
       const childNode = createValueNode(graph, { value: index.toString() })
+      childNode.isCollapsed = true
       parent.children.push(childNode.id)
       createNodeTree(graph, childNode.id, childData)
     })
@@ -188,6 +189,7 @@ export function createNodeTree(graph: Graph, parentId: string, data: any): NodeD
     Object.entries(data).forEach(([key, childData]) => {
       if (childData instanceof Object || Array.isArray(childData)) {
         const childNode = createValueNode(graph, { value: key })
+        childNode.isCollapsed = true
         parent.children.push(childNode.id)
         createNodeTree(graph, childNode.id, childData)
       } else if (childData) {

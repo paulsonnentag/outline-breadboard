@@ -186,16 +186,16 @@ export function TextInput({
     if (matches.length > 0) {
       for (var _match of matches) {
         const match = _match.slice()
-        console.log("Recompute " + match);
+        const title = "computation: " + match[1]
 
         evalInlineExp(graph, match[0])
           .then((result: any) => {
             changeGraph((graph) => {
               const node = getNode(graph, nodeId)
-              let child = getChildNodeByValue(graph, node, match[1])
+              let child = getChildNodeByValue(graph, node, title)
 
               if (child === undefined) {
-                child = createValueNode(graph, { value: match[1] })
+                child = createValueNode(graph, { value: title })
                 child.isCollapsed = true
                 node.children.push(child.id)
               }

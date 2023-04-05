@@ -313,7 +313,14 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
           location: getNode(graph, location.nodeId).value,
           temperature: await getTemperature(date.data, location.data),
         }))
-      )
+      ).then((results) => {
+        const obj = results.reduce((acc, cur) => {
+          const key = `Weather in ${cur.location} on ${cur.date}`
+          acc[key] = cur
+          return acc
+        }, {})
+        return obj
+      });
     },
 
     autocomplete: {

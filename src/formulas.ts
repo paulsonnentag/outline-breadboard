@@ -13,7 +13,17 @@ import { point as turfPoint } from "@turf/helpers"
 import turfDistance from "@turf/distance"
 import { googleApi } from "./google"
 import { isArray, last, round } from "./utils"
-import { addDays, differenceInDays, isAfter, isBefore, isEqual, startOfDay } from "date-fns"
+import {
+  addDays,
+  differenceInDays,
+  format,
+  isAfter,
+  isBefore,
+  isEqual,
+  startOfDay,
+  subDays,
+  subYears,
+} from "date-fns"
 import DirectionsResult = google.maps.DirectionsResult
 
 // An object to store results of calling functions
@@ -794,7 +804,7 @@ export function iterateOverArgumentNodes(node: AstNode, fn: (arg: ArgumentNode) 
   }
 }
 
-interface Temperature {
+interface WeatherInformation {
   min: number
   max: number
 }
@@ -802,31 +812,52 @@ interface Temperature {
 async function getTemperature(
   date: Date,
   location: google.maps.LatLngLiteral
-): Promise<Temperature | undefined> {
-  const day = startOfDay(date)
+): Promise<WeatherInformation | undefined> {
+  const alignedDate = startOfDay(date)
   const currentDay = startOfDay(Date.now())
   const lastDayWithPrediction = addDays(currentDay, 16)
 
-  const hasPrediction =
-    isEqual(day, currentDay) ||
-    isEqual(day, lastDayWithPrediction) ||
-    (isAfter(day, currentDay) && isBefore(day, lastDayWithPrediction))
+  // compute temperature based on historic data if it is before or after the range of forcast
+  if (isBefore(alignedDate, currentDay) || isAfter(alignedDate, lastDayWithPrediction)) {
+    const historicData = await fetchHistoricWeatherData(location)
 
-  if (hasPrediction) {
-    const forecast = await fetchForecast(location)
+    const day = alignedDate.getDate().toString().padStart(2, "0")
+    const month = (alignedDate.getMonth() + 1).toString().padStart(2, "0")
+    const year = alignedDate.getFullYear().toString().padStart(4, "0")
 
-    const offset = differenceInDays(day, currentDay)
+    const dayGroup = historicData[`${month}-${day}`]
+
+    // has historic data of that exact day
+    if (dayGroup[year]) {
+      return dayGroup[year]
+    }
+
+    // otherwise compute normal of that day
+    // we could fetch more data if the date is more than 20 years ago, but to keep things simple we just compute the normals
+    let totalMin = 0
+    let totalMax = 0
+
+    const measurements = Object.values(dayGroup)
+
+    for (const measurement of measurements) {
+      totalMax += measurement.max
+      totalMin += measurement.min
+    }
 
     return {
-      min: forecast.daily.temperature_2m_min[offset],
-      max: forecast.daily.temperature_2m_max[offset],
+      min: round(totalMin / measurements.length),
+      max: round(totalMax / measurements.length),
     }
   }
 
-  return undefined
+  // ... otherwise use forecast
+  const forecast = await fetchForecast(location)
+  const offset = differenceInDays(alignedDate, currentDay)
+
+  return forecast[offset]
 }
 
-const FORECAST_CACHE: { [key: string]: any } = {}
+const FORECAST_CACHE: { [location: string]: WeatherInformation[] } = {}
 
 const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -838,9 +869,7 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
     return cachedForecast
   }
 
-  console.log("fetch")
-
-  const forecast = await fetch(
+  const rawForecast = await fetch(
     [
       "https://api.open-meteo.com/v1/forecast",
       `?latitude=${location.lat}`,
@@ -851,7 +880,61 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
     ].join("")
   ).then((res) => res.json())
 
+  const forecast = rawForecast.daily.time.map((time: string, index: number) => ({
+    min: rawForecast.daily.temperature_2m_min[index],
+    max: rawForecast.daily.temperature_2m_min[index],
+  }))
+
   FORECAST_CACHE[key] = forecast
 
   return forecast
+}
+
+interface HistoricWeather {
+  [monthDay: string]: { [year: string]: WeatherInformation }
+}
+
+const HISTORIC_WEATHER_CACHE: { [location: string]: HistoricWeather } = {}
+
+async function fetchHistoricWeatherData(location: google.maps.LatLngLiteral) {
+  const locationKey = `${location.lat}:${location.lng}`
+  const cachedHistoricWeather = HISTORIC_WEATHER_CACHE[locationKey]
+  if (cachedHistoricWeather) {
+    return cachedHistoricWeather
+  }
+
+  const historicWeatherRaw = await fetch(
+    [
+      "https://archive-api.open-meteo.com/v1/archive",
+      `?latitude=${location.lat}`,
+      `&longitude=${location.lng}`,
+      "&daily=temperature_2m_max,temperature_2m_min",
+      `&timezone=${encodeURIComponent(currentTimezone)}`,
+      `&start_date=${format(subYears(Date.now(), 20), "yyyy-MM-dd")}`, // take in last 20 years
+      `&end_date=${format(subDays(Date.now(), 1), "yyyy-MM-dd")}`,
+    ].join("")
+  ).then((res) => res.json())
+
+  const historicWeather: HistoricWeather = {}
+
+  for (let i = 0; i < historicWeatherRaw.daily.time.length; i++) {
+    const date = historicWeatherRaw.daily.time[i]
+    const min = historicWeatherRaw.daily.temperature_2m_min[i]
+    const max = historicWeatherRaw.daily.temperature_2m_max[i]
+
+    const [year, month, day] = date.split("-")
+    const dayGroupKey = `${month}-${day}`
+
+    let dayGroup = historicWeather[dayGroupKey]
+
+    if (!dayGroup) {
+      dayGroup = historicWeather[dayGroupKey] = {}
+    }
+
+    dayGroup[year] = { min, max }
+  }
+
+  HISTORIC_WEATHER_CACHE[locationKey] = historicWeather
+
+  return historicWeather
 }

@@ -11,8 +11,9 @@ import {
 import { minimalSetup } from "codemirror"
 import { isValid } from "date-fns/fp"
 import {
-  createRecordNode,
+  createNodeTree,
   createValueNode,
+  getChildNodeByValue,
   getGraph,
   getLabelOfNode,
   getNode,
@@ -79,7 +80,7 @@ export function TextInput({
   isHoveringOverId,
   setIsHoveringOverId,
 }: TextInputProps) {
-  const { changeGraph } = useGraph()
+  const { graph, changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
 
@@ -177,6 +178,37 @@ export function TextInput({
       }
     }
   }, [value, editorViewRef.current, isFocused])
+
+  useEffect(() => {
+    const regex = /{([^}]+)}/g
+    const matches = [...value.matchAll(regex)]
+
+    if (matches.length > 0) {
+      for (var _match of matches) {
+        const match = _match.slice()
+        console.log("Recompute " + match);
+
+        evalInlineExp(graph, match[0])
+          .then((result: any) => {
+            changeGraph((graph) => {
+              const node = getNode(graph, nodeId)
+              let child = getChildNodeByValue(graph, node, match[1])
+
+              if (child === undefined) {
+                child = createValueNode(graph, { value: match[1] })
+                node.children.push(child.id)
+              }
+
+              child.children = []
+              createNodeTree(graph, child.id, result)
+            })
+          })
+          .catch((message: string) => {
+            // TODO
+          })
+      }
+    }
+  }, [value]) // TODO: It won't update when the input values change
 
   const onKeyDown = (evt: KeyboardEvent) => {
     const currentEditorView = editorViewRef.current

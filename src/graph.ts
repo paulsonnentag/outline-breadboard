@@ -175,6 +175,34 @@ export function createRefNode(graph: Graph, nodeId: string): RefNode {
   return graph[refNode.id] as RefNode
 }
 
+export function createNodeTree(graph: Graph, parentId: string, data: any): NodeDef {
+  const parent = getNode(graph, parentId)
+
+  if (Array.isArray(data)) {
+    data.forEach((childData, index) => {
+      const childNode = createValueNode(graph, { value: index.toString() })
+      parent.children.push(childNode.id)
+      createNodeTree(graph, childNode.id, childData)
+    })
+  } else if (data instanceof Object) {
+    Object.entries(data).forEach(([key, childData]) => {
+      if (childData instanceof Object || Array.isArray(childData)) {
+        const childNode = createValueNode(graph, { value: key })
+        parent.children.push(childNode.id)
+        createNodeTree(graph, childNode.id, childData)
+      } else if (childData) {
+        const childNode = createValueNode(graph, { key, value: childData.toString() })
+        parent.children.push(childNode.id)
+      }
+    })
+  } else if (data !== undefined) {
+    const childNode = createValueNode(graph, { value: data.toString() })
+    parent.children.push(childNode.id!)
+  }
+
+  return parent;
+}
+
 export interface GraphContextProps {
   graph: Graph
   changeGraph: (fn: (graph: Graph) => void) => void
@@ -197,6 +225,16 @@ export function getNode(graph: Graph, nodeId: string): ValueNode {
   const node = graph[nodeId]
 
   return node.type === "ref" ? getNode(graph, node.refId) : node
+}
+
+export function getChildNodeByValue(graph: Graph, parentNode: NodeDef, childValue: string): ValueNode | undefined {
+  for (const childId of parentNode.children || []) {
+    const childNode = getNode(graph, childId)
+    if (childNode.value === childValue) {
+      return childNode
+    }
+  }
+  return undefined
 }
 
 export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {

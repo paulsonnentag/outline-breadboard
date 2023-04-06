@@ -1,8 +1,9 @@
 import * as ohm from "ohm-js"
 import { Node } from "ohm-js"
-import { getGraphDocHandle, getNode, Graph } from "./graph"
+import { getGraphDocHandle, getNode, Graph, ValueNode } from "./graph"
 import {
   DataWithProvenance,
+  parseDate,
   parseDateRefsInString,
   parseLatLng,
   readLatLng,
@@ -25,6 +26,7 @@ import {
   subYears,
 } from "date-fns"
 import DirectionsResult = google.maps.DirectionsResult
+import { root } from "postcss"
 
 // An object to store results of calling functions
 const functionCache: { [key: string]: any } = {}
@@ -40,11 +42,15 @@ Node {
   TextPart
     = InlineExp
     | IdRef
+    | MethodExp
     | TextLiteral
 
   InlineExp
     = "{" Exp "}"
-
+  
+  MethodExp
+    = "#" letter+ "(" Argument* ")"
+ 
   Property
     = Key ":" Text
 
@@ -57,7 +63,7 @@ Node {
   TextLiteral = textChar+
 
   textChar
-    = ~("{"| "#[") any
+    = ~("{"| "#") any
 
   Exp = AddExp
   
@@ -93,7 +99,7 @@ Node {
     = alnum | "." | ":" | ">" | "-" | "(" | ")" | "[" | "]" | "=" | "'" | "/" | "*" | "!" | "$" | "_"
 
   FunctionExp
-    = letter+ "(" Argument+ ")"
+    = letter+ "(" Argument* ")"
         
   Argument 
     = (Key ":")? Exp ","?
@@ -118,7 +124,13 @@ function promisify(value: any) {
 }
 
 export interface FunctionDef {
-  function: (graph: Graph, positionalArgs: any[], namedArgs: { [name: string]: any }) => any
+  function: (
+    graph: Graph,
+    positionalArgs: any[],
+    namedArgs: { [name: string]: any },
+    selfId: string,
+    isMethod: boolean
+  ) => any
   arguments?: {
     [arg: string]: string
   }
@@ -248,20 +260,28 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
   },
 
   Weather: {
-    function: (graph, [node]) => {
+    function: (graph, [node], { date }, selfId, isMethod) => {
+      const graphDocHandle = getGraphDocHandle()
+      const passedInDate = date && date.value ? parseDate(date.value) : undefined
+
       interface WeatherContext {
         dates: DataWithProvenance<Date>[]
         locations: DataWithProvenance<google.maps.LatLngLiteral>[]
       }
+
+      const rootNode = isMethod ? getNode(graph, selfId) : node
 
       const parameters: [
         DataWithProvenance<Date>,
         DataWithProvenance<google.maps.LatLngLiteral>
       ][] = []
 
+      const datesInRootNode = parseDateRefsInString(rootNode.value)
+      const locationsInRootNode = readLatLngsOfNode(graph, rootNode.id)
+
       const context = {
-        dates: parseDateRefsInString(node.value),
-        locations: readLatLngsOfNode(graph, node.id),
+        dates: passedInDate ? datesInRootNode.concat(passedInDate) : datesInRootNode,
+        locations: locationsInRootNode,
       }
 
       function collectWeatherInputParameters(
@@ -270,6 +290,8 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         context: WeatherContext
       ) {
         const node = getNode(graph, nodeId)
+
+        console.log(node.value)
 
         const newDates = parseDateRefsInString(node.value).filter((newDate) =>
           context.dates.every((oldDate) => oldDate.toString() !== newDate.toString())
@@ -290,6 +312,15 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
         for (const date of context.dates) {
           for (const newLocation of newLocations) {
+            if (isMethod) {
+              getTemperature(date.data, newLocation.data).then((temperature) => {
+                graphDocHandle.change((doc) => {
+                  const node = getNode(doc.graph, newLocation.nodeId)
+                  node.computedProps.temperature = temperature
+                })
+              })
+            }
+
             parameters.push([date, newLocation])
           }
         }
@@ -304,7 +335,9 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         })
       }
 
-      collectWeatherInputParameters(graph, node.id, context)
+      collectWeatherInputParameters(graph, rootNode.id, context)
+
+      console.log(parameters)
 
       // todo: return actual outline
       return Promise.all(
@@ -320,7 +353,7 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
           return acc
         }, {})
         return obj
-      });
+      })
     },
 
     autocomplete: {
@@ -512,6 +545,19 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
     )
   },
 
+  MethodExp: (_, fnName, _p1, args, _p2) => {
+    const from = _.source.startIdx
+    const to = _p2.source.endIdx
+
+    return new FnNode(
+      from,
+      to,
+      fnName.sourceString,
+      args.children.map((arg) => arg.toAst()),
+      true
+    )
+  },
+
   Argument: (nameNode, _, exp, __) => {
     const from = nameNode.source.startIdx
     const to = __.source.endIdx
@@ -602,7 +648,7 @@ const formulaSemantics = formulaGrammar.createSemantics().addOperation("toAst", 
 interface AstNode {
   from: number
   to: number
-  eval: (graph: Graph) => any
+  eval: (graph: Graph, selfId: string) => any
   getIdRefs: () => string[]
 }
 
@@ -623,15 +669,23 @@ class FnNode implements AstNode {
   to: number
   name: string
   args: ArgumentNode[]
+  isMethod: boolean
 
-  constructor(from: number, to: number, fnName: string, args: ArgumentNode[]) {
+  constructor(
+    from: number,
+    to: number,
+    fnName: string,
+    args: ArgumentNode[],
+    isMethod: boolean = false // if true function is evaluated to apply to node where it's called from
+  ) {
     this.from = from
     this.to = to
     this.name = fnName
     this.args = args
+    this.isMethod = isMethod
   }
 
-  async eval(graph: Graph) {
+  async eval(graph: Graph, selfId: string) {
     let fn = FUNCTIONS[this.name]["function"]
     if (!fn) {
       return null
@@ -641,7 +695,7 @@ class FnNode implements AstNode {
     const positionalArgs: any[] = []
 
     const evaledArgs = await Promise.all(
-      this.args.map(async (arg) => [arg.name, await arg.eval(graph)])
+      this.args.map(async (arg) => [arg.name, await arg.eval(graph, selfId)])
     )
 
     for (const [name, value] of evaledArgs) {
@@ -652,7 +706,7 @@ class FnNode implements AstNode {
       }
     }
 
-    return fn(graph, positionalArgs, namedArgs)
+    return fn(graph, positionalArgs, namedArgs, selfId, this.isMethod)
   }
 
   getIdRefs(): string[] {
@@ -681,8 +735,8 @@ class ArgumentNode implements AstNode {
     this.exp = exp
   }
 
-  eval(graph: Graph): any {
-    return this.exp.eval(graph)
+  eval(graph: Graph, selfId: string): any {
+    return this.exp.eval(graph, selfId)
   }
 
   getIdRefs(): string[] {
@@ -705,7 +759,7 @@ class IdRefNode implements AstNode {
 class StringNode implements AstNode {
   constructor(readonly from: number, readonly to: number, readonly string: string) {}
 
-  eval(graph: Graph) {
+  eval() {
     return promisify(this.string)
   }
 
@@ -725,7 +779,7 @@ class NumberNode implements AstNode {
     this.number = parseFloat(num)
   }
 
-  eval(graph: Graph) {
+  eval() {
     return promisify(this.number)
   }
 
@@ -739,8 +793,9 @@ interface Bullet {
   value: any[]
 }
 
-export async function evalBullet(graph: Graph, source: string): Promise<Bullet | null> {
-  const match = formulaGrammar.match(source)
+export async function evalBullet(graph: Graph, nodeId: string): Promise<Bullet | null> {
+  const node = getNode(graph, nodeId)
+  const match = formulaGrammar.match(node.value)
 
   if (!match.succeeded()) {
     return null
@@ -749,7 +804,7 @@ export async function evalBullet(graph: Graph, source: string): Promise<Bullet |
   const astNodes = formulaSemantics(match).toAst()
 
   return {
-    value: await Promise.all(astNodes.map((expr: AstNode) => expr.eval(graph))),
+    value: await Promise.all(astNodes.map((expr: AstNode) => expr.eval(graph, nodeId))),
   } as Bullet
 }
 

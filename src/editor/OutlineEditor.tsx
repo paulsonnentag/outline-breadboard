@@ -519,6 +519,8 @@ export function OutlineEditor({
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />
+
+              {Object.values(node.computedProps).length > 0 && JSON.stringify(node.computedProps)}
             </div>
 
             <NodeViewOptions

@@ -30,6 +30,7 @@ import {
 import { isString } from "../utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
 import {
+  evalBullet,
   evalInlineExp,
   FunctionDef,
   FUNCTIONS,
@@ -44,6 +45,7 @@ import {
   triggerSelect,
   unregisterSelectionHandler,
 } from "../selectionHandler"
+import { use } from "@automerge/automerge"
 
 interface TextInputProps {
   nodeId: string
@@ -178,6 +180,11 @@ export function TextInput({
       }
     }
   }, [value, editorViewRef.current, isFocused])
+
+  useEffect(() => {
+    // eval bullet to run side effects
+    evalBullet(graph, nodeId)
+  }, [value])
 
   useEffect(() => {
     const regex = /{([^}]+)}/g

@@ -1,8 +1,6 @@
 import { createContext, useContext } from "react"
 import { DocHandle, Repo } from "automerge-repo"
 import { v4 } from "uuid"
-import { isString } from "./utils"
-import { parseFormula } from "./formulas"
 
 export interface GraphDoc {
   rootNodeIds: string[]
@@ -50,6 +48,7 @@ export function createGraphDoc(repo: Repo) {
       type: "value",
       value: "",
       children: [],
+      computedProps: {},
       isCollapsed: false,
       isSelected: false,
     }
@@ -82,6 +81,9 @@ export interface ValueNode {
   children: string[]
   view?: string
   computations?: string[]
+  computedProps: {
+    [name: string]: any
+  }
   isCollapsed: boolean
   isSelected: boolean
 }
@@ -149,6 +151,7 @@ export function createValueNode(graph: Graph, nodeDef: NodeDef): ValueNode {
     id,
     value: key ? `${key}: ${value}` : value,
     children,
+    computedProps: {},
     isCollapsed: false,
     isSelected: false,
   }
@@ -202,7 +205,7 @@ export function createNodeTree(graph: Graph, parentId: string, data: any): NodeD
     parent.children.push(childNode.id!)
   }
 
-  return parent;
+  return parent
 }
 
 export interface GraphContextProps {
@@ -229,7 +232,11 @@ export function getNode(graph: Graph, nodeId: string): ValueNode {
   return node.type === "ref" ? getNode(graph, node.refId) : node
 }
 
-export function getChildNodeByValue(graph: Graph, parentNode: NodeDef, childValue: string): ValueNode | undefined {
+export function getChildNodeByValue(
+  graph: Graph,
+  parentNode: NodeDef,
+  childValue: string
+): ValueNode | undefined {
   for (const childId of parentNode.children || []) {
     const childNode = getNode(graph, childId)
     if (childNode.value === childValue) {

@@ -54,18 +54,22 @@ const DATE_REF_REGEX = /([0-9]{2})\/([0-9]{2})\/([0-9]{4})/
 
 export function parseDateRefsInString(string: string): DataWithProvenance<Date>[] {
   return getReferencedNodeIds(string).flatMap((nodeId) => {
-    const match = nodeId.match(DATE_REF_REGEX)
-
-    if (!match) {
-      return []
-    }
-
-    const month = parseInt(match[1], 10)
-    const day = parseInt(match[2], 10)
-    const year = parseInt(match[3], 10)
-
-    return [{ nodeId, data: new Date(year, month - 1, day), parentIds: [] }] // todo: add properParentIds
+    return parseDate(nodeId) ?? []
   })
+}
+
+export function parseDate(string: string): DataWithProvenance<Date> | undefined {
+  const match = string.match(DATE_REF_REGEX)
+
+  if (!match) {
+    return undefined
+  }
+
+  const month = parseInt(match[1], 10)
+  const day = parseInt(match[2], 10)
+  const year = parseInt(match[3], 10)
+
+  return { nodeId: string, data: new Date(year, month - 1, day), parentIds: [] } // todo: add properParentIds
 }
 
 // read position property or referencedLocations

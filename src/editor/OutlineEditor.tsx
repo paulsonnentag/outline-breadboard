@@ -19,6 +19,7 @@ import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
 import { readColor } from "../properties"
 import colors from "../colors"
+import { ComputedPropertiesView } from "../views/ComputedPropertyView"
 
 interface OutlineEditorProps {
   nodeId: string
@@ -520,7 +521,7 @@ export function OutlineEditor({
                 setIsHoveringOverId={setIsHoveringOverId}
               />
 
-              {Object.values(node.computedProps).length > 0 && JSON.stringify(node.computedProps)}
+              <ComputedPropertiesView props={node.computedProps} />
             </div>
 
             <NodeViewOptions

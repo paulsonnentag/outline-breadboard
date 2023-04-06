@@ -313,10 +313,10 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         for (const date of context.dates) {
           for (const newLocation of newLocations) {
             if (isMethod) {
-              getTemperature(date.data, newLocation.data).then((temperature) => {
+              getWeatherInformation(date.data, newLocation.data).then((temperature) => {
                 graphDocHandle.change((doc) => {
                   const node = getNode(doc.graph, newLocation.nodeId)
-                  node.computedProps.temperature = temperature
+                  node.computedProps.weather = temperature
                 })
               })
             }
@@ -344,7 +344,7 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
         parameters.map(async ([date, location]) => ({
           date: getNode(graph, date.nodeId).value,
           location: getNode(graph, location.nodeId).value,
-          temperature: await getTemperature(date.data, location.data),
+          temperature: await getWeatherInformation(date.data, location.data),
         }))
       ).then((results) => {
         const obj = results.reduce((acc, cur) => {
@@ -866,12 +866,13 @@ export function iterateOverArgumentNodes(node: AstNode, fn: (arg: ArgumentNode) 
   }
 }
 
-interface WeatherInformation {
+export interface WeatherInformation {
   min: number
   max: number
+  weatherCode?: number
 }
 
-async function getTemperature(
+async function getWeatherInformation(
   date: Date,
   location: google.maps.LatLngLiteral
 ): Promise<WeatherInformation | undefined> {
@@ -936,7 +937,7 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
       "https://api.open-meteo.com/v1/forecast",
       `?latitude=${location.lat}`,
       `&longitude=${location.lng}`,
-      "&daily=temperature_2m_max,temperature_2m_min",
+      "&daily=temperature_2m_max,temperature_2m_min,weathercode",
       "&forecast_days=16",
       `&timezone=${encodeURIComponent(currentTimezone)}`,
     ].join("")
@@ -944,7 +945,8 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
 
   const forecast = rawForecast.daily.time.map((time: string, index: number) => ({
     min: rawForecast.daily.temperature_2m_min[index],
-    max: rawForecast.daily.temperature_2m_min[index],
+    max: rawForecast.daily.temperature_2m_max[index],
+    weatherCode: rawForecast.daily.weathercode[index],
   }))
 
   FORECAST_CACHE[key] = forecast

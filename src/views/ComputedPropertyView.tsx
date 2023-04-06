@@ -10,11 +10,18 @@ export function ComputedPropertiesView({ props }: ComputedPropertyViewProps) {
     <div>
       {Object.entries(props).map(([name, value]) => {
         if (name === "weather") {
-          return <WeatherInfoView value={value as WeatherInformation} />
+          return (
+            <div className="text-purple-500 flex gap-2">
+              <div className="bullet"></div>
+              weather:
+              <WeatherInfoView key={name} value={value as WeatherInformation} />
+            </div>
+          )
         }
 
         return (
-          <div>
+          <div key={name} className="text-purple-500 flex gap-2">
+            <div className="bullet"></div>
             {name}: {JSON.stringify(value)}`
           </div>
         )
@@ -33,17 +40,14 @@ function WeatherInfoView({ value }: WeatherInfoViewProps) {
     : ""
 
   return (
-    <div className="px-1 rounded border border-gray-300 bg-gray-100 w-fit flex gap-1">
-      {false && value.weatherCode && (
-        <div className="w-[24px]">
-          <WeatherIconView code={value.weatherCode} />
-        </div>
-      )}
-      <span className="text-gray-500">{description}</span>
-      <span className="text-gray-300"> </span>
-      <span className={value.min <= 0 ? "text-blue-500" : "text-gray-500"}>{value.min}</span>
-      <span className="text-gray-300">•</span>
-      <span className={value.max <= 0 ? "text-blue-500" : "text-gray-500"}>{value.max}</span>
+    <div className="text-purple-500 flex gap-2">
+      <div className="px-1 rounded border border-gray-300 bg-gray-100 w-fit flex gap-1">
+        <span className="text-gray-500">{description}</span>
+        <span className="text-gray-300"> </span>
+        <span className={value.min <= 0 ? "text-blue-500" : "text-gray-500"}>{value.min}</span>
+        <span className="text-gray-300">•</span>
+        <span className={value.max <= 0 ? "text-blue-500" : "text-gray-500"}>{value.max}</span>
+      </div>
     </div>
   )
 }

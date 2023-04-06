@@ -291,8 +291,6 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
       ) {
         const node = getNode(graph, nodeId)
 
-        console.log(node.value)
-
         const newDates = parseDateRefsInString(node.value).filter((newDate) =>
           context.dates.every((oldDate) => oldDate.toString() !== newDate.toString())
         )
@@ -336,8 +334,6 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
       }
 
       collectWeatherInputParameters(graph, rootNode.id, context)
-
-      console.log(parameters)
 
       // todo: return actual outline
       return Promise.all(
@@ -410,8 +406,13 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
   Get: {
     function: (graph, [object, key]) => {
-      if (!object || !object.children || !key) {
+      if (!object || !key) {
         return promisify(undefined)
+      }
+
+      // assume it's a plain object if it has no children and no computedProps
+      if (!Array.isArray(object.children) && !object.computedProps) {
+        return promisify(object[key])
       }
 
       // try to access property on node itself
@@ -420,6 +421,11 @@ export const FUNCTIONS: { [name: string]: FunctionDef } = {
 
       if (value !== undefined) {
         return promisify(value)
+      }
+
+      // try to access computed property
+      if (object.computedProps[key]) {
+        return object.computedProps[key]
       }
 
       // otherwise interpret node as list
@@ -869,6 +875,7 @@ export function iterateOverArgumentNodes(node: AstNode, fn: (arg: ArgumentNode) 
 export interface WeatherInformation {
   min: number
   max: number
+  mean: number
   weatherCode?: number
 }
 
@@ -899,17 +906,20 @@ async function getWeatherInformation(
     // we could fetch more data if the date is more than 20 years ago, but to keep things simple we just compute the normals
     let totalMin = 0
     let totalMax = 0
+    let totalMean = 0
 
     const measurements = Object.values(dayGroup)
 
     for (const measurement of measurements) {
       totalMax += measurement.max
       totalMin += measurement.min
+      totalMean += measurement.mean
     }
 
     return {
       min: round(totalMin / measurements.length),
       max: round(totalMax / measurements.length),
+      mean: round(totalMean / measurements.length),
     }
   }
 
@@ -937,7 +947,7 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
       "https://api.open-meteo.com/v1/forecast",
       `?latitude=${location.lat}`,
       `&longitude=${location.lng}`,
-      "&daily=temperature_2m_max,temperature_2m_min,weathercode",
+      "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,weathercode",
       "&forecast_days=16",
       `&timezone=${encodeURIComponent(currentTimezone)}`,
     ].join("")
@@ -946,6 +956,7 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
   const forecast = rawForecast.daily.time.map((time: string, index: number) => ({
     min: rawForecast.daily.temperature_2m_min[index],
     max: rawForecast.daily.temperature_2m_max[index],
+    mean: rawForecast.daily.temperature_2m_mean[index],
     weatherCode: rawForecast.daily.weathercode[index],
   }))
 
@@ -972,7 +983,7 @@ async function fetchHistoricWeatherData(location: google.maps.LatLngLiteral) {
       "https://archive-api.open-meteo.com/v1/archive",
       `?latitude=${location.lat}`,
       `&longitude=${location.lng}`,
-      "&daily=temperature_2m_max,temperature_2m_min",
+      "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,temperature_2m_min",
       `&timezone=${encodeURIComponent(currentTimezone)}`,
       `&start_date=${format(subYears(Date.now(), 20), "yyyy-MM-dd")}`, // take in last 20 years
       `&end_date=${format(subDays(Date.now(), 1), "yyyy-MM-dd")}`,

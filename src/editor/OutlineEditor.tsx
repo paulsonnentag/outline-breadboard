@@ -521,9 +521,10 @@ export function OutlineEditor({
                 setIsHoveringOverId={setIsHoveringOverId}
               />
 
-              <ComputedPropertiesView props={node.computedProps} />
+              <div style={{ marginLeft: "-8px" }}>
+                <ComputedPropertiesView props={node.computedProps} />
+              </div>
             </div>
-
             <NodeViewOptions
               node={node}
               isFocused={isFocused || isHovered}

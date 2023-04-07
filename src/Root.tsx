@@ -6,44 +6,35 @@ import {
   Graph,
   GraphContext,
   GraphContextProps,
-  GraphDoc,
+  useGraphDocument,
   ValueNode,
 } from "./graph"
 import { OutlineEditor } from "./editor/OutlineEditor"
-import { useDocumentWithHistory } from "./history"
 import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { isString } from "./utils"
+import { useStaticCallback } from "./hooks"
 
 interface RootProps {
   documentId: DocumentId
 }
 
 export function Root({ documentId }: RootProps) {
-  const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
+  const onChangeNodeValue = useStaticCallback((node: ValueNode) => {})
+  const onInsertChildNode = useStaticCallback((node: ValueNode, index: number) => {})
+  const onDeleteChildNode = useStaticCallback((node: ValueNode, index: number) => {})
+
+  const [doc, changeDoc] = useGraphDocument(
+    documentId,
+    onChangeNodeValue,
+    onInsertChildNode,
+    onDeleteChildNode
+  )
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isDraggedOverDelete, setIsDraggedOverDelete] = useState(false)
   const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    const onKeyPress = (evt: KeyboardEvent) => {
-      if (evt.key === "z" && (evt.ctrlKey || evt.metaKey)) {
-        if (evt.shiftKey) {
-          history.redo()
-        } else {
-          history.undo()
-        }
-      }
-    }
-
-    document.addEventListener("keydown", onKeyPress)
-
-    return () => {
-      document.removeEventListener("keydown", onKeyPress)
-    }
-  }, [history])
 
   const graphContext: GraphContextProps | undefined = useMemo(
     () =>

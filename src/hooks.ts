@@ -9,24 +9,14 @@
  * could result in a race condition.
  */
 import { useCallback, useRef, useState, useEffect } from "react"
+import { DocHandleChangeEvent, DocumentId } from "automerge-repo"
+import { Doc } from "@automerge/automerge"
+import { Change, useRepo } from "automerge-repo-react-hooks/src"
+import { GraphDoc } from "./graph"
 
 export function useStaticCallback<T extends (...args: any[]) => any>(callback: T): T {
   const cb = useRef<T>(callback)
   cb.current = callback
 
   return useCallback((...args: any[]) => cb.current(...args), []) as T
-}
-
-export function useDebounce<T>(value: T, delay?: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay || 500)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [value, delay])
-
-  return debouncedValue
 }

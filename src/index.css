@@ -96,7 +96,7 @@
 }
 
 
-.bullet.is-collapsed {
+.bullet.is-collapsed:after {
   border: 1px solid #e5e7eb;
   background: #e5e7eb;
 }
@@ -107,6 +107,7 @@
 
 /* codemirror */
 .cm-line {
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu;
   font-size: 16px !important;
 }
 

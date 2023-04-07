@@ -3,6 +3,7 @@ import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
 import { getNode, Graph } from "../graph"
 import { FUNCTIONS } from "./functions"
+import { lookupName, Scopes } from "./scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
   Text: (e) => e.children.map((child) => child.toAst()),
@@ -148,19 +149,20 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
   _iter: (...args) => args.map((arg) => arg.toAst()),
 })
 
-export interface AstNode {
-  readonly from: number
-  readonly to: number
-  eval: (graph: Graph, selfId: string) => any
-  getIdRefs: () => string[]
-  isConstant: () => boolean
+export abstract class AstNode {
+  abstract readonly from: number
+  abstract readonly to: number
+  abstract eval(scopes: Scopes, parentIds: string[], selfId: string): any
+  abstract getIdRefs(): string[]
+  abstract isConstant(): boolean
 }
 
-class UndefinedNode implements AstNode {
+class UndefinedNode extends AstNode {
   readonly from: number
   readonly to: number
 
   constructor(from: number, to: number) {
+    super()
     this.from = from
     this.to = to
   }
@@ -178,7 +180,7 @@ class UndefinedNode implements AstNode {
   }
 }
 
-export class FnNode implements AstNode {
+export class FnNode extends AstNode {
   readonly from: number
   to: number
   name: string
@@ -192,6 +194,7 @@ export class FnNode implements AstNode {
     args: ArgumentNode[],
     isMethod: boolean = false // if true function is evaluated to apply to node where it's called from
   ) {
+    super()
     this.from = from
     this.to = to
     this.name = fnName
@@ -199,7 +202,7 @@ export class FnNode implements AstNode {
     this.isMethod = isMethod
   }
 
-  async eval(graph: Graph, selfId: string) {
+  async eval(scopes: Scopes, parentIds: string[], selfId: string) {
     let fn = FUNCTIONS[this.name]["function"]
     if (!fn) {
       return null
@@ -209,7 +212,7 @@ export class FnNode implements AstNode {
     const positionalArgs: any[] = []
 
     const evaledArgs = await Promise.all(
-      this.args.map(async (arg) => [arg.name, await arg.eval(graph, selfId)])
+      this.args.map(async (arg) => [arg.name, await arg.eval(scopes, parentIds, selfId)])
     )
 
     for (const [name, value] of evaledArgs) {
@@ -220,7 +223,7 @@ export class FnNode implements AstNode {
       }
     }
 
-    return fn(graph, positionalArgs, namedArgs, selfId, this.isMethod)
+    return fn(positionalArgs, namedArgs, scopes, parentIds, selfId)
   }
 
   getIdRefs(): string[] {
@@ -257,8 +260,8 @@ export class ArgumentNode implements AstNode {
     return this.exp.isConstant()
   }
 
-  eval(graph: Graph, selfId: string): any {
-    return this.exp.eval(graph, selfId)
+  eval(scopes: Scopes, parentIds: string[], selfId: string): any {
+    return this.exp.eval(scopes, parentIds, selfId)
   }
 
   getIdRefs(): string[] {
@@ -266,11 +269,13 @@ export class ArgumentNode implements AstNode {
   }
 }
 
-export class IdRefNode implements AstNode {
-  constructor(readonly from: number, readonly to: number, readonly id: string) {}
+export class IdRefNode extends AstNode {
+  constructor(readonly from: number, readonly to: number, readonly id: string) {
+    super()
+  }
 
-  eval(graph: Graph) {
-    return promisify(getNode(graph, this.id))
+  eval(scopes: Scopes, parentIds: string[], selfId: string) {
+    return promisify(scopes[selfId])
   }
 
   getIdRefs(): string[] {
@@ -282,11 +287,13 @@ export class IdRefNode implements AstNode {
   }
 }
 
-export class NameRefNode implements AstNode {
-  constructor(readonly from: number, readonly to: number, readonly name: string) {}
+export class NameRefNode extends AstNode {
+  constructor(readonly from: number, readonly to: number, readonly name: string) {
+    super()
+  }
 
-  eval(graph: Graph) {
-    throw new Error("not implemented")
+  eval(scopes: Scopes, parentIds: string[], selfId: string) {
+    return lookupName(scopes, parentIds, selfId)
   }
 
   getIdRefs(): string[] {
@@ -298,8 +305,10 @@ export class NameRefNode implements AstNode {
   }
 }
 
-export class StringNode implements AstNode {
-  constructor(readonly from: number, readonly to: number, readonly string: string) {}
+export class StringNode extends AstNode {
+  constructor(readonly from: number, readonly to: number, readonly string: string) {
+    super()
+  }
 
   eval() {
     return promisify(this.string)
@@ -314,12 +323,13 @@ export class StringNode implements AstNode {
   }
 }
 
-export class NumberNode implements AstNode {
-  from: number
-  to: number
-  number: number
+export class NumberNode extends AstNode {
+  readonly from: number
+  readonly to: number
+  readonly number: number
 
   constructor(from: number, to: number, num: string) {
+    super()
     this.from = from
     this.to = to
     this.number = parseFloat(num)

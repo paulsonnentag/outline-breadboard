@@ -2,15 +2,19 @@ import { DISTANCE_FN } from "./distance"
 import { CORE_FNS } from "./core"
 import { ROUTE_FN } from "./routes"
 import { WEATHER_FN } from "./weather"
-import { Graph } from "../../graph"
+import { Scopes } from "../scopes"
+
+interface NamedArgs {
+  [name: string]: any
+}
 
 export interface FunctionDef {
   function: (
-    graph: Graph,
     positionalArgs: any[],
-    namedArgs: { [name: string]: any },
-    selfId: string,
-    isMethod: boolean
+    namedArgs: NamedArgs,
+    scopes: Scopes,
+    parentNodeIds: string[],
+    selfId: string
   ) => any
   arguments?: {
     [arg: string]: string

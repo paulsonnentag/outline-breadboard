@@ -9,7 +9,7 @@ import { BrowserWebSocketClientAdapter } from "automerge-repo-network-websocket"
 import { createGraphDoc, GraphDoc, registerGraphHandle } from "./graph"
 import { Root } from "./Root"
 import "material-icons/iconfont/material-icons.css"
-import { initValueGraph } from "./valueGraph"
+import { getValueOfNode, initScopes } from "./language/scopes"
 
 const url = "ws://67.207.88.83" // cloud sync server on DigitalOcean
 
@@ -35,10 +35,6 @@ if (!handle) {
 }
 
 registerGraphHandle(handle)
-
-handle.value().then(async (doc) => {
-  console.log(await initValueGraph(doc.graph))
-})
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

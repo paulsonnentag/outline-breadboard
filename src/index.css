@@ -83,15 +83,16 @@
 .bullet:after {
   content: "";
   border-radius: 100%;
-  background: gray;
-  width: 8px;
-  height: 8px;
+  background: #bbb;
+  width: 6px;
+  height: 6px;
+  margin-top: 4px;
   cursor: pointer;
 }
 
 .bullet:hover:after {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 

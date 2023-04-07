@@ -256,7 +256,7 @@ export function readAllProperties(graph: Graph, nodeId: string) {
     if (childNode.value.includes(":")) {
       const split = childNode.value.split(":")
       const key = split[0]
-      const value = split[1]
+      const value = split.slice(1).join(":")
 
       if (key !== undefined && value !== undefined) {
         allProps[key] = value

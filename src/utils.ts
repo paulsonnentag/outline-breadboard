@@ -89,3 +89,9 @@ export function getIsHovering(
 export function round(value: number, precision = 1) {
   return Math.round(value * Math.pow(2, precision)) / Math.pow(2, precision)
 }
+
+export function promisify<T>(value: T): Promise<T> {
+  return new Promise((resolve, _) => {
+    resolve(value)
+  })
+}

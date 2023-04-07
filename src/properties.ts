@@ -1,7 +1,7 @@
 import { isString } from "./utils"
 import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
-import { evalBullet, getReferencedNodeIds } from "./formulas"
+import { evalBullet, getReferencedNodeIds } from "./language"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 

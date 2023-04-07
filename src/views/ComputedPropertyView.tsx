@@ -1,5 +1,4 @@
-import { WeatherInformation } from "../formulas"
-import classNames from "classnames"
+import { WeatherInformation } from "../language/functions/weather"
 
 interface ComputedPropertyViewProps {
   props: { [name: string]: any }

@@ -29,14 +29,7 @@ import {
 } from "@codemirror/autocomplete"
 import { isString } from "../utils"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
-import {
-  evalBullet,
-  evalInlineExp,
-  FunctionDef,
-  FUNCTIONS,
-  iterateOverArgumentNodes,
-  parseInlineExp,
-} from "../formulas"
+import { evalBullet, evalInlineExp, iterateOverArgumentNodes, parseInlineExp } from "../language"
 import { createPlaceNode } from "../views/MapNodeView"
 import { placesAutocompleteApi } from "../google"
 import {
@@ -46,6 +39,7 @@ import {
   unregisterSelectionHandler,
 } from "../selectionHandler"
 import { use } from "@automerge/automerge"
+import { FunctionDef, FUNCTIONS } from "../language/functions"
 
 interface TextInputProps {
   nodeId: string

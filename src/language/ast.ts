@@ -3,7 +3,7 @@ import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
 import { getNode, Graph } from "../graph"
 import { FUNCTIONS } from "./functions"
-import { lookupName, Scopes } from "./scopes"
+import { lookupName, Scopes, scopesMobx } from "./scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
   Text: (e) => e.children.map((child) => child.toAst()),
@@ -152,7 +152,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
 export abstract class AstNode {
   abstract readonly from: number
   abstract readonly to: number
-  abstract eval(scopes: Scopes, parentIds: string[], selfId: string): any
+  abstract eval(parentIds: string[], selfId: string): Promise<any>
   abstract getIdRefs(): string[]
   abstract isConstant(): boolean
 }
@@ -202,7 +202,7 @@ export class FnNode extends AstNode {
     this.isMethod = isMethod
   }
 
-  async eval(scopes: Scopes, parentIds: string[], selfId: string) {
+  async eval(parentIds: string[], selfId: string) {
     let fn = FUNCTIONS[this.name]["function"]
     if (!fn) {
       return null
@@ -212,7 +212,7 @@ export class FnNode extends AstNode {
     const positionalArgs: any[] = []
 
     const evaledArgs = await Promise.all(
-      this.args.map(async (arg) => [arg.name, await arg.eval(scopes, parentIds, selfId)])
+      this.args.map(async (arg) => [arg.name, await arg.eval(parentIds, selfId)])
     )
 
     for (const [name, value] of evaledArgs) {
@@ -223,7 +223,7 @@ export class FnNode extends AstNode {
       }
     }
 
-    return fn(positionalArgs, namedArgs, scopes, parentIds, selfId)
+    return fn(positionalArgs, namedArgs, parentIds, selfId)
   }
 
   getIdRefs(): string[] {
@@ -260,8 +260,8 @@ export class ArgumentNode implements AstNode {
     return this.exp.isConstant()
   }
 
-  eval(scopes: Scopes, parentIds: string[], selfId: string): any {
-    return this.exp.eval(scopes, parentIds, selfId)
+  eval(parentIds: string[], selfId: string): any {
+    return this.exp.eval(parentIds, selfId)
   }
 
   getIdRefs(): string[] {
@@ -274,8 +274,8 @@ export class IdRefNode extends AstNode {
     super()
   }
 
-  eval(scopes: Scopes, parentIds: string[], selfId: string) {
-    return promisify(scopes[selfId])
+  async eval(parentIds: string[], selfId: string) {
+    return scopesMobx.get(selfId)
   }
 
   getIdRefs(): string[] {
@@ -292,8 +292,8 @@ export class NameRefNode extends AstNode {
     super()
   }
 
-  eval(scopes: Scopes, parentIds: string[], selfId: string) {
-    return lookupName(scopes, parentIds, selfId)
+  async eval(parentIds: string[], selfId: string) {
+    return lookupName(parentIds, this.name)
   }
 
   getIdRefs(): string[] {
@@ -310,8 +310,8 @@ export class StringNode extends AstNode {
     super()
   }
 
-  eval() {
-    return promisify(this.string)
+  async eval() {
+    return this.string
   }
 
   getIdRefs(): string[] {

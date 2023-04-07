@@ -14,22 +14,14 @@ import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { isString } from "./utils"
 import { useStaticCallback } from "./hooks"
+import { updateScopeOfNode } from "./language/scopes"
 
 interface RootProps {
   documentId: DocumentId
 }
 
 export function Root({ documentId }: RootProps) {
-  const onChangeNodeValue = useStaticCallback((node: ValueNode) => {})
-  const onInsertChildNode = useStaticCallback((node: ValueNode, index: number) => {})
-  const onDeleteChildNode = useStaticCallback((node: ValueNode, index: number) => {})
-
-  const [doc, changeDoc] = useGraphDocument(
-    documentId,
-    onChangeNodeValue,
-    onInsertChildNode,
-    onDeleteChildNode
-  )
+  const [doc, changeDoc] = useGraphDocument(documentId, updateScopeOfNode)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
   const [isDragging, setIsDragging] = useState(false)

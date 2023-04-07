@@ -258,9 +258,7 @@ export function getLabelOfNode(node: ValueNode): string {
 
 export function useGraphDocument(
   documentId: DocumentId | undefined,
-  onChangeNodeValue: (node: ValueNode) => void,
-  onDeleteChildNode: (node: ValueNode, index: number) => void,
-  onInsertChildNode: (node: ValueNode, index: number) => void
+  onChangeNode: (graph: Graph, nodeId: string) => void
 ): [doc: Doc<GraphDoc> | undefined, changeFn: Change<GraphDoc>] {
   const [doc, setDoc] = useState<Doc<GraphDoc>>()
   const repo = useRepo()
@@ -301,7 +299,8 @@ export function useGraphDocument(
             return
           }
 
-          onChangeNodeValue(getNode(after.graph, nodeId as string))
+          // node changed
+          onChangeNode(after.graph, nodeId as string)
         } else if (path.length === 4) {
           const [_, nodeId, key, childIndex] = path
 
@@ -309,11 +308,8 @@ export function useGraphDocument(
             return
           }
 
-          if (action === "del") {
-            onDeleteChildNode(getNode(after.graph, nodeId as string), childIndex as number)
-          } else if (action === "splice") {
-            onInsertChildNode(getNode(after.graph, nodeId as string), childIndex as number)
-          }
+          // child changed
+          onChangeNode(after.graph, nodeId as string)
         }
       },
     })

@@ -12,7 +12,6 @@ export interface FunctionDef {
   function: (
     positionalArgs: any[],
     namedArgs: NamedArgs,
-    scopes: Scopes,
     parentNodeIds: string[],
     selfId: string
   ) => any

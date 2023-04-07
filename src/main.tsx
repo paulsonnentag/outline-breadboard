@@ -9,7 +9,7 @@ import { BrowserWebSocketClientAdapter } from "automerge-repo-network-websocket"
 import { createGraphDoc, GraphDoc, registerGraphHandle } from "./graph"
 import { Root } from "./Root"
 import "material-icons/iconfont/material-icons.css"
-import { getValueOfNode, initScopes } from "./language/scopes"
+import { initScopes, scopesMobx } from "./language/scopes"
 
 const url = "ws://67.207.88.83" // cloud sync server on DigitalOcean
 
@@ -33,6 +33,10 @@ if (!documentId) {
 if (!handle) {
   handle = repo.find<GraphDoc>(documentId)
 }
+
+handle.value().then(async (doc) => {
+  initScopes(doc.graph)
+})
 
 registerGraphHandle(handle)
 

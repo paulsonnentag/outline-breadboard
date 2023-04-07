@@ -1,8 +1,9 @@
-import { createRefNode, useGraph, ValueNode } from "../graph"
+import { createRefNode, getLabelOfNode, useGraph, ValueNode } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import classNames from "classnames"
 import { readAllProperties } from "../properties"
+import { mapValues } from "lodash"
 
 export interface NodeViewProps {
   node: ValueNode
@@ -111,11 +112,23 @@ export function SummaryView(props: NodeViewProps) {
   const { graph, changeGraph } = useGraph()
   const properties = readAllProperties(graph, props.node.id)
 
+  // If the property value is a node, resolve it to its label
+  const propertiesWithNodeValuesResolved = mapValues(properties, (property: string) => {
+    const regex = /^\s*#\[(?<id>[^\]]+)]\s*$/gm
+    const match = regex.exec(property)
+    if (!match?.groups?.id) {
+      return property
+    }
+    const nodeId = match.groups.id
+    const node = graph[nodeId]
+    return getLabelOfNode(node as ValueNode)
+  })
+
   return (
     <div className="text-sm italic flex gap-2">
       {Object.keys(properties).map((key) => (
         <p key={key}>
-          <span className="text-gray-400">{key}:</span> {properties[key]}
+          <span className="text-gray-400">{key}:</span> {propertiesWithNodeValuesResolved[key]}
         </p>
       ))}
     </div>

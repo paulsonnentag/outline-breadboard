@@ -114,14 +114,8 @@ export function SummaryView(props: NodeViewProps) {
 
   // If the property value is a node, resolve it to its label
   const propertiesWithNodeValuesResolved = mapValues(properties, (property: string) => {
-    const regex = /^\s*#\[(?<id>[^\]]+)]\s*$/gm
-    const match = regex.exec(property)
-    if (!match?.groups?.id) {
-      return property
-    }
-    const nodeId = match.groups.id
-    const node = graph[nodeId]
-    return getLabelOfNode(node as ValueNode)
+    const idRefRegex = /#\[(?<id>[a-zA-Z0-9\-]*)\]/g
+    return property.replaceAll(idRefRegex, (_, id) => getLabelOfNode(graph[id] as ValueNode))
   })
 
   return (

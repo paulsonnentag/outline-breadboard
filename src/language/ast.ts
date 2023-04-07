@@ -41,6 +41,19 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
     )
   },
 
+  Property: (nameNode, _, exp) => {
+    const from = nameNode.source.startIdx
+    const to = exp.source.endIdx
+    // I should fix this in the grammar, depending on the rule that matches sometimes the name has ":" at the end sometimes not
+    const name = nameNode.sourceString.endsWith(":")
+      ? nameNode.sourceString.slice(0, -1)
+      : nameNode.sourceString
+
+    const rawValue = exp.toAst()
+    const value = isArray(rawValue) ? rawValue[0] : rawValue // empty array means there is no value
+    return new ArgumentNode(from, to, name, value)
+  },
+
   Argument: (nameNode, _, exp, __) => {
     const from = nameNode.source.startIdx
     const to = __.source.endIdx
@@ -59,6 +72,13 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
     const to = __.source.endIdx
     return new IdRefNode(from, to, chars.sourceString)
   },
+
+  nameRef: (name) => {
+    const from = name.source.startIdx
+    const to = name.source.endIdx
+    return new NameRefNode(from, to, name.sourceString)
+  },
+
   StringLiteral: function (_q1, string, _q2) {
     const from = _q1.source.startIdx
     const to = _q2.source.endIdx
@@ -255,6 +275,22 @@ export class IdRefNode implements AstNode {
 
   getIdRefs(): string[] {
     return [this.id]
+  }
+
+  isConstant(): boolean {
+    return false
+  }
+}
+
+export class NameRefNode implements AstNode {
+  constructor(readonly from: number, readonly to: number, readonly name: string) {}
+
+  eval(graph: Graph) {
+    throw new Error("not implemented")
+  }
+
+  getIdRefs(): string[] {
+    return []
   }
 
   isConstant(): boolean {

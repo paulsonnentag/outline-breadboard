@@ -19,9 +19,9 @@ Node {
   
   MethodExp
     = "#" letter+ "(" Argument* ")"
- 
-  Property
-    = Key ":" Exp
+
+  Property 
+    = (Key ":")? Exp?
 
   Key
     = propertyChar+
@@ -39,6 +39,10 @@ Node {
     | StringLiteral
     | numberLiteral
     | IdRef
+    | nameRef
+
+  nameRef
+    = propertyChar+
 
   AccessExp
     = SimpleExp "." PropertyName

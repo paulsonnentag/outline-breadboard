@@ -67,10 +67,12 @@ export function parseInlineExp(source: string): AstNode | undefined {
   return formulaSemantics(match).toAst()
 }
 
-export function parseProperty(source: string): AstNode | undefined {
+export function parseProperty(source: string): ArgumentNode | undefined {
   const match = grammar.match(source, "Property")
 
   if (!match.succeeded()) {
+    console.log(`can't parse "${source}"`)
+
     return undefined
   }
 

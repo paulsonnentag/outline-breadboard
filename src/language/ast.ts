@@ -167,7 +167,7 @@ class UndefinedNode extends AstNode {
     this.to = to
   }
 
-  eval() {
+  async eval() {
     return undefined
   }
 
@@ -346,4 +346,8 @@ export class NumberNode extends AstNode {
   isConstant(): boolean {
     return true
   }
+}
+
+export function isLiteral(node: AstNode) {
+  return node instanceof StringNode || node instanceof NumberNode || node instanceof UndefinedNode
 }

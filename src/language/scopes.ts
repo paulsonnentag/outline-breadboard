@@ -1,7 +1,7 @@
 import { getNode, Graph, ValueNode } from "../graph"
 import { parseProperty } from "./index"
 import { AstNode } from "./ast"
-import { computed, observable, runInAction, toJS, observe, autorun } from "mobx"
+import { autorun, observable, runInAction, toJS } from "mobx"
 import { useEffect, useState } from "react"
 
 // @ts-ignore
@@ -96,14 +96,12 @@ export function useValueOfNode(parentNodeIds: string[], nodeId: string) {
   const [value, setValue] = useState()
 
   useEffect(() => {
-    const disposer = autorun(() => {
+    const dispose = autorun(() => {
       getValueOfNode(parentNodeIds, nodeId).then(async (value) => setValue(await value))
     })
 
-    console.log("recompute", nodeId)
-
     return () => {
-      disposer()
+      dispose()
     }
   }, parentNodeIds.concat(nodeId))
 

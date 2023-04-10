@@ -398,8 +398,6 @@ export const OutlineEditor = observer(
       })
     }
 
-    const value = useValueOfNode(parentIds, nodeId)
-
     if (!node) {
       return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
     }
@@ -510,6 +508,7 @@ export const OutlineEditor = observer(
               >
                 <TextInput
                   nodeId={node.id}
+                  parentIds={parentIds}
                   value={node.value as string}
                   isFocused={isFocused}
                   focusOffset={focusOffset}
@@ -525,8 +524,6 @@ export const OutlineEditor = observer(
                   isHoveringOverId={isHoveringOverId}
                   setIsHoveringOverId={setIsHoveringOverId}
                 />
-
-                {JSON.stringify(value)}
 
                 <div style={{ marginLeft: "-8px" }}>
                   <ComputedPropertiesView props={node.computedProps} />

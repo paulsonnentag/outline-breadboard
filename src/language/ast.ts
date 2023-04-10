@@ -275,7 +275,7 @@ export class IdRefNode extends AstNode {
   }
 
   async eval(parentIds: string[], selfId: string) {
-    return scopesMobx.get(selfId)
+    return scopesMobx.get(this.id)
   }
 
   getIdRefs(): string[] {

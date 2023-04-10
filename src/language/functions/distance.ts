@@ -1,7 +1,8 @@
-import { readLatLng } from "../../properties"
+import { FunctionDefs } from "./index"
 import turfDistance from "@turf/distance"
 import { point as turfPoint } from "@turf/helpers"
-import { FunctionDefs } from "./index"
+import { getPropertyOfNode, getValueOfNode, lookupName } from "../scopes"
+import { parseLatLng } from "../../properties"
 
 export const DISTANCE_FN: FunctionDefs = {
   Distance: {
@@ -9,13 +10,13 @@ export const DISTANCE_FN: FunctionDefs = {
       label: "Distance",
       value: "{Distance(from:$ to:)}",
     },
-    function: (graph, [], { from, to, unit = "kilometers" }) => {
+    function: async ([], { from, to, unit = "kilometers" }, parentNodeIds, nodeId) => {
       if (!from || !from.id || !to || !to.id) {
         return
       }
 
-      const pos1 = readLatLng(graph, from.id)
-      const pos2 = readLatLng(graph, to.id)
+      const pos1 = parseLatLng(await getPropertyOfNode(parentNodeIds, from.id, "position"))
+      const pos2 = parseLatLng(await getPropertyOfNode(parentNodeIds, to.id, "position"))
 
       if (!pos1 || !pos2) {
         return undefined

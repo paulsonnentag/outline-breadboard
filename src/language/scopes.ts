@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 window.$toJS = toJS
 
 export interface Scope {
+  id: string
   key?: string
   value: any
   props: {
@@ -39,6 +40,7 @@ export async function updateScopeOfNode(graph: Graph, nodeId: string) {
 
   if (!property) {
     scopesMobx.set(node.id, {
+      id: nodeId,
       value: undefined,
       props: {},
     })
@@ -62,6 +64,7 @@ export async function updateScopeOfNode(graph: Graph, nodeId: string) {
 
   runInAction(() => {
     scopesMobx.set(node.id, {
+      id: nodeId,
       value,
       key: property?.name,
       props,
@@ -71,12 +74,19 @@ export async function updateScopeOfNode(graph: Graph, nodeId: string) {
 
 export async function getValueOfNode(parentNodeIds: string[], nodeId: string): Promise<any> {
   const scope = scopesMobx.get(nodeId)
-
   const value = scope?.value
-
   const result = value instanceof AstNode ? await value.eval(parentNodeIds, nodeId) : value
-
   return result
+}
+
+export async function getPropertyOfNode(
+  parentNodeIds: string[],
+  nodeId: string,
+  key: string
+): Promise<any> {
+  const scope = scopesMobx.get(nodeId)
+
+  return getValueOfNode(parentNodeIds, scope!.props[key])
 }
 
 export async function lookupName(parentNodeIds: string[], name: string): Promise<any> {

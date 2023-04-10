@@ -3,6 +3,7 @@ import { googleApi } from "../../google"
 import { last, round } from "../../utils"
 import { parseLatLng, readLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
+import { getPropertyOfNode } from "../scopes"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
@@ -10,7 +11,7 @@ export const ROUTE_FN: FunctionDefs = {
       label: "Route",
       value: "{Route(from:$ to:)}",
     },
-    function: async (graph, [stops], { from, to }) => {
+    function: async ([stops], { from, to }, parentNodeIds, nodeId: string) => {
       let waypoints = stops ? [...stops] : []
 
       if (!from && waypoints[0]) {
@@ -21,10 +22,20 @@ export const ROUTE_FN: FunctionDefs = {
         to = waypoints.pop()
       }
 
-      const pos1 = from && from.id ? readLatLng(graph, from.id) : parseLatLng(from)
-      const pos2 = to && to.id ? readLatLng(graph, to.id) : parseLatLng(to)
-      const waypointPos = waypoints.map((waypoint) =>
-        waypoint.id ? readLatLng(graph, waypoint.id) : parseLatLng(from)
+      const pos1 =
+        from && from.id
+          ? parseLatLng(await getPropertyOfNode(parentNodeIds, from.id, "position"))
+          : parseLatLng(from)
+      const pos2 =
+        to && to.id
+          ? parseLatLng(await getPropertyOfNode(parentNodeIds, to.id, "position"))
+          : parseLatLng(to)
+      const waypointPos = await Promise.all(
+        waypoints.map((waypoint) =>
+          waypoint.id
+            ? parseLatLng(getPropertyOfNode(parentNodeIds, waypoint.id, "position"))
+            : parseLatLng(from)
+        )
       )
 
       if (!pos1 || !pos2 || waypointPos.some((pos) => !pos)) {
@@ -90,8 +101,6 @@ function directionsResultToRoute(result: google.maps.DirectionsResult) {
     route.legs.reduce((sum, leg) => (leg.distance?.value ?? 0) + sum, 0) / 1000
   )} km`
   const shortDuration = duration?.replace("hours", "h").replace("mins", "m")
-
-  console.log(route)
 
   return {
     __summary: `${distance}, ${shortDuration}`,

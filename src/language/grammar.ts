@@ -21,8 +21,9 @@ Node {
     = "#" letter+ "(" Argument* ")"
 
   Property 
-    = (Key ":")? Exp?
-
+    = (Key "=") Exp
+    | (Key ":")? Text 
+    
   Key
     = propertyChar+
 

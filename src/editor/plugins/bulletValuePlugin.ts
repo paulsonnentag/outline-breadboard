@@ -7,7 +7,6 @@ import {
   WidgetType,
 } from "@codemirror/view"
 import { parseProperty } from "../../language"
-import { getGraph } from "../../graph"
 import { ArgumentNode, isLiteral } from "../../language/ast"
 import { getValueOfNode } from "../../language/scopes"
 import { autorun, IReactionDisposer } from "mobx"

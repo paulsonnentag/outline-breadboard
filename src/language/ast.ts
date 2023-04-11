@@ -1,18 +1,27 @@
 import { grammar } from "./grammar"
 import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
-import { getNode, Graph } from "../graph"
 import { FUNCTIONS } from "./functions"
-import { lookupName, Scopes, scopesMobx } from "./scopes"
+import { lookupName, scopesMobx } from "./scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
-  Bullet: (key, _, value) => {
+  Bullet: (key, _, valueNode) => {
     const from = key.source.startIdx
-    const to = value.source.endIdx
+    const to = valueNode.source.endIdx
     const keyString = key.sourceString.slice(0, -1)
     const hasKey = keyString !== ""
 
-    return new BulletNode(from, to, hasKey ? keyString : undefined, value.toAst())
+    let value = valueNode.toAst()[0]
+
+    if (value === undefined) {
+      value = []
+    }
+
+    if (!isArray(value)) {
+      value = [value]
+    }
+
+    return new BulletNode(from, to, hasKey ? keyString : undefined, value)
   },
 
   TextLiteral: (e: Node) => new TextNode(e.source.startIdx, e.source.endIdx, e.sourceString),
@@ -21,7 +30,9 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
 
   SimpleExp: (e) => e.toAst(),
   InlineExp: (_, e, __) => {
-    return e.toAst()
+    const from = _.source.startIdx
+    const to = __.source.endIdx
+    return new InlineExprNode(from, to, e.toAst()[0])
   },
 
   FunctionExp: (fnName, _p1, args, _p2) => {
@@ -88,7 +99,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       from,
       to,
       "Multiply",
-      [a, b].map((x) => x.toAst())
+      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, undefined, x.toAst()))
     )
   },
   MulExp_divide: (a, _, b) => {
@@ -99,7 +110,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       from,
       to,
       "Divide",
-      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, x.toAst()))
+      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, undefined, x.toAst()))
     )
   },
   AddExp_plus: (a, _, b) => {
@@ -110,7 +121,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       from,
       to,
       "Plus",
-      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
+      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, undefined, x.toAst()))
     )
   },
   AddExp_minus: (a, _, b) => {
@@ -121,7 +132,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       from,
       to,
       "Minus",
-      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
+      [a, b].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, undefined, x.toAst()))
     )
   },
 
@@ -133,7 +144,9 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       from,
       to,
       "Get",
-      [obj, key].map((x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, "", x.toAst()))
+      [obj, key].map(
+        (x) => new ArgumentNode(x.source.startIdx, x.source.endIdx, undefined, x.toAst())
+      )
     )
   },
 
@@ -210,7 +223,7 @@ export class FnNode extends AstNode {
     )
 
     for (const [name, value] of evaledArgs) {
-      if (name === "") {
+      if (!name) {
         positionalArgs.push(value)
       } else {
         namedArgs[name] = value
@@ -247,6 +260,7 @@ export class BulletNode implements AstNode {
     this.key = key
     this.to = to
     this.from = from
+
     this.value = value
       // remove string values that consist only of spaces
       .filter((astNode) => !(astNode instanceof TextNode && astNode.text.trim() === ""))
@@ -265,13 +279,29 @@ export class BulletNode implements AstNode {
   }
 }
 
+export class InlineExprNode implements AstNode {
+  constructor(readonly from: number, readonly to: number, readonly expr: AstNode) {}
+
+  async eval(parentIds: string[], selfId: string) {
+    return this.expr.eval(parentIds, selfId)
+  }
+
+  isConstant(): boolean {
+    return this.expr.isConstant()
+  }
+
+  getIdRefs(): string[] {
+    return this.expr.getIdRefs()
+  }
+}
+
 export class ArgumentNode implements AstNode {
   from: number
   to: number
-  name: string
+  name: string | undefined
   exp: AstNode
 
-  constructor(from: number, to: number, name: string, exp: AstNode = new UndefinedNode(to, to)) {
+  constructor(from: number, to: number, name: string | undefined, exp: AstNode) {
     this.from = from
     this.to = to
     this.name = name

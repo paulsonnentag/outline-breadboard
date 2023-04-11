@@ -6,7 +6,7 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view"
-import { ArgumentNode, BulletNode, isLiteral } from "../../language/ast"
+import { ArgumentNode, BulletNode, InlineExprNode, isLiteral } from "../../language/ast"
 import { getValueOfNode } from "../../language/scopes"
 import { autorun, IReactionDisposer } from "mobx"
 import { nodeIdFacet, parentIdsFacet } from "./facets"
@@ -43,7 +43,36 @@ function getBulletDecorations(view: EditorView): DecorationSet {
   const nodeId = view.state.facet(nodeIdFacet)
   const parentIds = view.state.facet(parentIdsFacet)
 
-  bullet.value.map(() => {})
+  const decorations = bullet.value.flatMap((part, index) => {
+    if (part instanceof InlineExprNode) {
+      const decorations = [
+        Decoration.mark({
+          class: "font-mono",
+          inclusive: true,
+        }).range(part.from, part.to),
+        Decoration.mark({
+          class: "text-gray-400",
+          inclusive: true,
+        }).range(part.from, part.from + 1),
+        Decoration.mark({
+          inclusive: true,
+          class: "text-gray-400",
+        }).range(part.to - 1, part.to),
+      ]
+
+      if (!isLiteral(part)) {
+        decorations.push(
+          Decoration.widget({
+            widget: new ResultOutputWidget(parentIds, nodeId, index),
+          }).range(part.to)
+        )
+      }
+
+      return decorations
+    }
+
+    return []
+  })
 
   /*
   const decorations = (
@@ -61,18 +90,22 @@ function getBulletDecorations(view: EditorView): DecorationSet {
 
 */
 
-  return Decoration.set([])
+  return Decoration.set(decorations)
 }
 
 class ResultOutputWidget extends WidgetType {
   private disposer: IReactionDisposer | undefined = undefined
 
-  constructor(readonly nodeId: string, readonly parentIds: string[]) {
+  constructor(readonly parentIds: string[], readonly nodeId: string, readonly index: number) {
     super()
   }
 
   eq(other: ResultOutputWidget) {
-    return other.nodeId === this.nodeId && compareArrays(other.parentIds, this.parentIds)
+    return (
+      other.nodeId === this.nodeId &&
+      other.index === this.index &&
+      compareArrays(other.parentIds, this.parentIds)
+    )
   }
 
   toDOM() {
@@ -82,9 +115,19 @@ class ResultOutputWidget extends WidgetType {
     container.innerText = "="
 
     this.disposer = autorun(async () => {
-      const value = await getValueOfNode(this.parentIds, this.nodeId)
+      let value
+      let hasError = false
 
-      if (value !== undefined) {
+      try {
+        value = (await getValueOfNode(this.parentIds, this.nodeId))[this.index]
+      } catch (err: any) {
+        hasError = true
+        value = err.message
+      }
+
+      if (hasError || value === undefined) {
+        container.innerText = "="
+      } else {
         container.className = "italic text-purple-600 ml-2"
         container.style.color = "var(--accent-color-6)"
         container.innerText = `= ${valueToString(value)}`

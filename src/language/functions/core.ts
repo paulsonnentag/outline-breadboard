@@ -1,8 +1,5 @@
-import { promisify } from "../../utils"
-import { readProperty } from "../../properties"
 import { FunctionDefs } from "./index"
-import { getValueOfNode, lookupName, Scopes } from "../scopes"
-import { getNode } from "../../graph"
+import { getPropertyOfNode } from "../scopes"
 
 export const CORE_FNS: FunctionDefs = {
   Get: {
@@ -11,13 +8,11 @@ export const CORE_FNS: FunctionDefs = {
         return undefined
       }
 
-      const nodeId = object.props[key]
-
-      if (!nodeId) {
+      if (!object.id) {
         return undefined
       }
 
-      return getValueOfNode(parentNodeIds, nodeId)
+      return getPropertyOfNode(parentNodeIds, object.id, key)
 
       /*
       if (!object || !key) {
@@ -67,49 +62,49 @@ export const CORE_FNS: FunctionDefs = {
     },
   },
   Or: {
-    function: (args) => promisify(args.reduce((accumulator, element) => accumulator || element)),
+    function: async (args) => args.reduce((accumulator, element) => accumulator || element),
     arguments: {
       "values, ...": "The boolean values to perform OR across.",
     },
   },
   Not: {
-    function: ([arg]) => promisify(!arg),
+    function: async ([arg]) => !arg,
     arguments: {
       "values, ...": "The boolean values to perform NOT across.",
     },
   },
   LessThan: {
-    function: ([a, b]) => promisify(a < b),
+    function: async ([a, b]) => a < b,
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   GreaterThan: {
-    function: ([a, b]) => promisify(a > b),
+    function: async ([a, b]) => a > b,
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   Divide: {
-    function: ([x, y]) => promisify(x / y),
+    function: async ([x, y]) => x / y,
     description: "Divides one numeric value by another.",
   },
   Multiply: {
-    function: ([x, y]) => promisify(x * y),
+    function: async ([x, y]) => x * y,
     description: "Multiplies two numeric values together.",
   },
   Plus: {
-    function: ([x, y]) => promisify(parseFloat(x) + parseFloat(y)),
+    function: async ([x, y]) => x + y,
     description: "Adds two numeric values together.",
   },
   Minus: {
-    function: ([x, y]) => promisify(x - y),
+    function: async ([x, y]) => x - y,
     description: "Subtracts one numeric value from another.",
   },
   Round: {
-    function: ([x]) => promisify(Math.round(x)),
+    function: async ([x]) => Math.round(x),
     arguments: {
       numeric: "The numeric value to round to integers.",
     },

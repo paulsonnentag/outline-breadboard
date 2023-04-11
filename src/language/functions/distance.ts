@@ -1,7 +1,7 @@
 import { FunctionDefs } from "./index"
 import turfDistance from "@turf/distance"
 import { point as turfPoint } from "@turf/helpers"
-import { getPropertyOfNode, getValueOfNode, lookupName } from "../scopes"
+import { getPropertyOfNode } from "../scopes"
 import { parseLatLng } from "../../properties"
 
 export const DISTANCE_FN: FunctionDefs = {

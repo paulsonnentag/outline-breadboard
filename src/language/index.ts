@@ -1,6 +1,6 @@
 import { getNode, Graph } from "../graph"
 import { grammar } from "./grammar"
-import { ArgumentNode, AstNode, BulletNode, FnNode, formulaSemantics } from "./ast"
+import { ArgumentNode, AstNode, BulletNode, FnNode, formulaSemantics, TextNode } from "./ast"
 
 interface Bullet {
   key?: string // todo: implement key
@@ -71,7 +71,9 @@ export function parseBullet(source: string): BulletNode {
   const match = grammar.match(source, "Bullet")
 
   if (!match.succeeded()) {
-    throw new Error("invalid state")
+    const from = 0
+    const to = source.length
+    return new BulletNode(from, to, undefined, [new TextNode(from, to, source)])
   }
 
   return formulaSemantics(match).toAst()

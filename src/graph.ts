@@ -299,6 +299,11 @@ export function useGraphDocument(
             return
           }
 
+          // node might not have children yet, because onChangeNode is called after each operation in the initialization
+          if (!getNode(after.graph, nodeId as string).children) {
+            return
+          }
+
           // node changed
           onChangeNode(after.graph, nodeId as string)
         } else if (path.length === 4) {

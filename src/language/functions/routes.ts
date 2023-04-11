@@ -1,7 +1,7 @@
 import { FunctionDefs } from "./index"
 import { googleApi } from "../../google"
 import { last, round } from "../../utils"
-import { parseLatLng, readLatLng } from "../../properties"
+import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
 import { getPropertyOfNode } from "../scopes"
 
@@ -13,6 +13,9 @@ export const ROUTE_FN: FunctionDefs = {
     },
     function: async ([stops], { from, to }, parentNodeIds, nodeId: string) => {
       let waypoints = stops ? [...stops] : []
+
+      console.log("from", await getPropertyOfNode(parentNodeIds, from.id, "position"))
+      console.log("to", await getPropertyOfNode(parentNodeIds, to.id, "position"))
 
       if (!from && waypoints[0]) {
         from = waypoints.shift()

@@ -3,14 +3,10 @@ import * as ohm from "ohm-js"
 export const grammar = ohm.grammar(`
 Node {
   Bullet
-    = (Key ":")? Value*
-
-  Key
+    = (Key ":")? TextPart*
+ 
+ Key
     = propertyChar+
-
-  Value
-    = numberLiteral
-    | TextPart+
     
   TextPart
     = InlineExp

@@ -1,5 +1,5 @@
 import { getNode, Graph, ValueNode } from "../graph"
-import { parseProperty } from "./index"
+import { parseBullet } from "./index"
 import { AstNode } from "./ast"
 import { autorun, observable, runInAction, toJS } from "mobx"
 import { useEffect, useState } from "react"
@@ -10,7 +10,7 @@ window.$toJS = toJS
 export interface Scope {
   id: string
   key?: string
-  value: any
+  value: AstNode[]
   props: {
     [name: string]: string
   }
@@ -30,53 +30,42 @@ export async function initScopes(graph: Graph) {
   scopesMobx.replace({})
 
   for (const node of valueNodes) {
-    await updateScopeOfNode(graph, node.id)
+    updateScopeOfNode(graph, node.id)
   }
 }
 
-export async function updateScopeOfNode(graph: Graph, nodeId: string) {
+export function updateScopeOfNode(graph: Graph, nodeId: string) {
   const node = getNode(graph, nodeId)
-  const property = parseProperty(node.value)
-
-  if (!property) {
-    scopesMobx.set(node.id, {
-      id: nodeId,
-      value: undefined,
-      props: {},
-    })
-  }
-
-  let value = property
-    ? property.isConstant()
-      ? await property.eval([], "") // doesn't matter what we pass in here because expression doesn't reference other values
-      : property.exp
-    : undefined
+  const bullet = parseBullet(node.value)
 
   const props: { [name: string]: string } = {}
 
   for (const childId of node.children) {
-    const childProperty = parseProperty((graph[childId] as ValueNode).value) // todo: remove as ValueNode once we've removed refNodes
+    updateScopeOfNode(graph, childId)
 
-    if (childProperty && childProperty.name) {
-      props[childProperty.name] = childId
+    const childScope = scopesMobx.get(childId) as Scope
+
+    if (childScope && childScope.key) {
+      props[childScope.key] = childId
     }
   }
 
   runInAction(() => {
     scopesMobx.set(node.id, {
       id: nodeId,
-      value,
-      key: property?.name,
+      value: bullet.value,
+      key: bullet.key,
       props,
     })
   })
 }
 
-export async function getValueOfNode(parentNodeIds: string[], nodeId: string): Promise<any> {
+export async function getValueOfNode(parentNodeIds: string[], nodeId: string): Promise<any[]> {
   const scope = scopesMobx.get(nodeId)
-  const value = scope?.value
-  const result = value instanceof AstNode ? await value.eval(parentNodeIds, nodeId) : value
-  return result
+
+  return Promise.all(
+    scope!.value.map((part) => (part instanceof AstNode ? part.eval(parentNodeIds, nodeId) : part))
+  )
 }
 
 export async function getPropertyOfNode(
@@ -85,8 +74,10 @@ export async function getPropertyOfNode(
   key: string
 ): Promise<any> {
   const scope = scopesMobx.get(nodeId)
+  const value = await getValueOfNode(parentNodeIds, scope!.props[key])
 
-  return getValueOfNode(parentNodeIds, scope!.props[key])
+  // todo: currently we don't handle values that consist of multiple parts, in that case we just return undefined
+  return value.length === 1 ? value[0] : undefined
 }
 
 export async function lookupName(parentNodeIds: string[], name: string): Promise<any> {

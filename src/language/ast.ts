@@ -6,9 +6,16 @@ import { FUNCTIONS } from "./functions"
 import { lookupName, Scopes, scopesMobx } from "./scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
-  Text: (e) => e.children.map((child) => child.toAst()),
+  Bullet: (key, _, value) => {
+    const from = key.source.startIdx
+    const to = value.source.endIdx
+    const keyString = key.sourceString.slice(0, -1)
+    const hasKey = keyString !== ""
 
-  TextLiteral: (e: Node) => new StringNode(e.source.startIdx, e.source.endIdx, e.sourceString),
+    return new BulletNode(from, to, hasKey ? keyString : undefined, value.toAst())
+  },
+
+  TextLiteral: (e: Node) => new TextNode(e.source.startIdx, e.source.endIdx, e.sourceString),
 
   Exp: (e) => e.toAst(),
 
@@ -40,19 +47,6 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       args.children.map((arg) => arg.toAst()),
       true
     )
-  },
-
-  Property: (nameNode, _, exp) => {
-    const from = nameNode.source.startIdx
-    const to = exp.source.endIdx
-    // I should fix this in the grammar, depending on the rule that matches sometimes the name has ":" at the end sometimes not
-    const name = nameNode.sourceString.endsWith(":")
-      ? nameNode.sourceString.slice(0, -1)
-      : nameNode.sourceString
-
-    const rawValue = exp.toAst()
-    const value = isArray(rawValue) ? rawValue[0] : rawValue // empty array means there is no value
-    return new ArgumentNode(from, to, name, value)
   },
 
   Argument: (nameNode, _, exp, __) => {
@@ -243,6 +237,34 @@ export class FnNode extends AstNode {
   }
 }
 
+export class BulletNode implements AstNode {
+  readonly from: number
+  readonly to: number
+  readonly key: string | undefined
+  readonly value: AstNode[]
+
+  constructor(from: number, to: number, key: string | undefined, value: AstNode[]) {
+    this.key = key
+    this.to = to
+    this.from = from
+    this.value = value
+      // remove string values that consist only of spaces
+      .filter((astNode) => !(astNode instanceof TextNode && astNode.text.trim() === ""))
+  }
+
+  async eval(parentIds: string[], selfId: string) {
+    return this.value.map((part) => part.eval(parentIds, selfId))
+  }
+
+  isConstant(): boolean {
+    return this.value.every((part) => part.isConstant())
+  }
+
+  getIdRefs(): string[] {
+    return this.value.flatMap((part) => part.getIdRefs())
+  }
+}
+
 export class ArgumentNode implements AstNode {
   from: number
   to: number
@@ -312,6 +334,24 @@ export class StringNode extends AstNode {
 
   async eval() {
     return this.string
+  }
+
+  getIdRefs(): string[] {
+    return []
+  }
+
+  isConstant(): boolean {
+    return true
+  }
+}
+
+export class TextNode extends AstNode {
+  constructor(readonly from: number, readonly to: number, readonly text: string) {
+    super()
+  }
+
+  async eval() {
+    return this.text
   }
 
   getIdRefs(): string[] {

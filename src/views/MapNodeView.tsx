@@ -302,8 +302,6 @@ export function MapNodeView({
 
       listenersRef.current.push(
         mapsMarker.addListener("click", () => {
-          console.log("click")
-
           // defer to selection handler if active
           if (isSelectionHandlerActive()) {
             triggerSelect(nodeWithLatLngData.nodeId)
@@ -396,13 +394,11 @@ export function MapNodeView({
         dataLayerValue.nodeId,
         dataLayerValue.parentIds,
         isHoveringOverId
-      ) 
+      )
 
       dataLayerValue.data.setStyle({
-        strokeColor: isHovering
-          ? accentColors[5]
-          : accentColors[2],
-          zIndex: isHovering ? 10 : 0
+        strokeColor: isHovering ? accentColors[5] : accentColors[2],
+        zIndex: isHovering ? 10 : 0,
       })
     }
   }, [isHoveringOverId, dataLayersRef.current])

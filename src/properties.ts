@@ -2,6 +2,7 @@ import { isString } from "./utils"
 import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { evalBullet, getReferencedNodeIds } from "./language"
+import { scopesMobx } from "./language/scopes"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
@@ -132,31 +133,37 @@ export function readColor(graph: Graph, nodeId: string): string | undefined {
   )
 }
 
-function _extractDataInNodeAndBelow<T>(
+async function _extractDataInNodeAndBelow<T>(
   graph: Graph,
   nodeId: string,
-  extractData: (graph: Graph, node: ValueNode) => T | undefined,
+  extractData: (graph: Graph, node: ValueNode) => Promise<T | undefined>,
   parentIds: string[],
   results: [nodeId: string, parentIds: string[], data: T][] = []
 ) {
   const node = getNode(graph, nodeId)
 
+  const scope = scopesMobx.get(nodeId)
+
+  scope!.value
+
   for (const referencedId of getReferencedNodeIds(node.value)) {
     const referencedNode = getNode(graph, referencedId)
-    const data = extractData(graph, referencedNode)
+    const data = await extractData(graph, referencedNode)
     if (data) {
       results.push([referencedNode.id, parentIds, data])
     }
   }
 
-  const data = extractData(graph, node)
+  const data = await extractData(graph, node)
   if (data) {
     results.push([node.id, parentIds, data])
   }
 
-  for (const childId of node.children) {
-    _extractDataInNodeAndBelow(graph, childId, extractData, [...parentIds, node.id], results)
-  }
+  await Promise.all(
+    node.children.map((childId) =>
+      _extractDataInNodeAndBelow(graph, childId, extractData, [...parentIds, node.id], results)
+    )
+  )
 }
 
 export interface DataWithProvenance<T> {
@@ -176,8 +183,8 @@ export interface DataWithProvenance<T> {
 export function extractDataInNodeAndBelow<T>(
   graph: Graph,
   nodeId: string,
-  extractData: (graph: Graph, node: ValueNode) => T | undefined
-): DataWithProvenance<T>[] {
+  extractData: (parentNodeIds: string[], nodeId: string) => T | undefined
+): Promise<DataWithProvenance<T>[]> {
   const results: [nodeId: string, parentIds: string[], data: T][] = []
 
   _extractDataInNodeAndBelow<T>(graph, nodeId, extractData, [], results)

@@ -6,12 +6,12 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view"
-import { parseProperty } from "../../language"
-import { ArgumentNode, isLiteral } from "../../language/ast"
+import { ArgumentNode, BulletNode, isLiteral } from "../../language/ast"
 import { getValueOfNode } from "../../language/scopes"
 import { autorun, IReactionDisposer } from "mobx"
 import { nodeIdFacet, parentIdsFacet } from "./facets"
 import { compareArrays } from "../../utils"
+import { parseBullet } from "../../language"
 
 export const bulletEvalPlugin = ViewPlugin.fromClass(
   class {
@@ -34,31 +34,34 @@ export const bulletEvalPlugin = ViewPlugin.fromClass(
 
 function getBulletDecorations(view: EditorView): DecorationSet {
   const docString = view.state.doc.sliceString(0)
-  const property: ArgumentNode | undefined = parseProperty(docString)
+  const bullet: BulletNode = parseBullet(docString)
 
-  if (!property) {
+  if (!bullet) {
     return Decoration.set([])
   }
 
   const nodeId = view.state.facet(nodeIdFacet)
   const parentIds = view.state.facet(parentIdsFacet)
 
+  bullet.value.map(() => {})
+
+  /*
   const decorations = (
-    property.name
-      ? [Decoration.mark({ class: "text-gray-500" }).range(0, docString.indexOf(":"))]
-      : []
+    bullet.key ? [Decoration.mark({ class: "text-gray-500" }).range(0, docString.indexOf(":"))] : []
   ).concat(
-    !isLiteral(property.exp)
+    !isLiteral(bullet.exp)
       ? [
           Decoration.widget({
             widget: new ResultOutputWidget(nodeId, parentIds),
             side: 1,
-          }).range(property.to, property.to),
+          }).range(bullet.to, bullet.to),
         ]
       : []
   )
 
-  return Decoration.set(decorations)
+*/
+
+  return Decoration.set([])
 }
 
 class ResultOutputWidget extends WidgetType {

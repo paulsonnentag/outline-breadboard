@@ -24,7 +24,7 @@ export const WEATHER_FN: FunctionDefs = {
       label: "Weather",
       value: "{Weather($)}",
     },
-    function: (graph, [node], { date }, selfId, isMethod) => {
+    function: ([node], { date }) => {
       const graphDocHandle = getGraphDocHandle()
       const passedInDate = date && date.value ? parseDate(date.value) : undefined
 
@@ -74,14 +74,16 @@ export const WEATHER_FN: FunctionDefs = {
 
         for (const date of context.dates) {
           for (const newLocation of newLocations) {
-            if (isMethod) {
+            // todo: add back method
+
+            /* if (isMethod) {
               getWeatherInformation(date.data, newLocation.data).then((temperature) => {
                 graphDocHandle.change((doc) => {
                   const node = getNode(doc.graph, newLocation.nodeId)
                   node.computedProps.weather = temperature
                 })
               })
-            }
+            } */
 
             parameters.push([date, newLocation])
           }

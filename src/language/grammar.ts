@@ -3,11 +3,15 @@ import * as ohm from "ohm-js"
 export const grammar = ohm.grammar(`
 Node {
   Bullet
-    = Text
-    
-  Text
-    = TextPart+
+    = (Key ":")? Value*
 
+  Key
+    = propertyChar+
+
+  Value
+    = numberLiteral
+    | TextPart+
+    
   TextPart
     = InlineExp
     | IdRef
@@ -15,17 +19,10 @@ Node {
     | TextLiteral
 
   InlineExp
-    = "{" Exp "}"
+    = "{" Exp? "}"
   
   MethodExp
     = "#" letter+ "(" Argument* ")"
-
-  Property 
-    = (Key "=") Exp
-    | (Key ":")? Text 
-    
-  Key
-    = propertyChar+
 
   TextLiteral = textChar+
 

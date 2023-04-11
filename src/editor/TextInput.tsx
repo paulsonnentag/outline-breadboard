@@ -147,12 +147,12 @@ export function TextInput({
     }
   }, [value, editorViewRef.current, isFocused])
 
-  useEffect(() => {
+  /* useEffect(() => {
     // eval bullet to run side effects
     evalBullet(graph, nodeId)
-  }, [value])
+  }, [value]) */
 
-  useEffect(() => {
+  /* useEffect(() => {
     const regex = /{([^}]+)}/g
     const matches = [...value.matchAll(regex)]
 
@@ -182,7 +182,8 @@ export function TextInput({
           })
       }
     }
-  }, [value]) // TODO: It won't update when the input values change
+  }, [value]) */
+  // TODO: It won't update when the input values change
 
   const onKeyDown = (evt: KeyboardEvent) => {
     const currentEditorView = editorViewRef.current

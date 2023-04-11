@@ -1,6 +1,6 @@
 import { getNode, Graph } from "../graph"
 import { grammar } from "./grammar"
-import { ArgumentNode, AstNode, FnNode, formulaSemantics } from "./ast"
+import { ArgumentNode, AstNode, BulletNode, FnNode, formulaSemantics } from "./ast"
 
 interface Bullet {
   key?: string // todo: implement key
@@ -67,11 +67,11 @@ export function parseInlineExp(source: string): AstNode | undefined {
   return formulaSemantics(match).toAst()
 }
 
-export function parseProperty(source: string): ArgumentNode | undefined {
-  const match = grammar.match(source, "Property")
+export function parseBullet(source: string): BulletNode {
+  const match = grammar.match(source, "Bullet")
 
   if (!match.succeeded()) {
-    return undefined
+    throw new Error("invalid state")
   }
 
   return formulaSemantics(match).toAst()

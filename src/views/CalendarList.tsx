@@ -1,4 +1,5 @@
 import { DataWithProvenance } from "../properties"
+import { DateContents, isSameDay } from "./CalendarGrid"
 
 interface CalendarListProps {
   dates: DataWithProvenance<Date>[]
@@ -37,13 +38,16 @@ interface DateRowProps {
 }
 
 function DateRow({ data, date, isHoveringOverId, setIsHoveringOverId }: DateRowProps) {
+  const isToday = isSameDay(date, new Date())
+  
   return (
     <div 
-      className={`${data === undefined ? "text-gray-400" : ""} ${data && data.nodeId === isHoveringOverId ? "bg-slate-200 rounded" : ""}`}
+      className={`py-2 mb-1 ${isToday ? "text-blue-600" : data === undefined ? "text-gray-400" : ""} ${data && data.nodeId === isHoveringOverId ? "bg-slate-200" : ""} ${data ? "border-t-2 border-slate-400" : "border-t-2 border-slate-100"}`}
       onMouseEnter={() => data && setIsHoveringOverId(data.nodeId)} 
       onMouseLeave={() => data && isHoveringOverId == data.nodeId && setIsHoveringOverId(undefined)}  
     >
-      {date.toDateString()} {data && `(${data.nodeId})`}
+      {date.toDateString()} 
+      {data && <DateContents nodeId={data.nodeId} />}
     </div>
   )
 }

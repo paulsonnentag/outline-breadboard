@@ -1,3 +1,4 @@
+import { useGraph, getNode } from "../graph"
 import { DataWithProvenance } from "../properties"
 
 interface CalendarGridProps {
@@ -20,9 +21,9 @@ export default function CalendarGrid({ dates, isHoveringOverId, setIsHoveringOve
     <div className="rounded-lg overflow-hidden">
       <table className="w-full table-fixed">
         <thead>
-          <tr className="text-gray-600 text-lg font-medium">
+          <tr className="text-left">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <th key={day} className="py-3 px-1">{day}</th>
+              <th key={day} className="py-3 px-1 font-medium text-gray-400">{day}</th>
             ))}
           </tr>
         </thead>
@@ -59,12 +60,27 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
       onMouseLeave={() => data && isHoveringOverId == data.nodeId && setIsHoveringOverId(undefined)}
     >
       <div className={isToday ? "text-blue-600 font-medium" : "text-gray-600 font-medium"}>{date.getDate()} {monthName}</div>
-      {data && <div className="text-sm text-gray-400">{data.nodeId}</div>}
+      {data && <DateContents nodeId={data.nodeId} />}
     </td>
   )
 }
 
-function isSameDay(date1: Date, date2: Date): boolean {
+interface DateContentsProps {
+  nodeId: string
+}
+
+export function DateContents({ nodeId }: DateContentsProps) {
+  const { graph } = useGraph()
+  const node = getNode(graph, nodeId)
+
+  return (
+    <div className="text-sm text-gray-400">
+      {node.value}
+    </div>
+  )
+}
+
+export function isSameDay(date1: Date, date2: Date): boolean {
   return (
     date1.getFullYear() === date2.getFullYear() &&
     date1.getMonth() === date2.getMonth() &&

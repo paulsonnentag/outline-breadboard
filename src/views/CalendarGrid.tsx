@@ -59,7 +59,7 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
       onMouseEnter={() => data && setIsHoveringOverId(data.nodeId)} 
       onMouseLeave={() => data && isHoveringOverId == data.nodeId && setIsHoveringOverId(undefined)}
     >
-      <div className={isToday ? "text-blue-600 font-medium" : "text-gray-600 font-medium"}>{date.getDate()} {monthName}</div>
+      <div className={isToday ? "text-blue-600 font-medium" : data === undefined ? "text-gray-400 font-medium" : "text-gray-600 font-medium"}>{date.getDate()} {monthName}</div>
       {data && <DateContents nodeId={data.nodeId} />}
     </td>
   )
@@ -74,7 +74,7 @@ export function DateContents({ nodeId }: DateContentsProps) {
   const node = getNode(graph, nodeId)
 
   return (
-    <div className="text-sm text-gray-400">
+    <div className="text-sm text-gray-600">
       {node.value}
     </div>
   )

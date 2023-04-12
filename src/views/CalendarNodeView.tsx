@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { NodeViewProps } from "."
 import { useGraph } from "../graph"
 import {
@@ -9,6 +9,7 @@ import {
 
 export function CalendarNodeView({ node }: NodeViewProps) {
   const { graph } = useGraph()
+  const [view, setView] = useState(0)
 
   const dates: DataWithProvenance<Date>[] = extractDataInNodeAndBelow(
     graph,
@@ -17,10 +18,38 @@ export function CalendarNodeView({ node }: NodeViewProps) {
   )
 
   return (
-    <div className="border-t-4 border-red-500 rounded">
-      <Calendar dates={dates} />
+    <div>
+      <CalendarTabs view={view} setView={setView} />
+
+      {view === 0 && 
+        <CalendarGrid dates={dates} />
+      }
     </div>
   )
+}
+
+interface CalendarTabsProps {
+  view: number
+  setView: React.Dispatch<React.SetStateAction<number>>
+}
+
+function CalendarTabs({ view, setView }: CalendarTabsProps) {
+  return (
+    <div className="border-b border-gray-200">
+      <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
+        <li className="mr-2">
+          <a href="#" className={`inline-flex items-center p-4 border-b-2 group ${view === 0 ? 'border-blue-600 text-blue-600' : 'border-transparent'}`} onClick={() => setView(0)}>
+            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>calendar_view_month</span> Grid
+          </a>
+        </li>
+        <li className="mr-2">
+          <a href="#" className={`inline-flex items-center p-4 border-b-2 group ${view === 1 ? 'border-blue-600 text-blue-600' : 'border-transparent'}`} onClick={() => setView(1)}>
+            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>calendar_view_day</span> List
+          </a>
+        </li>
+      </ul>
+    </div>
+  ) 
 }
 
 
@@ -28,7 +57,7 @@ interface CalendarProps {
   dates: DataWithProvenance<Date>[]
 }
 
-function Calendar({ dates }: CalendarProps) {
+function CalendarGrid({ dates }: CalendarProps) {
   const sortedDates = dates
     .map((d) => d.data)
     .sort((a, b) => a.getTime() - b.getTime())

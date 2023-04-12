@@ -9,7 +9,7 @@ import {
 import CalendarGrid from "./CalendarGrid"
 import CalendarList from "./CalendarList"
 
-export function CalendarNodeView({ node }: NodeViewProps) {
+export function CalendarNodeView({ node, isHoveringOverId, setIsHoveringOverId }: NodeViewProps) {
   const { graph } = useGraph()
   const [view, setView] = useState(0)
 
@@ -24,10 +24,10 @@ export function CalendarNodeView({ node }: NodeViewProps) {
       <CalendarTabs view={view} setView={setView} />
 
       {view === 0 && 
-        <CalendarGrid dates={dates} />
+        <CalendarGrid dates={dates} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
       }
       {view === 1 && 
-        <CalendarList dates={dates} />
+        <CalendarList dates={dates} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
       }
     </div>
   )

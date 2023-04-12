@@ -2,9 +2,11 @@ import { DataWithProvenance } from "../properties"
 
 interface CalendarGridProps {
   dates: DataWithProvenance<Date>[]
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
-export default function CalendarGrid({ dates }: CalendarGridProps) {
+export default function CalendarGrid({ dates, isHoveringOverId, setIsHoveringOverId }: CalendarGridProps) {
   const sortedDates = dates
     .map((d) => d.data)
     .sort((a, b) => a.getTime() - b.getTime())
@@ -28,7 +30,7 @@ export default function CalendarGrid({ dates }: CalendarGridProps) {
           {weeks.map((week, i) => (
             <tr key={i} className="week">
               {week.map((date, j) => (
-                <DateCell key={j} date={date} data={dates.find((d) => d.data.getTime() === date.getTime())} showMonth={(i == 0 && j == 0) || date.getDate() === 1} />
+                <DateCell key={j} date={date} data={dates.find((d) => d.data.getTime() === date.getTime())} showMonth={(i == 0 && j == 0) || date.getDate() === 1} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
               ))}
             </tr>
           ))}
@@ -42,16 +44,21 @@ interface DateCellProps {
   date: Date
   data?: DataWithProvenance<Date>
   showMonth: boolean
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
-function DateCell({ date, data, showMonth }: DateCellProps) {
+function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId }: DateCellProps) {
   const isToday = isSameDay(date, new Date())
-  const isHighlighted = false // todo
   const monthName = showMonth ? date.toLocaleString('default', { month: 'long' }) : null;
 
   return (
-    <td className={`py-2 px-1 ${isToday ? 'bg-gray-100' : ''} ${isHighlighted ? 'bg-blue-500 text-white' : ''}`}>
-      <div className="text-gray-600 font-medium">{date.getDate()} {monthName}</div>
+    <td 
+      className={`py-2 px-1 ${isHoveringOverId && isHoveringOverId === data?.nodeId ? 'bg-slate-200 rounded' : ''}`} 
+      onMouseEnter={() => data && setIsHoveringOverId(data.nodeId)} 
+      onMouseLeave={() => data && isHoveringOverId == data.nodeId && setIsHoveringOverId(undefined)}
+    >
+      <div className={isToday ? "text-blue-600 font-medium" : "text-gray-600 font-medium"}>{date.getDate()} {monthName}</div>
       {data && <div className="text-sm text-gray-400">{data.nodeId}</div>}
     </td>
   )

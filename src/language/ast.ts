@@ -3,6 +3,7 @@ import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
 import { FUNCTIONS } from "./functions"
 import { lookupName, scopesMobx } from "./scopes"
+import { Scope2 } from "../scopes2"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
   Bullet: (key, _, valueNode) => {
@@ -159,7 +160,8 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
 export abstract class AstNode {
   abstract readonly from: number
   abstract readonly to: number
-  abstract eval(parentIds: string[], selfId: string): Promise<any>
+  abstract eval(scope: Scope2): Promise<any>
+  // abstract eval(parentIds: string[], selfId: string): Promise<any>
   abstract getIdRefs(): string[]
   abstract isConstant(): boolean
 }
@@ -209,7 +211,7 @@ export class FnNode extends AstNode {
     this.isMethod = isMethod
   }
 
-  async eval(parentIds: string[], selfId: string) {
+  async eval(scope: Scope2) {
     let fn = FUNCTIONS[this.name]["function"]
     if (!fn) {
       return null
@@ -219,7 +221,7 @@ export class FnNode extends AstNode {
     const positionalArgs: any[] = []
 
     const evaledArgs = await Promise.all(
-      this.args.map(async (arg) => [arg.name, await arg.eval(parentIds, selfId)])
+      this.args.map(async (arg) => [arg.name, await arg.eval(scope)])
     )
 
     for (const [name, value] of evaledArgs) {
@@ -230,7 +232,7 @@ export class FnNode extends AstNode {
       }
     }
 
-    return fn(positionalArgs, namedArgs, parentIds, selfId)
+    return fn(positionalArgs, namedArgs, scope)
   }
 
   getIdRefs(): string[] {
@@ -312,8 +314,8 @@ export class ArgumentNode implements AstNode {
     return this.exp.isConstant()
   }
 
-  eval(parentIds: string[], selfId: string): any {
-    return this.exp.eval(parentIds, selfId)
+  eval(scope: Scope2): any {
+    return this.exp.eval(scope)
   }
 
   getIdRefs(): string[] {
@@ -344,8 +346,8 @@ export class NameRefNode extends AstNode {
     super()
   }
 
-  async eval(parentIds: string[], selfId: string) {
-    return lookupName(parentIds, this.name)
+  async eval(scope: Scope2) {
+    return scope.lookupName(this.name)
   }
 
   getIdRefs(): string[] {

@@ -1,18 +1,15 @@
 import { FunctionDefs } from "./index"
 import { getPropertyOfNode } from "../scopes"
+import { Scope2 } from "../../scopes2"
 
 export const CORE_FNS: FunctionDefs = {
   Get: {
-    function: async ([object, key], _, parentNodeIds, selfId) => {
+    function: async ([object, key], _, scope) => {
       if (!object || !key) {
         return undefined
       }
 
-      if (!object.id) {
-        return undefined
-      }
-
-      return getPropertyOfNode(parentNodeIds, object.id, key)
+      return (object as Scope2).getProperty(key)
 
       /*
       if (!object || !key) {
@@ -88,23 +85,23 @@ export const CORE_FNS: FunctionDefs = {
     },
   },
   Divide: {
-    function: async ([x, y]) => x / y,
+    function: async ([x, y]) => parseFloat(x) / parseFloat(y),
     description: "Divides one numeric value by another.",
   },
   Multiply: {
-    function: async ([x, y]) => x * y,
+    function: async ([x, y]) => parseFloat(x) * parseFloat(y),
     description: "Multiplies two numeric values together.",
   },
   Plus: {
-    function: async ([x, y]) => x + y,
+    function: async ([x, y]) => parseFloat(x) + parseFloat(y),
     description: "Adds two numeric values together.",
   },
   Minus: {
-    function: async ([x, y]) => x - y,
+    function: async ([x, y]) => parseFloat(x) - parseFloat(y),
     description: "Subtracts one numeric value from another.",
   },
   Round: {
-    function: async ([x]) => Math.round(x),
+    function: async ([x]) => Math.round(parseFloat(x)),
     arguments: {
       numeric: "The numeric value to round to integers.",
     },

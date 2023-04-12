@@ -2,19 +2,14 @@ import { DISTANCE_FN } from "./distance"
 import { CORE_FNS } from "./core"
 import { ROUTE_FN } from "./routes"
 import { WEATHER_FN } from "./weather"
-import { Scopes } from "../scopes"
+import { Scope2 } from "../../scopes2"
 
 interface NamedArgs {
   [name: string]: any
 }
 
 export interface FunctionDef {
-  function: (
-    positionalArgs: any[],
-    namedArgs: NamedArgs,
-    parentNodeIds: string[],
-    selfId: string
-  ) => any
+  function: (positionalArgs: any[], namedArgs: NamedArgs, scope: Scope2) => any
   arguments?: {
     [arg: string]: string
   }

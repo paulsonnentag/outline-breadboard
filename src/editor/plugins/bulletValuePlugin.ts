@@ -47,7 +47,7 @@ function getBulletDecorations(view: EditorView): DecorationSet {
     if (part instanceof InlineExprNode) {
       const decorations = [
         Decoration.mark({
-          class: "font-mono",
+          class: "font-mono bg-gray-200 rounded border border-gray-200",
           inclusive: true,
         }).range(part.from, part.to),
         Decoration.mark({

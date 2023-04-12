@@ -91,6 +91,8 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 function getWeeks(start: Date, end: Date, dates: Date[]): Date[][] {
   const weeks: Date[][] = []
   let curr = new Date(start)
+  const dayOfWeek = curr.getDay()
+  curr.setDate(curr.getDate() - dayOfWeek)
   while (curr <= end) {
     const week: Date[] = []
     for (let i = 0; i < 7; i++) {

@@ -1,6 +1,7 @@
 import { createRefNode, getLabelOfNode, useGraph, ValueNode } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
+import { CalendarNodeView } from "./CalendarNodeView"
 import classNames from "classnames"
 import { readAllProperties } from "../properties"
 import { mapValues } from "lodash"
@@ -25,6 +26,9 @@ export function NodeView(props: NodeViewProps) {
       break
     case "table":
       view = <TableNodeView {...props} />
+      break
+    case "calendar":
+      view = <CalendarNodeView {...props} />
       break
   }
 
@@ -52,6 +56,7 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
   const nodeId = node.id
   const isMap = node.view === "map"
   const isTable = node.view === "table"
+  const isCalendar = node.view === "calendar"
 
   const onToggleView = (view: string) => {
     changeGraph((graph) => {
@@ -76,7 +81,7 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
     })
   }
 
-  if (!isFocused && !isMap && !isTable) {
+  if (!isFocused && !isMap && !isTable && !isCalendar) {
     return null
   }
 
@@ -102,6 +107,17 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
       >
         <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
           table_chart
+        </span>
+      </button>
+      <button
+        className={classNames(
+          "bg-gray-800 rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-800 hover:text-white",
+          isCalendar ? "bg-gray-800 text-white" : "bg-transparent text-gray-600"
+        )}
+        onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
+      >
+        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+          calendar_month
         </span>
       </button>
     </div>

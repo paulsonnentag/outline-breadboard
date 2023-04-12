@@ -132,6 +132,10 @@ export function readColor(graph: Graph, nodeId: string): string | undefined {
   )
 }
 
+export function readDate(graph: Graph, nodeId: string): Date | undefined {
+  return readParsedProperty<Date>(graph, nodeId, "date", value => parseDate(value)?.data)
+}
+
 function _extractDataInNodeAndBelow<T>(
   graph: Graph,
   nodeId: string,

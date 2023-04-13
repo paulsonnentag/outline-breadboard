@@ -1,7 +1,7 @@
 import { FunctionDefs } from "./index"
 import { getPropertyOfNode } from "../scopes"
 import { Scope2 } from "../../scopes2"
-import { DumbScope, getValue } from "../../dumb-scopes"
+import { DumbScope, getValue } from "../dumb-scopes"
 
 export const CORE_FNS: FunctionDefs = {
   Get: {
@@ -94,11 +94,7 @@ export const CORE_FNS: FunctionDefs = {
     description: "Multiplies two numeric values together.",
   },
   Plus: {
-    function: async ([x, y]) => {
-      console.log(await getValue(x), "+", await getValue(y))
-
-      return parseFloat(await getValue(x)) + parseFloat(await getValue(y))
-    },
+    function: async ([x, y]) => parseFloat(await getValue(x)) + parseFloat(await getValue(y)),
     description: "Adds two numeric values together.",
   },
   Minus: {

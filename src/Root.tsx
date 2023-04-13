@@ -9,12 +9,13 @@ import {
   useGraphDocument,
   ValueNode,
 } from "./graph"
-import { OutlineEditor } from "./editor/OutlineEditor"
+import { OutlineEditor, OutlineEditorProps } from "./editor/OutlineEditor"
 import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { isString } from "./utils"
 import { useStaticCallback } from "./hooks"
 import { updateScopeOfNode } from "./language/scopes"
+import { useRootScope } from "./language/dumb-scopes"
 
 interface RootProps {
   documentId: DocumentId
@@ -98,8 +99,7 @@ export function Root({ documentId }: RootProps) {
               <div className="absolute top-1 right-1 z-50">
                 <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
               </div>
-
-              <OutlineEditor
+              <RootOutlineEditor
                 index={0}
                 nodeId={rootId}
                 path={[]}
@@ -162,4 +162,17 @@ export function Root({ documentId }: RootProps) {
       </div>
     </GraphContext.Provider>
   )
+}
+
+type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope" | "scopeIterationCount">
+
+export function RootOutlineEditor(props: RootOutlineEditorProps) {
+  const { nodeId } = props
+  const [scope, scopeIterationCount] = useRootScope(nodeId)
+
+  if (!scope) {
+    return null
+  }
+
+  return <OutlineEditor scope={scope} scopeIterationCount={scopeIterationCount} {...props} />
 }

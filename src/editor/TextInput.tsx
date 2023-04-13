@@ -63,7 +63,7 @@ export function TextInput({
       extensions: [
         minimalSetup,
         EditorView.lineWrapping,
-        bulletEvalPlugin,
+        /*bulletEvalPlugin, */
         getRefIdTokenPlugin(setIsHoveringOverId),
         autocompletion({
           activateOnTyping: true,

@@ -4,7 +4,7 @@ import { isArray, promisify } from "../utils"
 import { FUNCTIONS } from "./functions"
 import { lookupName, scopesMobx } from "./scopes"
 import { Scope2 } from "../scopes2"
-import { DumbScope } from "../dumb-scopes"
+import { DumbScope } from "./dumb-scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
   Bullet: (key, _, valueNode) => {

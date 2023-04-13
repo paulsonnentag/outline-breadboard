@@ -1,6 +1,7 @@
 import { FunctionDefs } from "./index"
 import { getPropertyOfNode } from "../scopes"
 import { Scope2 } from "../../scopes2"
+import { DumbScope, getValue } from "../../dumb-scopes"
 
 export const CORE_FNS: FunctionDefs = {
   Get: {
@@ -9,7 +10,7 @@ export const CORE_FNS: FunctionDefs = {
         return undefined
       }
 
-      return (object as Scope2).getProperty(key)
+      return object[key]
 
       /*
       if (!object || !key) {
@@ -65,43 +66,47 @@ export const CORE_FNS: FunctionDefs = {
     },
   },
   Not: {
-    function: async ([arg]) => !arg,
+    function: async ([arg]) => !(await getValue(arg)),
     arguments: {
       "values, ...": "The boolean values to perform NOT across.",
     },
   },
   LessThan: {
-    function: async ([a, b]) => a < b,
+    function: async ([a, b]) => (await getValue(a)) < (await getValue(b)),
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   GreaterThan: {
-    function: async ([a, b]) => a > b,
+    function: async ([a, b]) => (await getValue(a)) > (await getValue(b)),
     arguments: {
       arg: "The numeric value to compare to 'compareValue'",
       compareValue: "The value to check if it is greater than 'arg'",
     },
   },
   Divide: {
-    function: async ([x, y]) => parseFloat(x) / parseFloat(y),
+    function: async ([x, y]) => parseFloat(await getValue(x)) / parseFloat(await getValue(y)),
     description: "Divides one numeric value by another.",
   },
   Multiply: {
-    function: async ([x, y]) => parseFloat(x) * parseFloat(y),
+    function: async ([x, y]) => parseFloat(await getValue(x)) * parseFloat(await getValue(y)),
     description: "Multiplies two numeric values together.",
   },
   Plus: {
-    function: async ([x, y]) => parseFloat(x) + parseFloat(y),
+    function: async ([x, y]) => {
+      console.log(await getValue(x), "+", await getValue(y))
+
+      return parseFloat(await getValue(x)) + parseFloat(await getValue(y))
+    },
     description: "Adds two numeric values together.",
   },
   Minus: {
-    function: async ([x, y]) => parseFloat(x) - parseFloat(y),
+    function: async ([x, y]) => parseFloat(await getValue(x)) - parseFloat(await getValue(y)),
     description: "Subtracts one numeric value from another.",
   },
   Round: {
-    function: async ([x]) => Math.round(parseFloat(x)),
+    function: async ([x]) => Math.round(parseFloat(await getValue(x))),
     arguments: {
       numeric: "The numeric value to round to integers.",
     },

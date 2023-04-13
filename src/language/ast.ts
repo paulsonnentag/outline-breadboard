@@ -4,6 +4,7 @@ import { isArray, promisify } from "../utils"
 import { FUNCTIONS } from "./functions"
 import { lookupName, scopesMobx } from "./scopes"
 import { Scope2 } from "../scopes2"
+import { DumbScope } from "../dumb-scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
   Bullet: (key, _, valueNode) => {
@@ -160,7 +161,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
 export abstract class AstNode {
   abstract readonly from: number
   abstract readonly to: number
-  abstract eval(scope: Scope2): Promise<any>
+  abstract eval(scope: DumbScope): Promise<any>
   // abstract eval(parentIds: string[], selfId: string): Promise<any>
   abstract getIdRefs(): string[]
   abstract isConstant(): boolean
@@ -211,7 +212,7 @@ export class FnNode extends AstNode {
     this.isMethod = isMethod
   }
 
-  async eval(scope: Scope2) {
+  async eval(scope: DumbScope) {
     let fn = FUNCTIONS[this.name]["function"]
     if (!fn) {
       return null
@@ -252,13 +253,14 @@ export class FnNode extends AstNode {
   }
 }
 
-export class BulletNode implements AstNode {
+export class BulletNode extends AstNode {
   readonly from: number
   readonly to: number
   readonly key: string | undefined
   readonly value: AstNode[]
 
   constructor(from: number, to: number, key: string | undefined, value: AstNode[]) {
+    super()
     this.key = key
     this.to = to
     this.from = from
@@ -268,8 +270,8 @@ export class BulletNode implements AstNode {
       .filter((astNode) => !(astNode instanceof TextNode && astNode.text.trim() === ""))
   }
 
-  async eval(parentIds: string[], selfId: string) {
-    return this.value.map((part) => part.eval(parentIds, selfId))
+  async eval(scope: DumbScope) {
+    return Promise.all(this.value.map((part) => part.eval(scope)))
   }
 
   isConstant(): boolean {
@@ -281,11 +283,13 @@ export class BulletNode implements AstNode {
   }
 }
 
-export class InlineExprNode implements AstNode {
-  constructor(readonly from: number, readonly to: number, readonly expr: AstNode) {}
+export class InlineExprNode extends AstNode {
+  constructor(readonly from: number, readonly to: number, readonly expr: AstNode) {
+    super()
+  }
 
-  async eval(parentIds: string[], selfId: string) {
-    return this.expr.eval(parentIds, selfId)
+  async eval(scope: DumbScope) {
+    return this.expr.eval(scope)
   }
 
   isConstant(): boolean {
@@ -297,13 +301,14 @@ export class InlineExprNode implements AstNode {
   }
 }
 
-export class ArgumentNode implements AstNode {
+export class ArgumentNode extends AstNode {
   from: number
   to: number
   name: string | undefined
   exp: AstNode
 
   constructor(from: number, to: number, name: string | undefined, exp: AstNode) {
+    super()
     this.from = from
     this.to = to
     this.name = name
@@ -314,7 +319,7 @@ export class ArgumentNode implements AstNode {
     return this.exp.isConstant()
   }
 
-  eval(scope: Scope2): any {
+  eval(scope: DumbScope): any {
     return this.exp.eval(scope)
   }
 
@@ -346,8 +351,8 @@ export class NameRefNode extends AstNode {
     super()
   }
 
-  async eval(scope: Scope2) {
-    return scope.lookupName(this.name)
+  async eval(scope: DumbScope) {
+    return scope.lookup(this.name)
   }
 
   getIdRefs(): string[] {

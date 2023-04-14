@@ -3,10 +3,11 @@ import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import classNames from "classnames"
 import { readAllProperties } from "../properties"
-import { mapValues } from "lodash"
+import { DumbScope } from "../language/dumb-scopes"
 
 export interface NodeViewProps {
   node: ValueNode
+  scope: DumbScope
   isFocused: boolean
   fullpane: boolean
   onOpenNodeInNewPane: (nodeId: string) => void

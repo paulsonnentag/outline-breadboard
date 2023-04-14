@@ -539,11 +539,10 @@ export function OutlineEditor({
 
           <div className="pl-8">
             <NodeView
-              parentIds={parentIds}
+              scope={scope}
               node={node}
               isFocused={isFocused}
               fullpane={false}
-              accentColors={accentColors}
               onOpenNodeInNewPane={onOpenNodeInNewPane}
               isHoveringOverId={isHoveringOverId}
               setIsHoveringOverId={setIsHoveringOverId}

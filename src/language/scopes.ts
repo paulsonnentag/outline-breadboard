@@ -3,6 +3,7 @@ import { parseBullet } from "./index"
 import { AstNode, TextNode } from "./ast"
 import { autorun, observable, runInAction, toJS } from "mobx"
 import { useEffect, useState } from "react"
+import { DumbScope } from "./dumb-scopes"
 
 // @ts-ignore
 window.$toJS = toJS

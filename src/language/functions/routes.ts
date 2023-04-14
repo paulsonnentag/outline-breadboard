@@ -109,7 +109,7 @@ function directionsResultToRoute(result: google.maps.DirectionsResult) {
     __summary: `${distance}, ${shortDuration}`,
     distance,
     duration,
-    geometry: {
+    geoJson: {
       type: "Feature",
       geometry: {
         type: "LineString",

@@ -2,6 +2,7 @@ import { parseBullet } from "./index"
 import { AstNode, BulletNode, IdRefNode } from "./ast"
 import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
+import { DataWithProvenance, extractDataInNodeAndBelow } from "../properties"
 
 export class DumbScope {
   id: string
@@ -54,12 +55,24 @@ export class DumbScope {
     return this.parentScope?._lookup(name)
   }
 
-  lookup(name: string): any {
+  lookup(name: string): DumbScope {
     return this.parentScope?._lookup(name)
+  }
+
+  lookupValue(name: string): any {
+    return getValueSync(this.lookup(name))
   }
 
   get(name: string) {
     return this.props[name]
+  }
+
+  getValue(name: string): any {
+    return getValueSync(this.get(name))
+  }
+
+  valueOf(): any {
+    return getValueSync(this.value[0])
   }
 
   eval() {
@@ -96,6 +109,33 @@ export class DumbScope {
     }
 
     return this.parentScope ? this.parentScope.isInScope(id) : false
+  }
+
+  private _extractDataInScope<T>(
+    extractFn: (scope: DumbScope) => T | undefined,
+    results: DataWithProvenance2<T>[]
+  ) {
+    const data = extractFn(this)
+
+    if (data !== undefined) {
+      results.push({ scope: this, data })
+    }
+
+    for (const childScope of this.childScopes) {
+      childScope._extractDataInScope(extractFn, results)
+    }
+
+    for (const transcludedScope of Object.values(this.transcludedScopes)) {
+      transcludedScope._extractDataInScope(extractFn, results)
+    }
+  }
+
+  extractDataInScope<T>(extractFn: (scope: DumbScope) => T | undefined): DataWithProvenance2<T>[] {
+    const results: DataWithProvenance2<T>[] = []
+
+    this._extractDataInScope(extractFn, results)
+
+    return results
   }
 }
 
@@ -140,4 +180,9 @@ export function useRootScope(rootId: string): [DumbScope | undefined, number] {
   }, [graph, rootId])
 
   return [scope, scopeIterationCount]
+}
+
+export interface DataWithProvenance2<T> {
+  scope: DumbScope
+  data: T
 }

@@ -4,6 +4,7 @@ import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
 
 export class DumbScope {
+  id: string
   parentScope: DumbScope | undefined
   value: any
   props: {
@@ -18,6 +19,7 @@ export class DumbScope {
   private isDisabled: boolean = false
 
   constructor(graph: Graph, id: string, parentScope: DumbScope | undefined, onUpdate: () => void) {
+    this.id = id
     const node = getNode(graph, id)
     this.parentScope = parentScope
     this.onUpdate = onUpdate
@@ -85,6 +87,15 @@ export class DumbScope {
     for (const childScope of this.childScopes) {
       childScope.disable()
     }
+  }
+
+  // this is used in the autocompletion to avoid that circular references are inserted
+  isInScope(id: string): boolean {
+    if (this.id === id) {
+      return true
+    }
+
+    return this.parentScope ? this.parentScope.isInScope(id) : false
   }
 }
 

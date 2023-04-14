@@ -5,13 +5,14 @@ import { placesAutocompleteApi } from "../../google"
 import { createPlaceNode } from "../../views/MapNodeView"
 import { FunctionDef, FUNCTIONS } from "../../language/functions"
 import { KEYWORD_REGEX } from "./keywordHighlightPlugin"
+import { scopeFacet } from "./state"
 
 export function getMentionCompletionContext(
   nodeId: string,
   changeGraph: (fn: (graph: Graph) => void) => void
 ) {
   return async function mentionCompletionContext(context: CompletionContext) {
-    context.state
+    const scope = context.state.facet(scopeFacet)
 
     let reference = context.matchBefore(/@[^@]*/)
 
@@ -28,7 +29,7 @@ export function getMentionCompletionContext(
 
     const nodeOptions: Completion[] = Object.values(graph).flatMap((node: Node) => {
       if (
-        nodeId == node.id ||
+        scope.isInScope(node.id) || // avoid circular references
         node.type !== "value" ||
         node.value.match(KEYWORD_REGEX) || // don't suggest nodes that are a property
         !isString(node.value) ||

@@ -17,13 +17,12 @@ import { getIsHovering, isString, last } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
-import { readColor } from "../properties"
 import colors from "../colors"
 import { ComputedPropertiesView } from "../views/ComputedPropertyView"
-import { DumbScope } from "../language/dumb-scopes"
+import { Scope } from "../language/dumb-scopes"
 
 export interface OutlineEditorProps {
-  scope: DumbScope
+  scope: Scope
   scopeIterationCount: number
   nodeId: string
   index: number
@@ -158,11 +157,6 @@ export function OutlineEditor({
 
       if (!prevNode) {
         throw new Error("invalid state")
-      }
-
-      // can't join with prevNode if prevNode is not text
-      if (!isString(prevNode?.value)) {
-        return
       }
 
       const prevNodeId = prevNode.id
@@ -404,13 +398,8 @@ export function OutlineEditor({
     return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
   }
 
-  let setColor = readColor(graph, nodeId)?.trim()
-
-  if (setColor === undefined && isRoot) {
-    setColor = "default"
-  }
-
-  const accentColors = setColor ? colors.accentColors(setColor) : undefined
+  const color = scope.lookupValue("color")
+  const accentColors = color ? colors.accentColors(color) : undefined
 
   return (
     <div
@@ -445,6 +434,7 @@ export function OutlineEditor({
             onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
           />
           <NodeView
+            scope={scope}
             node={{ ...node, view: graph[nodeId].view }}
             isFocused={isFocused}
             fullpane={true}

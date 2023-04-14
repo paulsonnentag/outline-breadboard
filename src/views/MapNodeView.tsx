@@ -56,13 +56,13 @@ export function MapNodeView({
   const { graph, changeGraph } = graphContext
 
   const markers = scope.extractDataInScope<Marker>((scope) => {
-    const position = parseLatLng(scope.getValue("position"))
+    const position = parseLatLng(scope.getProperty("position"))
 
     if (!position) {
       return
     }
 
-    const color = scope.getValue("color")
+    const color = scope.getProperty("color")
     return {
       position,
       color,
@@ -77,7 +77,7 @@ export function MapNodeView({
       return
     }
 
-    const color = scope.getValue("color")
+    const color = scope.getProperty("color")
     return {
       color,
       geoJson: value.geoJson,

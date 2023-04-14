@@ -1,8 +1,7 @@
 import { isString } from "./utils"
 import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
-import { evalBullet, getReferencedNodeIds } from "./language"
-import { scopesMobx } from "./language/scopes"
+import { getReferencedNodeIds } from "./language"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
@@ -97,10 +96,6 @@ export function parseReferencedLocationsInString(
   })
 }
 
-export function readProperty(graph: Graph, nodeId: string, key: string): any {
-  return readParsedProperty(graph, nodeId, key, (value) => value)
-}
-
 export function readLatLng(graph: Graph, nodeId: string): LatLngLiteral | undefined {
   return readParsedProperty<LatLngLiteral>(graph, nodeId, "position", (value) => {
     if (value.lat && value.lng) {
@@ -115,161 +110,8 @@ export function readLatLng(graph: Graph, nodeId: string): LatLngLiteral | undefi
   })
 }
 
-export function readColorFromList(graph: Graph, nodeIds: string[]): string | undefined {
-  for (var nodeId of nodeIds) {
-    let color = readColor(graph, nodeId)
-
-    if (color) {
-      return color
-    }
-  }
-
-  return undefined
-}
-
-export function readColor(graph: Graph, nodeId: string): string | undefined {
-  return readParsedProperty<string>(graph, nodeId, "color", (value) =>
-    isString(value) ? value : undefined
-  )
-}
-
-async function _extractDataInNodeAndBelow<T>(
-  graph: Graph,
-  nodeId: string,
-  extractData: (graph: Graph, node: ValueNode) => Promise<T | undefined>,
-  parentIds: string[],
-  results: [nodeId: string, parentIds: string[], data: T][] = []
-) {
-  const node = getNode(graph, nodeId)
-
-  const scope = scopesMobx.get(nodeId)
-
-  scope!.value
-
-  for (const referencedId of getReferencedNodeIds(node.value)) {
-    const referencedNode = getNode(graph, referencedId)
-    const data = await extractData(graph, referencedNode)
-    if (data) {
-      results.push([referencedNode.id, parentIds, data])
-    }
-  }
-
-  const data = await extractData(graph, node)
-  if (data) {
-    results.push([node.id, parentIds, data])
-  }
-
-  await Promise.all(
-    node.children.map((childId) =>
-      _extractDataInNodeAndBelow(graph, childId, extractData, [...parentIds, node.id], results)
-    )
-  )
-}
-
 export interface DataWithProvenance<T> {
   nodeId: string
   parentIds: string[]
   data: T
-}
-
-// recursively traverses the graph and returns a match object that maps nodeId to extracted data
-
-// the recursion iterates over:
-// - the node itself
-// - all child nodes
-// - nodes referenced in expressions in the node or the children
-
-// if the extractData function returns undefined the node is discarded
-export function extractDataInNodeAndBelow<T>(
-  graph: Graph,
-  nodeId: string,
-  extractData: (parentNodeIds: string[], nodeId: string) => T | undefined
-): Promise<DataWithProvenance<T>[]> {
-  const results: [nodeId: string, parentIds: string[], data: T][] = []
-
-  _extractDataInNodeAndBelow<T>(graph, nodeId, extractData, [], results)
-
-  return results.map(
-    ([nodeId, parentIds, data]) =>
-      ({
-        nodeId,
-        parentIds,
-        data,
-      } as DataWithProvenance<T>)
-  )
-}
-
-// we should combine extractComputedValuesInNodeAndBelow with extractDataInNodeAndBelow
-// currently we haven't bridget the gap between data that's in the tree and data that is computed in expressions
-
-export async function extractComputedValuesInNodeAndBelow<T>(
-  graph: Graph,
-  nodeId: string,
-  extractData: (value: any) => T | undefined
-): Promise<DataWithProvenance<T>[]> {
-  return _extractComputedValuesInNodeAndBelow(graph, nodeId, [], extractData)
-}
-
-async function _extractComputedValuesInNodeAndBelow<T>(
-  graph: Graph,
-  nodeId: string,
-  parentIds: string[],
-  extractData: (value: any) => T | undefined
-): Promise<DataWithProvenance<T>[]> {
-  const node = getNode(graph, nodeId)
-
-  const bullet = await evalBullet(graph, node.value)
-
-  let results: DataWithProvenance<T>[] = []
-
-  for (const value of bullet?.value ?? []) {
-    const data = extractData(value)
-
-    if (data) {
-      results.push({ nodeId, parentIds, data })
-    }
-  }
-
-  const childResults = await Promise.all(
-    node.children.map((childId) => {
-      return _extractComputedValuesInNodeAndBelow(
-        graph,
-        childId,
-        [...parentIds, nodeId],
-        extractData
-      )
-    })
-  )
-
-  for (const childResult of childResults) {
-    results = results.concat(childResult)
-  }
-
-  return results
-}
-
-export function readAllProperties(graph: Graph, nodeId: string) {
-  interface KeyValueDict {
-    [key: string]: any
-  }
-
-  let allProps: KeyValueDict = {}
-
-  const children: ValueNode[] = getNode(graph, nodeId).children.map((childId: string) =>
-    getNode(graph, childId)
-  )
-
-  for (const childNode of children) {
-    if (childNode.value.includes(":")) {
-      const split = childNode.value.split(":")
-      const key = split[0]
-      const value = split.slice(1).join(":")
-
-      if (key !== undefined && value !== undefined) {
-        allProps[key] = value
-      }
-    }
-  }
-
-  return allProps
 }

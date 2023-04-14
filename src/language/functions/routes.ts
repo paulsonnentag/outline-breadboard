@@ -3,7 +3,7 @@ import { googleApi } from "../../google"
 import { last, round } from "../../utils"
 import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
-import { getPropertyOfNode } from "../scopes"
+import { Scope } from "../dumb-scopes"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
@@ -11,11 +11,8 @@ export const ROUTE_FN: FunctionDefs = {
       label: "Route",
       value: "{Route(from:$ to:)}",
     },
-    function: async ([stops], { from, to }, parentNodeIds, nodeId: string) => {
+    function: async ([stops], { from, to }) => {
       let waypoints = stops ? [...stops] : []
-
-      console.log("from", await getPropertyOfNode(parentNodeIds, from.id, "position"))
-      console.log("to", await getPropertyOfNode(parentNodeIds, to.id, "position"))
 
       if (!from && waypoints[0]) {
         from = waypoints.shift()
@@ -25,20 +22,10 @@ export const ROUTE_FN: FunctionDefs = {
         to = waypoints.pop()
       }
 
-      const pos1 =
-        from && from.id
-          ? parseLatLng(await getPropertyOfNode(parentNodeIds, from.id, "position"))
-          : parseLatLng(from)
-      const pos2 =
-        to && to.id
-          ? parseLatLng(await getPropertyOfNode(parentNodeIds, to.id, "position"))
-          : parseLatLng(to)
+      const pos1 = parseLatLng(await (from as Scope).getPropertyAsync("position"))
+      const pos2 = parseLatLng(await (to as Scope).getPropertyAsync("position"))
       const waypointPos = await Promise.all(
-        waypoints.map((waypoint) =>
-          waypoint.id
-            ? parseLatLng(getPropertyOfNode(parentNodeIds, waypoint.id, "position"))
-            : parseLatLng(from)
-        )
+        waypoints.map((waypoint: Scope) => waypoint.getProperty("position"))
       )
 
       if (!pos1 || !pos2 || waypointPos.some((pos) => !pos)) {

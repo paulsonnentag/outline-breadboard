@@ -8,7 +8,7 @@ import {
 } from "@codemirror/view"
 import { InlineExprNode, isLiteral } from "../../language/ast"
 import { scopeFacet } from "./state"
-import { getValue } from "../../language/dumb-scopes"
+import { valueOf } from "../../language/dumb-scopes"
 
 export const bulletEvalPlugin = ViewPlugin.fromClass(
   class {
@@ -56,7 +56,7 @@ function getBulletDecorations(view: EditorView): DecorationSet {
       if (!isLiteral(part)) {
         decorations.push(
           Decoration.widget({
-            widget: new ResultOutputWidget(getValue(scope.value[index])),
+            widget: new ResultOutputWidget(valueOf(scope.value[index])),
             side: 1,
           }).range(part.to)
         )

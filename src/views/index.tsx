@@ -1,13 +1,12 @@
-import { createRefNode, getLabelOfNode, useGraph, ValueNode } from "../graph"
+import { createRefNode, useGraph, ValueNode } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import classNames from "classnames"
-import { readAllProperties } from "../properties"
-import { DumbScope } from "../language/dumb-scopes"
+import { Scope } from "../language/dumb-scopes"
 
 export interface NodeViewProps {
   node: ValueNode
-  scope: DumbScope
+  scope: Scope
   isFocused: boolean
   fullpane: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
@@ -109,21 +108,14 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
   )
 }
 
-export function SummaryView(props: NodeViewProps) {
-  const { graph, changeGraph } = useGraph()
-  const properties = readAllProperties(graph, props.node.id)
-
-  // If the property value is a node, resolve it to its label
-  const propertiesWithNodeValuesResolved = mapValues(properties, (property: string) => {
-    const idRefRegex = /#\[(?<id>[a-zA-Z0-9\-]*)\]/g
-    return property.replaceAll(idRefRegex, (_, id) => getLabelOfNode(graph[id] as ValueNode))
-  })
+export function SummaryView({ scope }: NodeViewProps) {
+  const properties = scope.getAllProperties()
 
   return (
     <div className="text-sm italic flex gap-2">
-      {Object.keys(properties).map((key) => (
+      {Object.entries(properties).map(([key, value]) => (
         <p key={key}>
-          <span className="text-gray-400">{key}:</span> {propertiesWithNodeValuesResolved[key]}
+          <span className="text-gray-400">{key}:</span> {value}
         </p>
       ))}
     </div>

@@ -1,25 +1,24 @@
 import { parseBullet } from "./index"
-import { AstNode, BulletNode, IdRefNode } from "./ast"
+import { BulletNode } from "./ast"
 import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
-import { DataWithProvenance, extractDataInNodeAndBelow } from "../properties"
 
-export class DumbScope {
+export class Scope {
   id: string
-  parentScope: DumbScope | undefined
+  parentScope: Scope | undefined
   value: any
   props: {
-    [name: string]: DumbScope
+    [name: string]: Scope
   } = {}
-  childScopes: DumbScope[] = []
-  transcludedScopes: { [id: string]: DumbScope } = {}
+  childScopes: Scope[] = []
+  transcludedScopes: { [id: string]: Scope } = {}
   bullet: BulletNode
 
   private onUpdate: () => void
   private resolve: (x: any) => void = () => {}
   private isDisabled: boolean = false
 
-  constructor(graph: Graph, id: string, parentScope: DumbScope | undefined, onUpdate: () => void) {
+  constructor(graph: Graph, id: string, parentScope: Scope | undefined, onUpdate: () => void) {
     this.id = id
     const node = getNode(graph, id)
     this.parentScope = parentScope
@@ -38,16 +37,16 @@ export class DumbScope {
 
     // create scopes for child nodes
     for (const childId of node.children) {
-      this.childScopes.push(new DumbScope(graph, childId, this, onUpdate))
+      this.childScopes.push(new Scope(graph, childId, this, onUpdate))
     }
 
     // create scopes for transcluded nodes
     for (const referencedId of this.bullet.getReferencedIds()) {
-      this.transcludedScopes[referencedId] = new DumbScope(graph, referencedId, this, onUpdate)
+      this.transcludedScopes[referencedId] = new Scope(graph, referencedId, this, onUpdate)
     }
   }
 
-  private _lookup(name: string): any {
+  private _lookup(name: string): Scope | undefined {
     if (this.props[name]) {
       return this.props[name]
     }
@@ -55,24 +54,52 @@ export class DumbScope {
     return this.parentScope?._lookup(name)
   }
 
-  lookup(name: string): DumbScope {
+  // return closest node with matching name in ancestor nodes
+  lookup(name: string): Scope | undefined {
     return this.parentScope?._lookup(name)
   }
 
+  // if value is not resolved yet undefined is returned
   lookupValue(name: string): any {
-    return getValueSync(this.lookup(name))
+    return this.lookup(name)?.valueOf()
   }
 
-  get(name: string) {
+  // returns first child node that has a matching name
+  getChildScope(name: string): Scope | undefined {
     return this.props[name]
   }
 
-  getValue(name: string): any {
-    return getValueSync(this.get(name))
+  // if value is not resolved yet undefined is returned
+  getProperty(name: string, index: number = 0): any {
+    return this.getChildScope(name)?.valueOf(index)
   }
 
-  valueOf(): any {
-    return getValueSync(this.value[0])
+  async getPropertyAsync(name: string): Promise<any> {
+    return this.getChildScope(name)?.valueOfAsync()
+  }
+
+  // will only contain resolved properties
+  getAllProperties(): { [name: string]: any } {
+    const props: { [name: string]: any } = {}
+
+    for (const [name, scope] of Object.entries(this.props)) {
+      const value = scope.valueOf()
+
+      if (value !== undefined) {
+        props[name] = value
+      }
+    }
+
+    return props
+  }
+
+  // if value is not resolved yet undefined is returned
+  valueOf(index: number = 0) {
+    return this.value instanceof Promise ? undefined : this.value[index]
+  }
+
+  async valueOfAsync(index: number = 0): Promise<any> {
+    return (await this.value)[index]
   }
 
   eval() {
@@ -112,7 +139,7 @@ export class DumbScope {
   }
 
   private _extractDataInScope<T>(
-    extractFn: (scope: DumbScope) => T | undefined,
+    extractFn: (scope: Scope) => T | undefined,
     results: DataWithProvenance2<T>[]
   ) {
     const data = extractFn(this)
@@ -130,7 +157,7 @@ export class DumbScope {
     }
   }
 
-  extractDataInScope<T>(extractFn: (scope: DumbScope) => T | undefined): DataWithProvenance2<T>[] {
+  extractDataInScope<T>(extractFn: (scope: Scope) => T | undefined): DataWithProvenance2<T>[] {
     const results: DataWithProvenance2<T>[] = []
 
     this._extractDataInScope(extractFn, results)
@@ -139,24 +166,26 @@ export class DumbScope {
   }
 }
 
-export function getValue(obj: any) {
-  if (obj instanceof DumbScope) {
-    return obj.value[0]
+// if value is not resolved yet undefined is returned
+export function valueOf(obj: any) {
+  if (obj instanceof Scope) {
+    return obj.value()
   }
 
   return obj
 }
 
-export function getValueSync(obj: any) {
-  const value = getValue(obj)
+export async function valueOfAsync(obj: any) {
+  if (obj instanceof Scope) {
+    return await obj.value()
+  }
 
-  if (value instanceof Promise) return undefined
-  return value
+  return obj
 }
 
-export function useRootScope(rootId: string): [DumbScope | undefined, number] {
+export function useRootScope(rootId: string): [Scope | undefined, number] {
   const { graph } = useGraph()
-  const [scope, setScope] = useState<DumbScope | undefined>()
+  const [scope, setScope] = useState<Scope | undefined>()
   const [scopeIterationCount, setScopeIterationCount] = useState(0)
 
   useEffect(() => {
@@ -168,7 +197,7 @@ export function useRootScope(rootId: string): [DumbScope | undefined, number] {
       scope.disable()
     }
 
-    const newScope = new DumbScope(graph, rootId, undefined, () => {
+    const newScope = new Scope(graph, rootId, undefined, () => {
       setScope(newScope)
       setScopeIterationCount((i) => i + 1)
     })
@@ -183,6 +212,6 @@ export function useRootScope(rootId: string): [DumbScope | undefined, number] {
 }
 
 export interface DataWithProvenance2<T> {
-  scope: DumbScope
+  scope: Scope
   data: T
 }

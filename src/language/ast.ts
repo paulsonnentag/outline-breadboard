@@ -2,7 +2,7 @@ import { grammar } from "./grammar"
 import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
 import { FUNCTIONS } from "./functions"
-import { DumbScope } from "./dumb-scopes"
+import { Scope } from "./dumb-scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
   Bullet: (key, _, valueNode) => {
@@ -159,7 +159,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
 export abstract class AstNode {
   abstract readonly from: number
   abstract readonly to: number
-  abstract eval(scope: DumbScope): Promise<any>
+  abstract eval(scope: Scope): Promise<any>
   // abstract eval(parentIds: string[], selfId: string): Promise<any>
   abstract getReferencedIds(): string[]
   abstract isConstant(): boolean
@@ -210,7 +210,7 @@ export class FnNode extends AstNode {
     this.isMethod = isMethod
   }
 
-  async eval(scope: DumbScope) {
+  async eval(scope: Scope) {
     let fn = FUNCTIONS[this.name]["function"]
     if (!fn) {
       return null
@@ -268,7 +268,7 @@ export class BulletNode extends AstNode {
       .filter((astNode) => !(astNode instanceof TextNode && astNode.text.trim() === ""))
   }
 
-  async eval(scope: DumbScope) {
+  async eval(scope: Scope) {
     return Promise.all(this.value.map((part) => part.eval(scope)))
   }
 
@@ -286,7 +286,7 @@ export class InlineExprNode extends AstNode {
     super()
   }
 
-  async eval(scope: DumbScope) {
+  async eval(scope: Scope) {
     return this.expr.eval(scope)
   }
 
@@ -317,7 +317,7 @@ export class ArgumentNode extends AstNode {
     return this.exp.isConstant()
   }
 
-  eval(scope: DumbScope): any {
+  eval(scope: Scope): any {
     return this.exp.eval(scope)
   }
 
@@ -331,7 +331,7 @@ export class IdRefNode extends AstNode {
     super()
   }
 
-  async eval(scope: DumbScope) {
+  async eval(scope: Scope) {
     return scope.transcludedScopes[this.id]
   }
 
@@ -349,7 +349,7 @@ export class NameRefNode extends AstNode {
     super()
   }
 
-  async eval(scope: DumbScope) {
+  async eval(scope: Scope) {
     return scope.lookup(this.name)
   }
 

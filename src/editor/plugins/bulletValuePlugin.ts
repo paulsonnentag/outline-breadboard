@@ -6,12 +6,9 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view"
-import { ArgumentNode, BulletNode, InlineExprNode, isLiteral } from "../../language/ast"
-import { getValueOfNode } from "../../language/scopes"
-import { autorun, IReactionDisposer } from "mobx"
-import { nodeIdFacet, parentIdsFacet } from "./facets"
-import { compareArrays } from "../../utils"
-import { parseBullet } from "../../language"
+import { InlineExprNode, isLiteral } from "../../language/ast"
+import { scopeFacet } from "./state"
+import { getValue } from "../../language/dumb-scopes"
 
 export const bulletEvalPlugin = ViewPlugin.fromClass(
   class {
@@ -22,9 +19,9 @@ export const bulletEvalPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged || update.focusChanged) {
-        this.decorations = getBulletDecorations(update.view)
-      }
+      //if (update.docChanged || update.viewportChanged || update.focusChanged || update.) {
+      this.decorations = getBulletDecorations(update.view)
+      //}
     }
   },
   {
@@ -33,23 +30,19 @@ export const bulletEvalPlugin = ViewPlugin.fromClass(
 )
 
 function getBulletDecorations(view: EditorView): DecorationSet {
-  const docString = view.state.doc.sliceString(0)
-  const bullet: BulletNode = parseBullet(docString)
+  const scope = view.state.facet(scopeFacet)
 
-  if (!bullet) {
+  if (!scope) {
     return Decoration.set([])
   }
 
-  const nodeId = view.state.facet(nodeIdFacet)
-  const parentIds = view.state.facet(parentIdsFacet)
-
-  const decorations = bullet.value.flatMap((part, index) => {
+  const decorations = scope.bullet.value.flatMap((part, index) => {
     if (part instanceof InlineExprNode) {
       const decorations = [
-        Decoration.mark({
+        /*Decoration.mark({
           class: "font-mono bg-gray-200 rounded border border-gray-200",
           inclusive: true,
-        }).range(part.from, part.to),
+        }).range(part.from, part.to), */
         Decoration.mark({
           class: "text-gray-400",
           inclusive: true,
@@ -63,7 +56,8 @@ function getBulletDecorations(view: EditorView): DecorationSet {
       if (!isLiteral(part)) {
         decorations.push(
           Decoration.widget({
-            widget: new ResultOutputWidget(parentIds, nodeId, index),
+            widget: new ResultOutputWidget(getValue(scope.value[index])),
+            side: 1,
           }).range(part.to)
         )
       }
@@ -74,75 +68,37 @@ function getBulletDecorations(view: EditorView): DecorationSet {
     return []
   })
 
-  /*
-  const decorations = (
-    bullet.key ? [Decoration.mark({ class: "text-gray-500" }).range(0, docString.indexOf(":"))] : []
-  ).concat(
-    !isLiteral(bullet.exp)
-      ? [
-          Decoration.widget({
-            widget: new ResultOutputWidget(nodeId, parentIds),
-            side: 1,
-          }).range(bullet.to, bullet.to),
-        ]
-      : []
-  )
-
-*/
-
   return Decoration.set(decorations)
 }
 
 class ResultOutputWidget extends WidgetType {
-  private disposer: IReactionDisposer | undefined = undefined
-
-  constructor(readonly parentIds: string[], readonly nodeId: string, readonly index: number) {
+  constructor(readonly value: any) {
     super()
   }
 
   eq(other: ResultOutputWidget) {
-    return (
-      other.nodeId === this.nodeId &&
-      other.index === this.index &&
-      compareArrays(other.parentIds, this.parentIds)
-    )
+    return false
   }
 
   toDOM() {
     const container = document.createElement("span")
     container.setAttribute("aria-hidden", "true")
-    container.className = "italic ml-2 text-gray-600"
-    container.innerText = "="
-
-    this.disposer = autorun(async () => {
-      let value
-      let hasError = false
-
-      try {
-        value = (await getValueOfNode(this.parentIds, this.nodeId))[this.index]
-      } catch (err: any) {
-        hasError = true
-        value = err.message
-      }
-
-      if (hasError || value === undefined) {
-        container.innerText = "="
-      } else {
-        container.className = "italic text-purple-600 ml-2"
-        container.style.color = "var(--accent-color-6)"
-        container.innerText = `= ${valueToString(value)}`
-      }
-    })
-
+    container.className = "italic text-purple-600 ml-2"
+    container.style.color = "var(--accent-color-6)"
+    container.innerText = `= ${valueToString(this.value)}`
     return container
   }
 
   ignoreEvent() {
-    return false
+    return true
   }
 }
 
 function valueToString(x: any): string {
+  if (x === undefined) {
+    return ""
+  }
+
   if (typeof x === "object" && x !== null && !(x instanceof Array)) {
     // special property that defines a custom summary value
     if (x.__summary) {

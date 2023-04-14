@@ -10,7 +10,7 @@ export const CORE_FNS: FunctionDefs = {
         return undefined
       }
 
-      return object[key]
+      return object.get(key)
 
       /*
       if (!object || !key) {

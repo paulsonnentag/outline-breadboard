@@ -1,18 +1,14 @@
 import { parseBullet } from "./index"
-import { BulletNode } from "./ast"
+import { AstNode, BulletNode } from "./ast"
 import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
 
-export interface ScopeData {
-  $value: any
-  [name: string]: ScopeData
-}
-
 export class DumbScope {
   parentScope: DumbScope | undefined
-  data: ScopeData = {
-    $value: undefined,
-  } as ScopeData
+  value: any
+  props: {
+    [name: string]: DumbScope
+  } = {}
   childScopes: DumbScope[] = []
   bullet: BulletNode
 
@@ -25,14 +21,15 @@ export class DumbScope {
     this.parentScope = parentScope
     this.onUpdate = onUpdate
     this.bullet = parseBullet(node.value)
+
     const pendingValue = new Promise((resolve) => {
       this.resolve = resolve
     })
 
-    this.data.$value = pendingValue
+    this.value = pendingValue
 
-    if (this.bullet.key && parentScope && !parentScope.data[this.bullet.key]) {
-      parentScope.data[this.bullet.key] = this.data
+    if (this.bullet.key && parentScope && !parentScope.props[this.bullet.key]) {
+      parentScope.props[this.bullet.key] = this
     }
 
     for (const childId of node.children) {
@@ -41,11 +38,11 @@ export class DumbScope {
   }
 
   private _lookup(name: string): any {
-    if (this.data[name]) {
-      return this.data[name]
+    if (this.props[name]) {
+      return this.props[name]
     }
 
-    return this.parentScope?.lookup(name)
+    return this.parentScope?._lookup(name)
   }
 
   lookup(name: string): any {
@@ -53,13 +50,13 @@ export class DumbScope {
   }
 
   get(name: string) {
-    return this.data[name]
+    return this.props[name]
   }
 
   eval() {
     this.bullet.eval(this).then((value) => {
-      this.resolve(value[0])
-      this.data.$value = value[0]
+      this.resolve(value)
+      this.value = value
 
       if (!this.isDisabled) {
         this.onUpdate()
@@ -81,8 +78,8 @@ export class DumbScope {
 }
 
 export function getValue(obj: any) {
-  if (obj && obj.$value) {
-    return obj.$value
+  if (obj instanceof DumbScope) {
+    return obj.value[0]
   }
 
   return obj

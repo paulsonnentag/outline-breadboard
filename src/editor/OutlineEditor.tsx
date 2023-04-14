@@ -510,8 +510,8 @@ export function OutlineEditor({
             >
               <TextInput
                 nodeId={node.id}
-                parentIds={parentIds}
                 value={node.value as string}
+                scope={scope}
                 isFocused={isFocused}
                 focusOffset={focusOffset}
                 onChange={onChange}
@@ -526,7 +526,6 @@ export function OutlineEditor({
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />
-
               <div style={{ marginLeft: "-8px" }}>
                 <ComputedPropertiesView props={node.computedProps} />
               </div>
@@ -537,8 +536,6 @@ export function OutlineEditor({
               onOpenNodeInNewPane={onOpenNodeInNewPane}
             />
           </div>
-
-          {JSON.stringify(scope.data)}
 
           <div className="pl-8">
             <NodeView

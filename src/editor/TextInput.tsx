@@ -1,18 +1,18 @@
 import { KeyboardEvent, useEffect, useRef } from "react"
 import { EditorView } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { createNodeTree, createValueNode, getChildNodeByValue, getNode, useGraph } from "../graph"
+import { useGraph } from "../graph"
 import { autocompletion, completionStatus } from "@codemirror/autocomplete"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
-import { evalBullet, evalInlineExp } from "../language"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
 import { functionAutocompletionContext, getMentionCompletionContext } from "./plugins/autocomplete"
+import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
+import { DumbScope } from "../language/dumb-scopes"
 import { bulletEvalPlugin } from "./plugins/bulletValuePlugin"
-import { nodeIdFacet, parentIdsFacet } from "./plugins/facets"
 
 interface TextInputProps {
   nodeId: string
-  parentIds: string[]
+  scope: DumbScope
   value: string
   isFocused: boolean
   focusOffset: number
@@ -31,7 +31,7 @@ interface TextInputProps {
 
 export function TextInput({
   nodeId,
-  parentIds,
+  scope,
   value,
   isFocused,
   focusOffset,
@@ -63,7 +63,7 @@ export function TextInput({
       extensions: [
         minimalSetup,
         EditorView.lineWrapping,
-        /*bulletEvalPlugin, */
+        bulletEvalPlugin,
         getRefIdTokenPlugin(setIsHoveringOverId),
         autocompletion({
           activateOnTyping: true,
@@ -73,7 +73,8 @@ export function TextInput({
           ],
         }),
         nodeIdFacet.of(nodeId),
-        parentIdsFacet.of(parentIds),
+        //scopeFacet.of(scope),
+        scopeCompartment.of(scopeFacet.of(scope)),
       ],
       parent: containerRef.current,
       dispatch(transaction) {
@@ -93,6 +94,18 @@ export function TextInput({
       view.destroy()
     }
   }, [])
+
+  useEffect(() => {
+    const currentEditorView = editorViewRef.current
+
+    if (!currentEditorView) {
+      return
+    }
+
+    currentEditorView.dispatch({
+      effects: scopeCompartment.reconfigure(scopeFacet.of(scope)),
+    })
+  }, [scope && scope.value, editorViewRef.current])
 
   // set focus
 

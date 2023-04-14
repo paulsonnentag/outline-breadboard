@@ -1,5 +1,5 @@
 import { parseBullet } from "./index"
-import { AstNode, BulletNode } from "./ast"
+import { AstNode, BulletNode, IdRefNode } from "./ast"
 import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
 
@@ -10,6 +10,7 @@ export class DumbScope {
     [name: string]: DumbScope
   } = {}
   childScopes: DumbScope[] = []
+  transcludedScopes: { [id: string]: DumbScope } = {}
   bullet: BulletNode
 
   private onUpdate: () => void
@@ -32,8 +33,14 @@ export class DumbScope {
       parentScope.props[this.bullet.key] = this
     }
 
+    // create scopes for child nodes
     for (const childId of node.children) {
       this.childScopes.push(new DumbScope(graph, childId, this, onUpdate))
+    }
+
+    // create scopes for transcluded nodes
+    for (const referencedId of this.bullet.getReferencedIds()) {
+      this.transcludedScopes[referencedId] = new DumbScope(graph, referencedId, this, onUpdate)
     }
   }
 
@@ -65,6 +72,10 @@ export class DumbScope {
 
     for (const childScope of this.childScopes) {
       childScope.eval()
+    }
+
+    for (const transcludedScope of Object.values(this.transcludedScopes)) {
+      transcludedScope.eval()
     }
   }
 

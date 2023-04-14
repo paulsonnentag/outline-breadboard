@@ -2,8 +2,6 @@ import { grammar } from "./grammar"
 import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
 import { FUNCTIONS } from "./functions"
-import { lookupName, scopesMobx } from "./scopes"
-import { Scope2 } from "../scopes2"
 import { DumbScope } from "./dumb-scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
@@ -34,7 +32,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
   InlineExp: (_, e, __) => {
     const from = _.source.startIdx
     const to = __.source.endIdx
-    return new InlineExprNode(from, to, e.toAst()[0])
+    return new InlineExprNode(from, to, e.toAst()[0] ?? new UndefinedNode(from + 1, to - 1))
   },
 
   FunctionExp: (fnName, _p1, args, _p2) => {
@@ -163,7 +161,7 @@ export abstract class AstNode {
   abstract readonly to: number
   abstract eval(scope: DumbScope): Promise<any>
   // abstract eval(parentIds: string[], selfId: string): Promise<any>
-  abstract getIdRefs(): string[]
+  abstract getReferencedIds(): string[]
   abstract isConstant(): boolean
 }
 
@@ -181,7 +179,7 @@ class UndefinedNode extends AstNode {
     return undefined
   }
 
-  getIdRefs() {
+  getReferencedIds() {
     return []
   }
 
@@ -236,11 +234,11 @@ export class FnNode extends AstNode {
     return fn(positionalArgs, namedArgs, scope)
   }
 
-  getIdRefs(): string[] {
+  getReferencedIds(): string[] {
     const idMap: { [id: string]: boolean } = {}
 
     for (const arg of this.args) {
-      for (const id of arg.getIdRefs()) {
+      for (const id of arg.getReferencedIds()) {
         idMap[id] = true
       }
     }
@@ -278,8 +276,8 @@ export class BulletNode extends AstNode {
     return this.value.every((part) => part.isConstant())
   }
 
-  getIdRefs(): string[] {
-    return this.value.flatMap((part) => part.getIdRefs())
+  getReferencedIds(): string[] {
+    return this.value.flatMap((part) => part.getReferencedIds())
   }
 }
 
@@ -296,8 +294,8 @@ export class InlineExprNode extends AstNode {
     return this.expr.isConstant()
   }
 
-  getIdRefs(): string[] {
-    return this.expr.getIdRefs()
+  getReferencedIds(): string[] {
+    return this.expr.getReferencedIds()
   }
 }
 
@@ -323,8 +321,8 @@ export class ArgumentNode extends AstNode {
     return this.exp.eval(scope)
   }
 
-  getIdRefs(): string[] {
-    return this.exp.getIdRefs()
+  getReferencedIds(): string[] {
+    return this.exp.getReferencedIds()
   }
 }
 
@@ -333,11 +331,11 @@ export class IdRefNode extends AstNode {
     super()
   }
 
-  async eval(parentIds: string[], selfId: string) {
-    return scopesMobx.get(this.id)
+  async eval(scope: DumbScope) {
+    return scope.transcludedScopes[this.id]
   }
 
-  getIdRefs(): string[] {
+  getReferencedIds(): string[] {
     return [this.id]
   }
 
@@ -355,7 +353,7 @@ export class NameRefNode extends AstNode {
     return scope.lookup(this.name)
   }
 
-  getIdRefs(): string[] {
+  getReferencedIds(): string[] {
     return []
   }
 
@@ -373,7 +371,7 @@ export class StringNode extends AstNode {
     return this.string
   }
 
-  getIdRefs(): string[] {
+  getReferencedIds(): string[] {
     return []
   }
 
@@ -391,7 +389,7 @@ export class TextNode extends AstNode {
     return this.text
   }
 
-  getIdRefs(): string[] {
+  getReferencedIds(): string[] {
     return []
   }
 
@@ -416,7 +414,7 @@ export class NumberNode extends AstNode {
     return promisify(this.number)
   }
 
-  getIdRefs(): string[] {
+  getReferencedIds(): string[] {
     return []
   }
 

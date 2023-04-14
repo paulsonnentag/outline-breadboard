@@ -69,7 +69,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       : nameNode.sourceString
 
     const rawValue = exp.toAst()
-    const value = isArray(rawValue) ? undefined : rawValue // empty array means there is no value
+    const value = isArray(rawValue) ? new UndefinedNode(to, to) : rawValue // empty array means there is no value
     return new ArgumentNode(from, to, name, value)
   },
 

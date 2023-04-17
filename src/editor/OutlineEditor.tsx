@@ -17,7 +17,7 @@ import { getIsHovering, isString, last } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
-import colors from "../colors"
+import colors, { defaultAccentColors } from "../colors"
 import { ComputedPropertiesView } from "../views/ComputedPropertyView"
 import { Scope } from "../language/dumb-scopes"
 
@@ -394,12 +394,8 @@ export function OutlineEditor({
     })
   }
 
-  if (!node) {
-    return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
-  }
-
   const color = scope.lookupValue("color")
-  const accentColors = color ? colors.accentColors(color) : undefined
+  const accentColors = color ? colors.accentColors(color) : defaultAccentColors
 
   return (
     <div

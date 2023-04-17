@@ -36,7 +36,7 @@ export function NodeView(props: NodeViewProps) {
     <>
       {node.isCollapsed && (
         <div className="pl-6">
-          <SummaryView {...props} />
+          <SummaryView scope={props.scope} />
         </div>
       )}
       {view && <div className="pt-2">{view}</div>}
@@ -124,8 +124,12 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
   )
 }
 
-export function SummaryView({ scope }: NodeViewProps) {
-  const properties = scope.getAllProperties()
+interface SummaryViewProps {
+  scope: Scope
+}
+
+export function SummaryView(props: SummaryViewProps) {
+  const properties = props.scope.getAllProperties()
 
   return (
     <div className="text-sm italic flex gap-2">

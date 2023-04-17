@@ -1,7 +1,8 @@
 import { useGraph, getNode } from "../graph"
 import { DataWithProvenance } from "../properties"
-import { DataWithProvenance2 } from "../language/scopes"
+import { Scope, DataWithProvenance2 } from "../language/scopes"
 import classNames from "classnames"
+import { SummaryView } from "./index"
 
 interface CalendarGridProps {
   dates: DataWithProvenance2<Date>[]
@@ -70,30 +71,29 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
       <div className={isToday ? "text-blue-600 font-medium" : data === undefined ? "text-gray-400 font-medium" : "text-gray-600 font-medium"}>{date.getDate()} {monthName}</div>
 
       {data.map((item, index) => (
-        <DateContents key={index} nodeId={item.scope.id} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
+        <DateContents key={index} scope={item.scope} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
       ))}
     </td>
   )
 }
 
 interface DateContentsProps {
-  nodeId: string
+  scope: Scope
   setIsHoveringOverId: (nodeId: string | undefined) => void
   isHoveringOverId: string | undefined
 }
 
-export function DateContents({ nodeId, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
-  const { graph } = useGraph()
-  const node = getNode(graph, nodeId)
-
-  const isHovering = isHoveringOverId && isHoveringOverId === nodeId
+export function DateContents({ scope, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
+  const nodeId = scope.id
+  const isHovering = isHoveringOverId && scope.isInScope(isHoveringOverId)
 
   return (
     <div className={classNames("text-sm text-gray-600", { "bg-slate-200 rounded": isHovering })}
       onMouseEnter={() => setIsHoveringOverId(nodeId)}
       onMouseLeave={() => isHoveringOverId === nodeId && setIsHoveringOverId(undefined)}
     >
-      {node.value}
+      {scope.valueOf()}
+      <SummaryView scope={scope} />
     </div>
   )
 }

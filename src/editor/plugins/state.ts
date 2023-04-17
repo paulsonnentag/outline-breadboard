@@ -1,5 +1,5 @@
 import { Compartment, Facet } from "@codemirror/state"
-import { Scope } from "../../language/dumb-scopes"
+import { Scope } from "../../language/scopes"
 
 export const nodeIdFacet = Facet.define<string, string>({
   combine: (values) => values[0],

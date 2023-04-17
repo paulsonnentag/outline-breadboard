@@ -19,7 +19,7 @@ import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
 import colors, { defaultAccentColors } from "../colors"
 import { ComputedPropertiesView } from "../views/ComputedPropertyView"
-import { Scope } from "../language/dumb-scopes"
+import { Scope } from "../language/scopes"
 
 export interface OutlineEditorProps {
   scope: Scope

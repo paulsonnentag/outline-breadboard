@@ -2,7 +2,7 @@ import { createRefNode, useGraph, ValueNode } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import classNames from "classnames"
-import { Scope } from "../language/dumb-scopes"
+import { Scope } from "../language/scopes"
 
 export interface NodeViewProps {
   node: ValueNode

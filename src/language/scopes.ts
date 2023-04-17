@@ -129,7 +129,7 @@ export class Scope {
     }
   }
 
-  // this is used in the autocompletion to avoid that circular references are inserted
+  // returns true if id matches current scope or if id matches an ancestor of this scope
   isInScope(id: string): boolean {
     if (this.id === id) {
       return true

@@ -3,7 +3,7 @@ import turfDistance from "@turf/distance"
 import { point as turfPoint } from "@turf/helpers"
 import { parseLatLng } from "../../properties"
 import { last } from "../../utils"
-import { Scope } from "../dumb-scopes"
+import { Scope } from "../scopes"
 
 export const DISTANCE_FN: FunctionDefs = {
   Distance: {
@@ -46,7 +46,7 @@ export const DISTANCE_FN: FunctionDefs = {
         // this special summary property is used in the collapsed state
         __summary: formattedDistance,
         distance: formattedDistance,
-        geometry: {
+        geoJson: {
           type: "Feature",
           geometry: {
             type: "LineString",

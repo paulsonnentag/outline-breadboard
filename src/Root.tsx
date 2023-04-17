@@ -14,7 +14,7 @@ import { OutlineEditor, OutlineEditorProps } from "./editor/OutlineEditor"
 import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { isString } from "./utils"
-import { useRootScope } from "./language/dumb-scopes"
+import { useRootScope } from "./language/scopes"
 import { useDocumentWithHistory } from "./history"
 
 interface RootProps {

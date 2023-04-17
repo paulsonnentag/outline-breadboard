@@ -3,7 +3,7 @@ import { googleApi } from "../../google"
 import { last, round } from "../../utils"
 import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
-import { Scope } from "../dumb-scopes"
+import { Scope } from "../scopes"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {

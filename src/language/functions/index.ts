@@ -2,7 +2,7 @@ import { DISTANCE_FN } from "./distance"
 import { CORE_FNS } from "./core"
 import { ROUTE_FN } from "./routes"
 import { WEATHER_FN } from "./weather"
-import { Scope } from "../dumb-scopes"
+import { Scope } from "../scopes"
 
 interface NamedArgs {
   [name: string]: any

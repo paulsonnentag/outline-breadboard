@@ -19,7 +19,7 @@ import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import colors from "../colors"
-import { DataWithProvenance2 } from "../language/dumb-scopes"
+import { DataWithProvenance2 } from "../language/scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
 
 // this is necessary for tailwind to include the css classes
@@ -83,27 +83,6 @@ export function MapNodeView({
       geoJson: value.geoJson,
     }
   })
-
-  /*
-  useEffect(() => {
-    extractComputedValuesInNodeAndBelow(graph, node.id, (value) => {
-      if (typeof value === "object" && value.geometry) {
-        return value.geometry
-      }
-    }).then((data) => {
-      setGeoJsonValues(data)
-    })
-  }, [graph, node.id]) */
-
-  /*
-
-  const childNodeIdsWithLatLng = getChildIdsWith(
-    graph,
-    node.id,
-    (node, graph) =>!== undefined
-  )
-
-   */
 
   // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
   // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
@@ -260,7 +239,6 @@ export function MapNodeView({
   }, [childNodeIdsWithLatLng, google, isDragging, isPanning]) */
 
   // render markers on map
-
   useEffect(() => {
     if (!mapRef.current || !google) {
       return
@@ -288,17 +266,7 @@ export function MapNodeView({
     for (let i = 0; i < markers.length; i++) {
       const marker = markers[i]
 
-      // todo: add hovering
-
-      const isHovering = false
-
-      /*
-      const isHovering = getIsHovering(
-        graph,
-        marker.nodeId,
-        marker.parentIds,
-        isHoveringOverId
-      ) */
+      const isHovering = isHoveringOverId && marker.scope.isInScope(isHoveringOverId)
 
       const accentColors = marker.data.color
         ? colors.accentColors(marker.data.color)
@@ -398,7 +366,15 @@ export function MapNodeView({
       dataLayer.addGeoJson(geoJsonShape.data.geoJson)
       dataLayer.setStyle({
         strokeColor: accentColors[2],
-        strokeWeight: 3,
+        strokeWeight: 4,
+      })
+
+      dataLayer.addListener("mouseover", () => {
+        setIsHoveringOverId(geoJsonShape.scope.id)
+      })
+
+      dataLayer.addListener("mouseout", () => {
+        setIsHoveringOverId(undefined)
       })
 
       dataLayer.setMap(currentMap)
@@ -409,22 +385,12 @@ export function MapNodeView({
     }
   }, [google, geoJsonShapes, mapRef])
 
-  /*
-  // update hover effect of geoJson
+  // update color of geoJson on hover
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
-      const setColor = readColorFromList(graph, [
-        dataLayerValue.nodeId,
-        ...dataLayerValue.parentIds.slice().reverse(),
-      ])?.trim()
-      const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
-
-      const isHovering = getIsHovering(
-        graph,
-        dataLayerValue.nodeId,
-        dataLayerValue.parentIds,
-        isHoveringOverId
-      )
+      const color = dataLayerValue.scope.getProperty("color")
+      const accentColors = color ? colors.accentColors(color) : colors.defaultAccentColors
+      const isHovering = isHoveringOverId && dataLayerValue.scope.isInScope(isHoveringOverId)
 
       dataLayerValue.data.setStyle({
         strokeColor: isHovering ? accentColors[5] : accentColors[2],
@@ -433,8 +399,6 @@ export function MapNodeView({
     }
   }, [isHoveringOverId, dataLayersRef.current])
 
-
-   */
   // render pop over
 
   useEffect(() => {

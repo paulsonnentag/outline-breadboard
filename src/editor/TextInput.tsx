@@ -7,7 +7,7 @@ import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
 import { functionAutocompletionContext, getMentionCompletionContext } from "./plugins/autocomplete"
 import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
-import { Scope } from "../language/dumb-scopes"
+import { Scope } from "../language/scopes"
 import { bulletEvalPlugin } from "./plugins/bulletValuePlugin"
 
 interface TextInputProps {

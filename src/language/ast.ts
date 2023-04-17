@@ -2,7 +2,7 @@ import { grammar } from "./grammar"
 import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
 import { FUNCTIONS } from "./functions"
-import { Scope } from "./dumb-scopes"
+import { Scope } from "./scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
   Bullet: (key, _, valueNode) => {

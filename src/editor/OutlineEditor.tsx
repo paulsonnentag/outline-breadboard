@@ -555,25 +555,27 @@ export function OutlineEditor({
                 "pl-4": !isRoot,
               })}
             >
-              {node.children.map((childId, index) => (
-                <OutlineEditor
-                  scope={scope.childScopes[index]}
-                  scopeIterationCount={scopeIterationCount}
-                  isParentDragged={isBeingDragged}
-                  key={index}
-                  nodeId={childId}
-                  index={index}
-                  parentIds={parentIds.concat(node.id)}
-                  path={path.concat(index)}
-                  selectedPath={selectedPath}
-                  focusOffset={focusOffset}
-                  onChangeSelectedPath={onChangeSelectedPath}
-                  onOpenNodeInNewPane={onOpenNodeInNewPane}
-                  onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
-                  isHoveringOverId={isHoveringOverId}
-                  setIsHoveringOverId={setIsHoveringOverId}
-                />
-              ))}
+              {scope.childScopes.map((childScope, index) =>
+                scope ? (
+                  <OutlineEditor
+                    scope={childScope}
+                    scopeIterationCount={scopeIterationCount}
+                    isParentDragged={isBeingDragged}
+                    key={index}
+                    nodeId={childScope.id}
+                    index={index}
+                    parentIds={parentIds.concat(node.id)}
+                    path={path.concat(index)}
+                    selectedPath={selectedPath}
+                    focusOffset={focusOffset}
+                    onChangeSelectedPath={onChangeSelectedPath}
+                    onOpenNodeInNewPane={onOpenNodeInNewPane}
+                    onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
+                    isHoveringOverId={isHoveringOverId}
+                    setIsHoveringOverId={setIsHoveringOverId}
+                  />
+                ) : null
+              )}
             </div>
           )}
         </>

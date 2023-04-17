@@ -10,6 +10,9 @@ export class Scope {
   props: {
     [name: string]: Scope
   } = {}
+
+  computed: any = {}
+
   childScopes: Scope[] = []
   transcludedScopes: { [id: string]: Scope } = {}
   bullet: BulletNode
@@ -142,12 +145,6 @@ export class Scope {
     extractFn: (scope: Scope) => T | undefined,
     results: DataWithProvenance2<T>[]
   ) {
-    const data = extractFn(this)
-
-    if (data !== undefined) {
-      results.push({ scope: this, data })
-    }
-
     for (const childScope of this.childScopes) {
       childScope._extractDataInScope(extractFn, results)
     }
@@ -160,9 +157,41 @@ export class Scope {
   extractDataInScope<T>(extractFn: (scope: Scope) => T | undefined): DataWithProvenance2<T>[] {
     const results: DataWithProvenance2<T>[] = []
 
-    this._extractDataInScope(extractFn, results)
+    this.traverseScope((scope) => {
+      const data = extractFn(scope)
+      if (data !== undefined) {
+        results.push({ scope, data })
+      }
+    }, null)
 
     return results
+  }
+
+  traverseScope<T>(fn: (scope: Scope, context: T) => T, context: T) {
+    const newContext = fn(this, context)
+
+    for (const childScope of this.childScopes) {
+      childScope.traverseScope(fn, newContext)
+    }
+
+    for (const transcludedScope of Object.values(this.transcludedScopes)) {
+      transcludedScope.traverseScope(fn, newContext)
+    }
+  }
+
+  async traverseScopeAsync<T>(
+    fn: (scope: Scope, context: T) => Promise<T>,
+    context: T
+  ): Promise<any> {
+    const childContext = await fn(this, context)
+
+    for (const childScope of this.childScopes) {
+      await childScope.traverseScopeAsync(fn, childContext)
+    }
+
+    for (const transcludedScope of Object.values(this.transcludedScopes)) {
+      await transcludedScope.traverseScopeAsync(fn, childContext)
+    }
   }
 }
 

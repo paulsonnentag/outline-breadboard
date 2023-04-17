@@ -1,10 +1,4 @@
-import { getGraphDocHandle, getNode, Graph } from "../../graph"
-import {
-  DataWithProvenance,
-  parseDate,
-  parseDateRefsInString,
-  readLatLngsOfNode,
-} from "../../properties"
+import { parseDateRefsInScopeValue, parseLatLng } from "../../properties"
 import {
   addDays,
   differenceInDays,
@@ -17,6 +11,12 @@ import {
 } from "date-fns"
 import { round } from "../../utils"
 import { FunctionDefs } from "./index"
+import LatLngLiteral = google.maps.LatLngLiteral
+
+interface WeatherContext {
+  locations: LatLngLiteral[]
+  dates: Date[]
+}
 
 export const WEATHER_FN: FunctionDefs = {
   Weather: {
@@ -24,98 +24,43 @@ export const WEATHER_FN: FunctionDefs = {
       label: "Weather",
       value: "{Weather($)}",
     },
-    function: ([node], { date }) => {
-      const graphDocHandle = getGraphDocHandle()
-      const passedInDate = date && date.value ? parseDate(date.value) : undefined
+    function: async ([node], namedArgs, scope) => {
+      await scope.traverseScopeAsync<WeatherContext>(
+        async (scope, context: WeatherContext) => {
+          const newLocation = parseLatLng(await scope.getPropertyAsync("location"))
 
-      interface WeatherContext {
-        dates: DataWithProvenance<Date>[]
-        locations: DataWithProvenance<google.maps.LatLngLiteral>[]
-      }
+          console.log(context)
 
-      const rootNode = isMethod ? getNode(graph, selfId) : node
+          if (newLocation) {
+            for (const date of context.dates) {
+              const weather = await getWeatherInformation(date, newLocation)
 
-      const parameters: [
-        DataWithProvenance<Date>,
-        DataWithProvenance<google.maps.LatLngLiteral>
-      ][] = []
-
-      const datesInRootNode = parseDateRefsInString(rootNode.value)
-      const locationsInRootNode = readLatLngsOfNode(graph, rootNode.id)
-
-      const context = {
-        dates: passedInDate ? datesInRootNode.concat(passedInDate) : datesInRootNode,
-        locations: locationsInRootNode,
-      }
-
-      function collectWeatherInputParameters(
-        graph: Graph,
-        nodeId: string,
-        context: WeatherContext
-      ) {
-        const node = getNode(graph, nodeId)
-
-        const newDates = parseDateRefsInString(node.value).filter((newDate) =>
-          context.dates.every((oldDate) => oldDate.toString() !== newDate.toString())
-        )
-        const newLocations = readLatLngsOfNode(graph, nodeId).filter((newLocation) =>
-          context.locations.every(
-            (oldLocation) =>
-              oldLocation.data.lat !== newLocation.data.lat &&
-              oldLocation.data.lng !== newLocation.data.lng
-          )
-        )
-
-        for (const location of context.locations) {
-          for (const newDate of newDates) {
-            parameters.push([newDate, location])
+              if (weather) {
+                scope.computed.weather = weather
+              }
+            }
           }
-        }
 
-        for (const date of context.dates) {
-          for (const newLocation of newLocations) {
-            // todo: add back method
-
-            /* if (isMethod) {
-              getWeatherInformation(date.data, newLocation.data).then((temperature) => {
-                graphDocHandle.change((doc) => {
-                  const node = getNode(doc.graph, newLocation.nodeId)
-                  node.computedProps.weather = temperature
-                })
-              })
-            } */
-
-            parameters.push([date, newLocation])
+          // todo: handle multiple dates
+          const newDate = parseDateRefsInScopeValue(scope)[0]
+          if (newDate) {
+            for (const location of context.locations) {
+              scope.computed.weather = await getWeatherInformation(newDate, location)
+            }
           }
+
+          return {
+            dates: newDate ? context.dates.concat(newDate) : context.dates,
+            locations: newLocation ? context.locations.concat(newLocation) : context.locations,
+          }
+        },
+        {
+          dates: namedArgs.on ? [namedArgs.on] : [],
+          locations: namedArgs.in ? [namedArgs.in] : [],
         }
+      )
 
-        const newContext = {
-          dates: context.dates.concat(newDates),
-          locations: context.locations.concat(newLocations),
-        }
-
-        node.children.forEach((childId) => {
-          collectWeatherInputParameters(graph, childId, newContext)
-        })
-      }
-
-      collectWeatherInputParameters(graph, rootNode.id, context)
-
-      // todo: return actual outline
-      return Promise.all(
-        parameters.map(async ([date, location]) => ({
-          date: getNode(graph, date.nodeId).value,
-          location: getNode(graph, location.nodeId).value,
-          temperature: await getWeatherInformation(date.data, location.data),
-        }))
-      ).then((results) => {
-        const obj = results.reduce((acc: any, cur) => {
-          const key = `Weather in ${cur.location} on ${cur.date}`
-          acc[key] = cur
-          return acc
-        }, {})
-        return obj
-      })
+      // todo: return value
     },
   },
 }

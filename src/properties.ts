@@ -2,6 +2,8 @@ import { isString } from "./utils"
 import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { getReferencedNodeIds } from "./language"
+import { Scope } from "./language/scopes"
+import { IdRefNode, InlineExprNode } from "./language/ast"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
@@ -52,13 +54,25 @@ export function readParsedProperty<T>(
 
 const DATE_REF_REGEX = /([0-9]{2})\/([0-9]{2})\/([0-9]{4})/
 
-export function parseDateRefsInString(string: string): DataWithProvenance<Date>[] {
-  return getReferencedNodeIds(string).flatMap((nodeId) => {
-    return parseDate(nodeId) ?? []
-  })
+export function parseDateRefsInScopeValue(scope: Scope): Date[] {
+  const dates: Date[] = []
+
+  console.log(scope.bullet.value)
+
+  for (const astNode of scope.bullet.value) {
+    if (astNode instanceof InlineExprNode && astNode.expr instanceof IdRefNode) {
+      const date = parseDate(astNode.expr.id)
+
+      if (date !== undefined) {
+        dates.push(date)
+      }
+    }
+  }
+
+  return dates
 }
 
-export function parseDate(string: string): DataWithProvenance<Date> | undefined {
+export function parseDate(string: string): Date | undefined {
   const match = string.match(DATE_REF_REGEX)
 
   if (!match) {
@@ -69,7 +83,7 @@ export function parseDate(string: string): DataWithProvenance<Date> | undefined 
   const day = parseInt(match[2], 10)
   const year = parseInt(match[3], 10)
 
-  return { nodeId: string, data: new Date(year, month - 1, day), parentIds: [] } // todo: add properParentIds
+  return new Date(year, month - 1, day)
 }
 
 // read position property or referencedLocations

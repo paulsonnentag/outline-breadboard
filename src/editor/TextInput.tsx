@@ -152,44 +152,6 @@ export function TextInput({
     }
   }, [value, editorViewRef.current])
 
-  /* useEffect(() => {
-    // eval bullet to run side effects
-    evalBullet(graph, nodeId)
-  }, [value]) */
-
-  /* useEffect(() => {
-    const regex = /{([^}]+)}/g
-    const matches = [...value.matchAll(regex)]
-
-    if (matches.length > 0) {
-      for (var _match of matches) {
-        const match = _match.slice()
-        const title = "computation: " + match[1]
-
-        evalInlineExp(graph, match[0])
-          .then((result: any) => {
-            changeGraph((graph) => {
-              const node = getNode(graph, nodeId)
-              let child = getChildNodeByValue(graph, node, title)
-
-              if (child === undefined) {
-                child = createValueNode(graph, { value: title })
-                child.isCollapsed = true
-                node.children.push(child.id)
-              }
-
-              child.children = []
-              createNodeTree(graph, child.id, result)
-            })
-          })
-          .catch((message: string) => {
-            // TODO
-          })
-      }
-    }
-  }, [value]) */
-  // TODO: It won't update when the input values change
-
   const onKeyDown = (evt: KeyboardEvent) => {
     const currentEditorView = editorViewRef.current
     if (!currentEditorView) {

@@ -512,6 +512,8 @@ export function OutlineEditor({
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />
+              {JSON.stringify(scope.computed)}
+
               <div style={{ marginLeft: "-8px" }}>
                 <ComputedPropertiesView props={node.computedProps} />
               </div>

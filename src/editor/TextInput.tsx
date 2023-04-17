@@ -113,9 +113,18 @@ export function TextInput({
     const currentEditorView = editorViewRef.current
 
     if (isFocused && currentEditorView && !currentEditorView.hasFocus) {
-      setTimeout(() => {
-        currentEditorView.focus()
+      // this is bad, but
+      const focus = () => {
+        if (editorViewRef.current?.hasFocus) {
+          return
+        }
+        editorViewRef.current?.focus()
 
+        setTimeout(focus)
+      }
+      focus()
+
+      setTimeout(() => {
         currentEditorView.dispatch({
           // update the value preemptively because value doesn't get updated if input is focused
           // this is necessary to fix bugs when new focus is caused by a split line action
@@ -269,12 +278,14 @@ export function TextInput({
 
   return (
     <div
-      ref={containerRef}
-      onKeyDownCapture={onKeyDown}
-      onFocus={onFocus}
-      onBlur={_onBlur}
       onDragOverCapture={(evt) => evt.stopPropagation()}
-      onDragEnterCapture={(evt) => evt.stopPropagation()}
-    ></div>
+      onDragEnterCapture={(evt) => {
+        evt.preventDefault()
+        evt.stopPropagation()
+      }}
+      onDragLeaveCapture={(evt) => evt.stopPropagation()}
+    >
+      <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
+    </div>
   )
 }

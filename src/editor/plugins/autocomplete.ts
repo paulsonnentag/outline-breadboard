@@ -4,8 +4,8 @@ import { isString } from "../../utils"
 import { placesAutocompleteApi } from "../../google"
 import { createPlaceNode } from "../../views/MapNodeView"
 import { FunctionDef, FUNCTIONS } from "../../language/functions"
-import { KEYWORD_REGEX } from "./keywordHighlightPlugin"
 import { scopeFacet } from "./state"
+import { KEYWORD_REGEX } from "../../language"
 
 export function getMentionCompletionContext(
   nodeId: string,

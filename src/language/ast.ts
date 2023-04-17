@@ -1,39 +1,12 @@
 import { grammar } from "./grammar"
-import { Node } from "ohm-js"
 import { isArray, promisify } from "../utils"
 import { FUNCTIONS } from "./functions"
 import { Scope } from "./scopes"
 
 export const formulaSemantics = grammar.createSemantics().addOperation("toAst", {
-  Bullet: (key, _, valueNode) => {
-    const from = key.source.startIdx
-    const to = valueNode.source.endIdx
-    const keyString = key.sourceString.slice(0, -1)
-    const hasKey = keyString !== ""
-
-    let value = valueNode.toAst()[0]
-
-    if (value === undefined) {
-      value = []
-    }
-
-    if (!isArray(value)) {
-      value = [value]
-    }
-
-    return new BulletNode(from, to, hasKey ? keyString : undefined, value)
-  },
-
-  TextLiteral: (e: Node) => new TextNode(e.source.startIdx, e.source.endIdx, e.sourceString),
-
   Exp: (e) => e.toAst(),
 
   SimpleExp: (e) => e.toAst(),
-  InlineExp: (_, e, __) => {
-    const from = _.source.startIdx
-    const to = __.source.endIdx
-    return new InlineExprNode(from, to, e.toAst()[0] ?? new UndefinedNode(from + 1, to - 1))
-  },
 
   FunctionExp: (fnName, _p1, args, _p2) => {
     const from = fnName.source.startIdx
@@ -44,19 +17,6 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
       to,
       fnName.sourceString,
       args.children.map((arg) => arg.toAst())
-    )
-  },
-
-  MethodExp: (_, fnName, _p1, args, _p2) => {
-    const from = _.source.startIdx
-    const to = _p2.source.endIdx
-
-    return new FnNode(
-      from,
-      to,
-      fnName.sourceString,
-      args.children.map((arg) => arg.toAst()),
-      true
     )
   },
 
@@ -157,17 +117,21 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
 })
 
 export abstract class AstNode {
-  abstract readonly from: number
-  abstract readonly to: number
+  abstract from: number
+  abstract to: number
   abstract eval(scope: Scope): Promise<any>
   // abstract eval(parentIds: string[], selfId: string): Promise<any>
   abstract getReferencedIds(): string[]
   abstract isConstant(): boolean
+  applyOffset(offset: number) {
+    this.from += offset
+    this.to += offset
+  }
 }
 
-class UndefinedNode extends AstNode {
-  readonly from: number
-  readonly to: number
+export class UndefinedNode extends AstNode {
+  from: number
+  to: number
 
   constructor(from: number, to: number) {
     super()
@@ -189,7 +153,7 @@ class UndefinedNode extends AstNode {
 }
 
 export class FnNode extends AstNode {
-  readonly from: number
+  from: number
   to: number
   name: string
   args: ArgumentNode[]
@@ -252,20 +216,18 @@ export class FnNode extends AstNode {
 }
 
 export class BulletNode extends AstNode {
-  readonly from: number
-  readonly to: number
-  readonly key: string | undefined
+  from: number
+  to: number
+  readonly key: StringNode | undefined
   readonly value: AstNode[]
 
-  constructor(from: number, to: number, key: string | undefined, value: AstNode[]) {
+  constructor(from: number, to: number, key: StringNode | undefined, value: AstNode[]) {
     super()
     this.key = key
     this.to = to
     this.from = from
 
     this.value = value
-      // remove string values that consist only of spaces
-      .filter((astNode) => !(astNode instanceof TextNode && astNode.text.trim() === ""))
   }
 
   async eval(scope: Scope) {
@@ -345,7 +307,7 @@ export class IdRefNode extends AstNode {
 }
 
 export class NameRefNode extends AstNode {
-  constructor(readonly from: number, readonly to: number, readonly name: string) {
+  constructor(public from: number, public to: number, readonly name: string) {
     super()
   }
 
@@ -363,7 +325,7 @@ export class NameRefNode extends AstNode {
 }
 
 export class StringNode extends AstNode {
-  constructor(readonly from: number, readonly to: number, readonly string: string) {
+  constructor(public from: number, public to: number, readonly string: string) {
     super()
   }
 
@@ -380,27 +342,9 @@ export class StringNode extends AstNode {
   }
 }
 
-export class TextNode extends AstNode {
-  constructor(readonly from: number, readonly to: number, readonly text: string) {
-    super()
-  }
-
-  async eval() {
-    return this.text
-  }
-
-  getReferencedIds(): string[] {
-    return []
-  }
-
-  isConstant(): boolean {
-    return true
-  }
-}
-
 export class NumberNode extends AstNode {
-  readonly from: number
-  readonly to: number
+  from: number
+  to: number
   readonly number: number
 
   constructor(from: number, to: number, num: string) {

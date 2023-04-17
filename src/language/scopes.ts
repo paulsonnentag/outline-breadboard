@@ -31,8 +31,8 @@ export class Scope {
 
     this.value = pendingValue
 
-    if (this.bullet.key && parentScope && !parentScope.props[this.bullet.key]) {
-      parentScope.props[this.bullet.key] = this
+    if (this.bullet.key && parentScope && !parentScope.props[this.bullet.key.string]) {
+      parentScope.props[this.bullet.key.string] = this
     }
 
     // create scopes for child nodes

@@ -1,25 +1,17 @@
 import { getNode, Graph } from "../graph"
 import { grammar } from "./grammar"
-import { ArgumentNode, AstNode, BulletNode, FnNode, formulaSemantics, TextNode } from "./ast"
+import {
+  AstNode,
+  BulletNode,
+  formulaSemantics,
+  InlineExprNode,
+  StringNode,
+  UndefinedNode,
+} from "./ast"
 
 interface Bullet {
   key?: string // todo: implement key
   value: any[]
-}
-
-export async function evalBullet(graph: Graph, nodeId: string): Promise<Bullet | null> {
-  const node = getNode(graph, nodeId)
-  const match = grammar.match(node.value)
-
-  if (!match.succeeded()) {
-    return null
-  }
-
-  const astNodes = formulaSemantics(match).toAst()
-
-  return {
-    value: await Promise.all(astNodes.map((expr: AstNode) => expr.eval(graph, nodeId))),
-  } as Bullet
 }
 
 export function getReferencedNodeIds(source: string): string[] {
@@ -42,52 +34,64 @@ export function getReferencedNodeIds(source: string): string[] {
   return Object.keys(idMap)
 }
 
-export function evalInlineExp(graph: Graph, source: string): Promise<any> {
-  const match = grammar.match(source, "InlineExp")
-
-  if (!match.succeeded()) {
-    return Promise.reject("")
-  }
-
-  try {
-    return formulaSemantics(match).toAst().eval(graph)
-  } catch (err: any) {
-    console.error(err.message)
-    return Promise.reject(err.message)
-  }
-}
-
-export function parseInlineExp(source: string): AstNode | undefined {
-  const match = grammar.match(source, "InlineExp")
-
-  if (!match.succeeded()) {
-    return undefined
-  }
-
-  return formulaSemantics(match).toAst()
-}
-
-export function parseBullet(source: string): BulletNode {
-  const match = grammar.match(source, "Bullet")
-
+export function parseExpression(source: string): AstNode {
+  const match = grammar.match(source, "Exp")
   if (!match.succeeded()) {
     const from = 0
     const to = source.length
-    return new BulletNode(from, to, undefined, [new TextNode(from, to, source)])
+    return new UndefinedNode(from, to)
   }
 
-  return formulaSemantics(match).toAst()
+  const result = formulaSemantics(match).toAst()
+  console.log(source, result)
+
+  return result
 }
 
-export function iterateOverArgumentNodes(node: AstNode, fn: (arg: ArgumentNode) => void) {
-  if (node instanceof FnNode) {
-    for (const arg of node.args) {
-      iterateOverArgumentNodes(arg, fn)
+// using regexes here instead of ohm to be more forgiving
+// if there are syntax errors in an individual embedded expressions we still want to parse out the rest of the bullet
+export function parseBullet(source: string): BulletNode {
+  const key = parseKey(source)
+  const bulletValue = []
+
+  const EXPRESSION_REGEX = /\{([^}]*?)}/g
+  let match,
+    prevIndex = key ? key.to : 0
+  while ((match = EXPRESSION_REGEX.exec(source)) != null) {
+    const [inlineExpr, exprSource] = match
+    const from = match.index
+    const to = from + inlineExpr.length
+
+    if (from > prevIndex) {
+      const text = source.slice(prevIndex, from)
+      // ignore leading space
+      if (bulletValue.length !== 0 || text.trim() !== "") {
+        bulletValue.push(new StringNode(prevIndex, from, text))
+      }
     }
+
+    prevIndex = to
+
+    const expression = parseExpression(exprSource)
+    expression.applyOffset(from)
+    bulletValue.push(new InlineExprNode(from, to, expression))
   }
 
-  if (node instanceof ArgumentNode) {
-    fn(node)
-    iterateOverArgumentNodes(node.exp, fn)
+  if (prevIndex < source.length) {
+    const text = source.slice(prevIndex, source.length)
+    bulletValue.push(new StringNode(prevIndex, source.length, text))
   }
+
+  return new BulletNode(0, source.length, key, bulletValue)
+}
+
+export const KEYWORD_REGEX = /(^.*?):/
+function parseKey(source: string): StringNode | undefined {
+  const match = source.match(KEYWORD_REGEX)
+  if (match) {
+    const key = match[1]
+    return new StringNode(0, key.length + 1, key)
+  }
+
+  return undefined
 }

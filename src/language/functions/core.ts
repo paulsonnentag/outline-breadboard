@@ -8,7 +8,7 @@ export const CORE_FNS: FunctionDefs = {
         return undefined
       }
 
-      return object.get(key)
+      return object.getPropertyAsync(key)
     },
   },
   Not: {

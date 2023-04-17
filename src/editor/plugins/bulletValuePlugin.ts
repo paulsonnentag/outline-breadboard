@@ -39,10 +39,10 @@ function getBulletDecorations(view: EditorView): DecorationSet {
   const decorations = scope.bullet.value.flatMap((part, index) => {
     if (part instanceof InlineExprNode) {
       const decorations = [
-        /*Decoration.mark({
-          class: "font-mono bg-gray-200 rounded border border-gray-200",
+        Decoration.mark({
+          class: "font-mono",
           inclusive: true,
-        }).range(part.from, part.to), */
+        }).range(part.from, part.to),
         Decoration.mark({
           class: "text-gray-400",
           inclusive: true,
@@ -54,9 +54,10 @@ function getBulletDecorations(view: EditorView): DecorationSet {
       ]
 
       if (!isLiteral(part)) {
+        const value = scope.valueOf(index)
         decorations.push(
           Decoration.widget({
-            widget: new ResultOutputWidget(valueOf(scope.value[index])),
+            widget: new ResultOutputWidget(value),
             side: 1,
           }).range(part.to)
         )

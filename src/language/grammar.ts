@@ -2,29 +2,6 @@ import * as ohm from "ohm-js"
 
 export const grammar = ohm.grammar(`
 Node {
-  Bullet
-    = (Key ":")? TextPart*
- 
- Key
-    = propertyChar+
-    
-  TextPart
-    = InlineExp
-    | IdRef
-    | MethodExp
-    | TextLiteral
-
-  InlineExp
-    = "{" Exp? "}"
-  
-  MethodExp
-    = "#" letter+ "(" Argument* ")"
-
-  TextLiteral = textChar+
-
-  textChar
-    = ~("{"| "#") any
-
   Exp = AddExp
   
   SimpleExp
@@ -68,6 +45,9 @@ Node {
   Argument 
     = (Key ":")? Exp ","?
     | Key ":" Exp? ","?
+
+  Key
+    = propertyChar+
 
   AddExp
     = AddExp "+" MulExp --plus

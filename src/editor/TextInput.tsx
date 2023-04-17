@@ -113,9 +113,9 @@ export function TextInput({
     const currentEditorView = editorViewRef.current
 
     if (isFocused && currentEditorView && !currentEditorView.hasFocus) {
-      currentEditorView.focus()
-
       setTimeout(() => {
+        currentEditorView.focus()
+
         currentEditorView.dispatch({
           // update the value preemptively because value doesn't get updated if input is focused
           // this is necessary to fix bugs when new focus is caused by a split line action

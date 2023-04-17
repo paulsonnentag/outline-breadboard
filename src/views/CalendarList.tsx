@@ -1,8 +1,8 @@
-import { DataWithProvenance } from "../properties"
+import { DataWithProvenance2 } from "../language/scopes"
 import { DateContents, isSameDay } from "./CalendarGrid"
 
 interface CalendarListProps {
-  dates: DataWithProvenance<Date>[]
+  dates: DataWithProvenance2<Date>[]
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
@@ -31,7 +31,7 @@ export default function CalendarList({ dates, isHoveringOverId, setIsHoveringOve
 }
 
 interface DateRowProps {
-  data: DataWithProvenance<Date> | undefined
+  data: DataWithProvenance2<Date> | undefined
   date: Date
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
@@ -39,15 +39,15 @@ interface DateRowProps {
 
 function DateRow({ data, date, isHoveringOverId, setIsHoveringOverId }: DateRowProps) {
   const isToday = isSameDay(date, new Date())
-  
+
   return (
-    <div 
-      className={`py-2 mb-1 ${isToday ? "text-blue-600" : data === undefined ? "text-gray-400" : ""} ${data && data.nodeId === isHoveringOverId ? "bg-slate-200" : ""} ${data ? "border-t-2 border-slate-400" : "border-t-2 border-slate-100"}`}
-      onMouseEnter={() => data && setIsHoveringOverId(data.nodeId)} 
-      onMouseLeave={() => data && isHoveringOverId == data.nodeId && setIsHoveringOverId(undefined)}  
+    <div
+      className={`py-2 mb-1 ${isToday ? "text-blue-600" : data === undefined ? "text-gray-400" : ""} ${data && data.scope.id === isHoveringOverId ? "bg-slate-200" : ""} ${data ? "border-t-2 border-slate-400" : "border-t-2 border-slate-100"}`}
+      onMouseEnter={() => data && setIsHoveringOverId(data.scope.id)}
+      onMouseLeave={() => data && isHoveringOverId == data.scope.id && setIsHoveringOverId(undefined)}
     >
-      {date.toDateString()} 
-      {data && <DateContents nodeId={data.nodeId} />}
+      {date.toDateString()}
+      {data && <DateContents nodeId={data.scope.id} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />}
     </div>
   )
 }

@@ -72,7 +72,11 @@ export function parseDateRefsInScopeValue(scope: Scope): Date[] {
   return dates
 }
 
-export function parseDate(string: string): Date | undefined {
+export function parseDate(string: string | undefined): Date | undefined {
+  if (string === undefined) {
+    return undefined
+  }
+
   const match = string.match(DATE_REF_REGEX)
 
   if (!match) {

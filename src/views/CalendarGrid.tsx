@@ -1,16 +1,25 @@
 import { useGraph, getNode } from "../graph"
 import { DataWithProvenance } from "../properties"
+import { DataWithProvenance2 } from "../language/scopes"
+import classNames from "classnames"
 
 interface CalendarGridProps {
-  dates: DataWithProvenance<Date>[]
+  dates: DataWithProvenance2<Date>[]
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
 export default function CalendarGrid({ dates, isHoveringOverId, setIsHoveringOverId }: CalendarGridProps) {
-  const sortedDates = dates
+  let sortedDates = dates
     .map((d) => d.data)
     .sort((a, b) => a.getTime() - b.getTime())
+
+  if (sortedDates.length === 0) {
+    sortedDates = [new Date(), new Date()]
+  }
+  else if (sortedDates.length === 1) {
+    sortedDates.push(sortedDates[0])
+  }
 
   const start = new Date(sortedDates[0].getFullYear(), sortedDates[0].getMonth(), 1)
   const end = new Date(sortedDates[sortedDates.length - 1].getFullYear(), sortedDates[sortedDates.length - 1].getMonth() + 1, 0)
@@ -31,7 +40,8 @@ export default function CalendarGrid({ dates, isHoveringOverId, setIsHoveringOve
           {weeks.map((week, i) => (
             <tr key={i} className="week">
               {week.map((date, j) => (
-                <DateCell key={j} date={date} data={dates.find((d) => d.data.getTime() === date.getTime())} showMonth={(i == 0 && j == 0) || date.getDate() === 1} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
+                // todo: filter might filter out things that happen on the same day, but don't start at the beginning of the day
+                <DateCell key={j} date={date} data={dates.filter((d) => d.data.getTime() === date.getTime())} showMonth={(i == 0 && j == 0) || date.getDate() === 1} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
               ))}
             </tr>
           ))}
@@ -43,7 +53,7 @@ export default function CalendarGrid({ dates, isHoveringOverId, setIsHoveringOve
 
 interface DateCellProps {
   date: Date
-  data?: DataWithProvenance<Date>
+  data: DataWithProvenance2<Date>[]
   showMonth: boolean
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
@@ -54,27 +64,35 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
   const monthName = showMonth ? date.toLocaleString('default', { month: 'long' }) : null;
 
   return (
-    <td 
-      className={`py-2 px-1 ${isHoveringOverId && isHoveringOverId === data?.nodeId ? 'bg-slate-200 rounded' : ''}`} 
-      onMouseEnter={() => data && setIsHoveringOverId(data.nodeId)} 
-      onMouseLeave={() => data && isHoveringOverId == data.nodeId && setIsHoveringOverId(undefined)}
+    <td
+      className="py-2 px-1"
     >
       <div className={isToday ? "text-blue-600 font-medium" : data === undefined ? "text-gray-400 font-medium" : "text-gray-600 font-medium"}>{date.getDate()} {monthName}</div>
-      {data && <DateContents nodeId={data.nodeId} />}
+
+      {data.map((item, index) => (
+        <DateContents key={index} nodeId={item.scope.id} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
+      ))}
     </td>
   )
 }
 
 interface DateContentsProps {
   nodeId: string
+  setIsHoveringOverId: (nodeId: string | undefined) => void
+  isHoveringOverId: string | undefined
 }
 
-export function DateContents({ nodeId }: DateContentsProps) {
+export function DateContents({ nodeId, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
   const { graph } = useGraph()
   const node = getNode(graph, nodeId)
 
+  const isHovering = isHoveringOverId && isHoveringOverId === nodeId
+
   return (
-    <div className="text-sm text-gray-600">
+    <div className={classNames("text-sm text-gray-600", { "bg-slate-200 rounded": isHovering })}
+      onMouseEnter={() => setIsHoveringOverId(nodeId)}
+      onMouseLeave={() => isHoveringOverId === nodeId && setIsHoveringOverId(undefined)}
+    >
       {node.value}
     </div>
   )

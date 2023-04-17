@@ -143,7 +143,7 @@ export function OutlineEditor({
         const parent = getNode(graph, parentId)
         delete parent.children[index]
         const focusOffset = (parent.value as string).length
-        ;(parent.value as string) += node.value as string
+          ; (parent.value as string) += node.value as string
         onChangeSelectedPath(path.slice(0, -1), focusOffset)
       })
 
@@ -166,7 +166,7 @@ export function OutlineEditor({
 
         delete parent.children[index]
         const focusOffset = (prevNode.value as string).length
-        ;(prevNode.value as string) += node.value as string
+          ; (prevNode.value as string) += node.value as string
 
         onChangeSelectedPath(path.slice(0, -1).concat(index - 1, lastChildPath), focusOffset)
       })
@@ -408,13 +408,13 @@ export function OutlineEditor({
       style={
         accentColors
           ? ({
-              "--accent-color-1": accentColors[0],
-              "--accent-color-2": accentColors[1],
-              "--accent-color-3": accentColors[2],
-              "--accent-color-4": accentColors[3],
-              "--accent-color-5": accentColors[4],
-              "--accent-color-6": accentColors[5],
-            } as React.CSSProperties)
+            "--accent-color-1": accentColors[0],
+            "--accent-color-2": accentColors[1],
+            "--accent-color-3": accentColors[2],
+            "--accent-color-4": accentColors[3],
+            "--accent-color-5": accentColors[4],
+            "--accent-color-6": accentColors[5],
+          } as React.CSSProperties)
           : {}
       }
       onDragOver={onDragOver}
@@ -427,7 +427,7 @@ export function OutlineEditor({
           <NodeViewOptions
             node={graph[nodeId] as ValueNode}
             isFocused={true} // should this just be "showControls"?
-            onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
+            onOpenNodeInNewPane={() => { }} // should just replace current pane in this situation; ignore meta key?
           />
           <NodeView
             scope={scope}
@@ -512,8 +512,6 @@ export function OutlineEditor({
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />
-              {JSON.stringify(scope.computed)}
-
               <div style={{ marginLeft: "-8px" }}>
                 <ComputedPropertiesView props={node.computedProps} />
               </div>

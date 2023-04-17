@@ -1,34 +1,37 @@
 import React, { useState } from "react"
 import { NodeViewProps } from "."
 import { useGraph } from "../graph"
-import {
-  DataWithProvenance,
-  extractDataInNodeAndBelow,
-  readDate,
-} from "../properties"
+import { DataWithProvenance2 } from "../language/scopes"
 import CalendarGrid from "./CalendarGrid"
 import CalendarList from "./CalendarList"
+import { parseDate } from "../properties"
 
-export function CalendarNodeView({ node, isHoveringOverId, setIsHoveringOverId }: NodeViewProps) {
+export function CalendarNodeView({ node, scope, isHoveringOverId, setIsHoveringOverId }: NodeViewProps) {
   const { graph } = useGraph()
   const [view, setView] = useState(0)
 
-  const dates: DataWithProvenance<Date>[] = extractDataInNodeAndBelow(
-    graph,
-    node.id,
-    (graph, node) => readDate(graph, node.id)
-  )
+  const dates: DataWithProvenance2<Date>[] = scope.extractDataInScope((scope) => {
+    return parseDate(scope.getProperty("date"))
+  })
 
   return (
     <div>
       <CalendarTabs view={view} setView={setView} />
 
-      {view === 0 && 
-        <CalendarGrid dates={dates} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
-      }
-      {view === 1 && 
-        <CalendarList dates={dates} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
-      }
+      {view === 0 && (
+        <CalendarGrid
+          dates={dates}
+          isHoveringOverId={isHoveringOverId}
+          setIsHoveringOverId={setIsHoveringOverId}
+        />
+      )}
+      {view === 1 && (
+        <CalendarList
+          dates={dates}
+          isHoveringOverId={isHoveringOverId}
+          setIsHoveringOverId={setIsHoveringOverId}
+        />
+      )}
     </div>
   )
 }
@@ -43,16 +46,32 @@ function CalendarTabs({ view, setView }: CalendarTabsProps) {
     <div className="border-b border-gray-200">
       <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
         <li className="mr-2">
-          <a href="#" className={`inline-flex items-center p-4 border-b-2 group ${view === 0 ? 'border-blue-600 text-blue-600' : 'border-transparent'}`} onClick={() => setView(0)}>
-            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>calendar_view_month</span> Grid
+          <a
+            href="#"
+            className={`inline-flex items-center p-4 border-b-2 group ${view === 0 ? "border-blue-600 text-blue-600" : "border-transparent"
+              }`}
+            onClick={() => setView(0)}
+          >
+            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>
+              calendar_view_month
+            </span>{" "}
+            Grid
           </a>
         </li>
         <li className="mr-2">
-          <a href="#" className={`inline-flex items-center p-4 border-b-2 group ${view === 1 ? 'border-blue-600 text-blue-600' : 'border-transparent'}`} onClick={() => setView(1)}>
-            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>calendar_view_day</span> List
+          <a
+            href="#"
+            className={`inline-flex items-center p-4 border-b-2 group ${view === 1 ? "border-blue-600 text-blue-600" : "border-transparent"
+              }`}
+            onClick={() => setView(1)}
+          >
+            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>
+              calendar_view_day
+            </span>{" "}
+            List
           </a>
         </li>
       </ul>
     </div>
-  ) 
+  )
 }

@@ -15,17 +15,12 @@ import { useStaticCallback } from "../hooks"
 import { OutlineEditor } from "../editor/OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
-import {
-  DataWithProvenance,
-  extractComputedValuesInNodeAndBelow,
-  extractDataInNodeAndBelow,
-  readColorFromList,
-  readLatLng,
-} from "../properties"
+import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import colors from "../colors"
-import { getIsHovering } from "../utils"
+import { DataWithProvenance2 } from "../language/scopes"
+import LatLngLiteral = google.maps.LatLngLiteral
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -39,8 +34,19 @@ const COLORS = [
   "bg-red-500",
 ]
 
+interface Marker {
+  color?: string
+  position: LatLngLiteral
+}
+
+interface GeoJsonShape {
+  color?: string
+  geoJson: any
+}
+
 export function MapNodeView({
   node,
+  scope,
   fullpane,
   onOpenNodeInNewPane,
   isHoveringOverId,
@@ -48,33 +54,35 @@ export function MapNodeView({
 }: NodeViewProps) {
   const graphContext = useGraph()
   const { graph, changeGraph } = graphContext
-  const [geoJsonValues, setGeoJsonValues] = useState<DataWithProvenance<any>[]>([])
 
-  const latLngData: DataWithProvenance<google.maps.LatLngLiteral>[] = extractDataInNodeAndBelow(
-    graph,
-    node.id,
-    (graph, node) => readLatLng(graph, node.id)
-  )
+  const markers = scope.extractDataInScope<Marker>((scope) => {
+    const position = parseLatLng(scope.getProperty("position"))
 
-  useEffect(() => {
-    extractComputedValuesInNodeAndBelow(graph, node.id, (value) => {
-      if (typeof value === "object" && value.geometry) {
-        return value.geometry
-      }
-    }).then((data) => {
-      setGeoJsonValues(data)
-    })
-  }, [graph, node.id])
+    if (!position) {
+      return
+    }
 
-  /*
+    const color = scope.getProperty("color")
+    return {
+      position,
+      color,
+    }
+  })
 
-  const childNodeIdsWithLatLng = getChildIdsWith(
-    graph,
-    node.id,
-    (node, graph) =>!== undefined
-  )
+  // todo: replace when complex computed results are also represented as scopes
+  const geoJsonShapes = scope.extractDataInScope<GeoJsonShape>((scope) => {
+    const value = scope.valueOf()
 
-   */
+    if (!value || !value.geoJson) {
+      return
+    }
+
+    const color = scope.getProperty("color")
+    return {
+      color,
+      geoJson: value.geoJson,
+    }
+  })
 
   // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
   // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
@@ -87,10 +95,10 @@ export function MapNodeView({
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
   const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
-  const dataLayersRef = useRef<DataWithProvenance<google.maps.Data>[]>([])
+  const dataLayersRef = useRef<DataWithProvenance2<google.maps.Data>[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
-  const minBounds = google && getMinBounds(latLngData.map((node) => node.data))
+  const minBounds = google && getMinBounds(markers.map((marker) => marker.data.position))
 
   /* if (indexOfInput === undefined) {
     console.log("No map inputs")
@@ -231,13 +239,12 @@ export function MapNodeView({
   }, [childNodeIdsWithLatLng, google, isDragging, isPanning]) */
 
   // render markers on map
-
   useEffect(() => {
     if (!mapRef.current || !google) {
       return
     }
 
-    const totalMarkers = latLngData.length
+    const totalMarkers = markers.length
 
     // cleanup unused markers and event listener
 
@@ -256,20 +263,14 @@ export function MapNodeView({
 
     // update / create new markers
 
-    for (let i = 0; i < latLngData.length; i++) {
-      const nodeWithLatLngData = latLngData[i]
+    for (let i = 0; i < markers.length; i++) {
+      const marker = markers[i]
 
-      const isHovering = getIsHovering(
-        graph,
-        nodeWithLatLngData.nodeId,
-        nodeWithLatLngData.parentIds,
-        isHoveringOverId
-      )
-      const setColor = readColorFromList(graph, [
-        nodeWithLatLngData.nodeId,
-        ...nodeWithLatLngData.parentIds.slice().reverse(),
-      ])?.trim()
-      const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
+      const isHovering = isHoveringOverId && marker.scope.isInScope(isHoveringOverId)
+
+      const accentColors = marker.data.color
+        ? colors.accentColors(marker.data.color)
+        : colors.defaultAccentColors
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
@@ -279,7 +280,7 @@ export function MapNodeView({
         mapsMarker = new google.maps.marker.AdvancedMarkerView({
           map: mapRef.current,
           content: element,
-          position: nodeWithLatLngData.data,
+          position: marker.data.position,
         })
 
         prevMarkers.push(mapsMarker)
@@ -302,45 +303,42 @@ export function MapNodeView({
 
       listenersRef.current.push(
         mapsMarker.addListener("click", () => {
-          console.log("click")
-
           // defer to selection handler if active
-          if (isSelectionHandlerActive()) {
-            triggerSelect(nodeWithLatLngData.nodeId)
+          /*if (isSelectionHandlerActive()) {
+            triggerSelect(marker.)
             return
-          }
+          }*/
 
           changeGraph((graph) => {
-            const node = getNode(graph, nodeWithLatLngData.nodeId)
-
+            const node = getNode(graph, marker.scope.id)
             node.isCollapsed = false
           })
 
           if (popOverRef.current) {
-            popOverRef.current.position = nodeWithLatLngData.data
-            popOverRef.current.rootId = nodeWithLatLngData.nodeId
+            popOverRef.current.position = marker.data.position
+            popOverRef.current.rootId = marker.scope.id
             popOverRef.current.show()
             popOverRef.current.draw()
             popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
           }
 
-          mapRef.current?.panTo(nodeWithLatLngData.data)
+          mapRef.current?.panTo(marker.data.position)
         })
       )
 
       markerContent.onmouseenter = () => {
-        setIsHoveringOverId(nodeWithLatLngData.nodeId)
+        setIsHoveringOverId(marker.scope.id)
       }
       markerContent.onmouseleave = () => {
         setIsHoveringOverId(undefined)
       }
 
-      mapsMarker.position = nodeWithLatLngData.data
+      mapsMarker.position = marker.data.position
       mapsMarker.zIndex = isHovering ? 10 : 0
     }
-  }, [latLngData, mapRef.current, isHoveringOverId])
+  }, [markers, mapRef.current, isHoveringOverId])
 
-  // render geoJson on map
+  // render geoJson shapes on map
   useEffect(() => {
     if (!google) {
       return
@@ -359,50 +357,44 @@ export function MapNodeView({
 
     dataLayersRef.current = []
 
-    for (const geoJsonValue of geoJsonValues) {
-      const setColor = readColorFromList(graph, [
-        geoJsonValue.nodeId,
-        ...geoJsonValue.parentIds.slice().reverse(),
-      ])?.trim()
-      const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
+    for (const geoJsonShape of geoJsonShapes) {
+      const accentColors = geoJsonShape.data.color
+        ? colors.accentColors(geoJsonShape.data.color)
+        : colors.defaultAccentColors
 
       const dataLayer = new google.maps.Data()
-      dataLayer.addGeoJson(geoJsonValue.data)
+      dataLayer.addGeoJson(geoJsonShape.data.geoJson)
       dataLayer.setStyle({
         strokeColor: accentColors[2],
-        strokeWeight: 2,
+        strokeWeight: 4,
+      })
+
+      dataLayer.addListener("mouseover", () => {
+        setIsHoveringOverId(geoJsonShape.scope.id)
+      })
+
+      dataLayer.addListener("mouseout", () => {
+        setIsHoveringOverId(undefined)
       })
 
       dataLayer.setMap(currentMap)
       dataLayersRef.current.push({
-        nodeId: geoJsonValue.nodeId,
-        parentIds: geoJsonValue.parentIds,
+        scope,
         data: dataLayer,
       })
     }
-  }, [google, geoJsonValues, mapRef])
+  }, [google, geoJsonShapes, mapRef])
 
-  // update hover effect of geoJson
+  // update color of geoJson on hover
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
-      const setColor = readColorFromList(graph, [
-        dataLayerValue.nodeId,
-        ...dataLayerValue.parentIds.slice().reverse(),
-      ])?.trim()
-      const accentColors = setColor ? colors.accentColors(setColor) : colors.defaultAccentColors
-
-      const isHovering = getIsHovering(
-        graph,
-        dataLayerValue.nodeId,
-        dataLayerValue.parentIds,
-        isHoveringOverId
-      ) 
+      const color = dataLayerValue.scope.getProperty("color")
+      const accentColors = color ? colors.accentColors(color) : colors.defaultAccentColors
+      const isHovering = isHoveringOverId && dataLayerValue.scope.isInScope(isHoveringOverId)
 
       dataLayerValue.data.setStyle({
-        strokeColor: isHovering
-          ? accentColors[5]
-          : accentColors[2],
-          zIndex: isHovering ? 10 : 0
+        strokeColor: isHovering ? accentColors[5] : accentColors[2],
+        zIndex: isHovering ? 10 : 0,
       })
     }
   }, [isHoveringOverId, dataLayersRef.current])
@@ -416,7 +408,7 @@ export function MapNodeView({
   }, [Math.random()])
 
   const onFitBounds = () => {
-    if (latLngData.length === 0) {
+    if (markers.length === 0) {
       return
     }
 
@@ -430,7 +422,7 @@ export function MapNodeView({
       currentMap.fitBounds(minBounds, 25)
     }
 
-    if (latLngData.length === 1) {
+    if (markers.length === 1) {
       currentMap.setZoom(11)
     }
   }
@@ -465,7 +457,7 @@ export function MapNodeView({
       <div className="top-0 left-0 right-0 bottom-0 absolute pointer-events-none flex items-center justify-center">
         <div className="material-icons text-gray-500">add</div>
       </div>
-      {latLngData.length > 0 && (
+      {markers.length > 0 && (
         <button
           className="absolute bottom-4 right-4 bg-white border-gray-200 rounded p-2 flex items-center shadow border border-gray-200"
           onClick={onFitBounds}

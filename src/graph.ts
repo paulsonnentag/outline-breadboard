@@ -1,6 +1,8 @@
-import { createContext, useContext } from "react"
-import { DocHandle, Repo } from "automerge-repo"
+import { createContext, useContext, useEffect, useState } from "react"
+import { DocHandle, DocHandleChangeEvent, DocumentId, Repo } from "automerge-repo"
 import { v4 } from "uuid"
+import { Doc } from "@automerge/automerge"
+import { Change, useRepo } from "automerge-repo-react-hooks"
 
 export interface GraphDoc {
   rootNodeIds: string[]
@@ -252,4 +254,71 @@ export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
 
 export function getLabelOfNode(node: ValueNode): string {
   return node.value
+}
+
+export function useGraphDocument(
+  documentId: DocumentId | undefined,
+  onChangeNode: (graph: Graph, nodeId: string) => void
+): [doc: Doc<GraphDoc> | undefined, changeFn: Change<GraphDoc>] {
+  const [doc, setDoc] = useState<Doc<GraphDoc>>()
+  const repo = useRepo()
+  const handle = documentId ? repo.find<GraphDoc>(documentId) : null
+
+  useEffect(() => {
+    if (!handle) {
+      return
+    }
+    handle.value().then((v) => setDoc(v as Doc<GraphDoc>))
+    const listener = (h: DocHandleChangeEvent<GraphDoc>) => {
+      setDoc(h.handle.doc as Doc<GraphDoc>) // TODO: this is kinda gross
+    }
+
+    handle.on("change", listener)
+
+    return () => {
+      handle.removeListener("change", listener)
+    }
+  }, [handle])
+
+  const changeDoc = (changeFunction: (d: GraphDoc) => void) => {
+    if (!handle) {
+      return
+    }
+
+    handle.change(changeFunction, {
+      patchCallback: (patch, before, after) => {
+        const { path, action } = patch
+
+        if (path[0] !== "graph") {
+          return
+        }
+
+        if (path.length === 3) {
+          const [_, nodeId, key] = path
+          if (key !== "value") {
+            return
+          }
+
+          // node might not have children yet, because onChangeNode is called after each operation in the initialization
+          if (!getNode(after.graph, nodeId as string).children) {
+            return
+          }
+
+          // node changed
+          onChangeNode(after.graph, nodeId as string)
+        } else if (path.length === 4) {
+          const [_, nodeId, key, childIndex] = path
+
+          if (key !== "children") {
+            return
+          }
+
+          // child changed
+          onChangeNode(after.graph, nodeId as string)
+        }
+      },
+    })
+  }
+
+  return [doc, changeDoc]
 }

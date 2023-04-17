@@ -17,11 +17,13 @@ import { getIsHovering, isString, last } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
-import { readColor } from "../properties"
-import colors from "../colors"
+import colors, { defaultAccentColors } from "../colors"
 import { ComputedPropertiesView } from "../views/ComputedPropertyView"
+import { Scope } from "../language/scopes"
 
-interface OutlineEditorProps {
+export interface OutlineEditorProps {
+  scope: Scope
+  scopeIterationCount: number
   nodeId: string
   index: number
   parentIds: string[]
@@ -39,6 +41,8 @@ interface OutlineEditorProps {
 export function OutlineEditor({
   nodeId,
   path,
+  scope,
+  scopeIterationCount,
   index,
   parentIds,
   isParentDragged,
@@ -153,11 +157,6 @@ export function OutlineEditor({
 
       if (!prevNode) {
         throw new Error("invalid state")
-      }
-
-      // can't join with prevNode if prevNode is not text
-      if (!isString(prevNode?.value)) {
-        return
       }
 
       const prevNodeId = prevNode.id
@@ -395,17 +394,8 @@ export function OutlineEditor({
     })
   }
 
-  if (!node) {
-    return <div className="text-red-500"> •️ Invalid node id {JSON.stringify(nodeId)}</div>
-  }
-
-  let setColor = readColor(graph, nodeId)?.trim()
-
-  if (setColor === undefined && isRoot) {
-    setColor = "default"
-  }
-
-  const accentColors = setColor ? colors.accentColors(setColor) : undefined
+  const color = scope.lookupValue("color")
+  const accentColors = color ? colors.accentColors(color) : defaultAccentColors
 
   return (
     <div
@@ -440,6 +430,7 @@ export function OutlineEditor({
             onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
           />
           <NodeView
+            scope={scope}
             node={{ ...node, view: graph[nodeId].view }}
             isFocused={isFocused}
             fullpane={true}
@@ -506,6 +497,7 @@ export function OutlineEditor({
               <TextInput
                 nodeId={node.id}
                 value={node.value as string}
+                scope={scope}
                 isFocused={isFocused}
                 focusOffset={focusOffset}
                 onChange={onChange}
@@ -520,6 +512,7 @@ export function OutlineEditor({
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />
+              {JSON.stringify(scope.computed)}
 
               <div style={{ marginLeft: "-8px" }}>
                 <ComputedPropertiesView props={node.computedProps} />
@@ -534,11 +527,10 @@ export function OutlineEditor({
 
           <div className="pl-8">
             <NodeView
-              parentIds={parentIds}
+              scope={scope}
               node={node}
               isFocused={isFocused}
               fullpane={false}
-              accentColors={accentColors}
               onOpenNodeInNewPane={onOpenNodeInNewPane}
               isHoveringOverId={isHoveringOverId}
               setIsHoveringOverId={setIsHoveringOverId}
@@ -561,23 +553,27 @@ export function OutlineEditor({
                 "pl-4": !isRoot,
               })}
             >
-              {node.children.map((childId, index) => (
-                <OutlineEditor
-                  isParentDragged={isBeingDragged}
-                  key={index}
-                  nodeId={childId}
-                  index={index}
-                  parentIds={parentIds.concat(node.id)}
-                  path={path.concat(index)}
-                  selectedPath={selectedPath}
-                  focusOffset={focusOffset}
-                  onChangeSelectedPath={onChangeSelectedPath}
-                  onOpenNodeInNewPane={onOpenNodeInNewPane}
-                  onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
-                  isHoveringOverId={isHoveringOverId}
-                  setIsHoveringOverId={setIsHoveringOverId}
-                />
-              ))}
+              {scope.childScopes.map((childScope, index) =>
+                scope ? (
+                  <OutlineEditor
+                    scope={childScope}
+                    scopeIterationCount={scopeIterationCount}
+                    isParentDragged={isBeingDragged}
+                    key={index}
+                    nodeId={childScope.id}
+                    index={index}
+                    parentIds={parentIds.concat(node.id)}
+                    path={path.concat(index)}
+                    selectedPath={selectedPath}
+                    focusOffset={focusOffset}
+                    onChangeSelectedPath={onChangeSelectedPath}
+                    onOpenNodeInNewPane={onOpenNodeInNewPane}
+                    onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
+                    isHoveringOverId={isHoveringOverId}
+                    setIsHoveringOverId={setIsHoveringOverId}
+                  />
+                ) : null
+              )}
             </div>
           )}
         </>

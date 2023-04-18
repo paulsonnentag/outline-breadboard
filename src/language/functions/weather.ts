@@ -32,6 +32,25 @@ export const WEATHER_FN: FunctionDefs = {
         ? parseLatLng(await namedArgs.in.getPropertyAsync("position"))
         : undefined
 
+      if (onDate && inLocation) {
+        const weather = await getWeatherInformation(onDate, inLocation)
+
+        if (weather) {
+          const computation = {
+            name: "Weather",
+            data: {
+              on: formatDate(onDate),
+              at: await namedArgs.in.valueOfAsync(),
+              ...weather,
+            },
+          }
+
+          scope.addComputationResult(computation)
+        }
+
+        return
+      }
+
       const rootContext: WeatherContext = {
         dates: onDate ? [{ scope: namedArgs.on, data: onDate }] : [],
         locations: inLocation ? [{ scope: namedArgs.in, data: inLocation }] : [],

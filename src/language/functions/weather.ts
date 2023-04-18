@@ -13,6 +13,7 @@ import { formatDate, round } from "../../utils"
 import { FunctionDefs } from "./index"
 import { DataWithProvenance2 } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
+import { isEqual as isDateEqual } from "date-fns"
 
 interface WeatherContext {
   locations: DataWithProvenance2<google.maps.LatLngLiteral>[]
@@ -73,25 +74,60 @@ export const WEATHER_FN: FunctionDefs = {
             }
           }
 
-          /*
-
-          // todo: handle multiple dates
-          const newDate = parseDateRefsInScopeValue(scope)[0]
-          if (newDate) {
-            for (const location of context.locations) {
-              scope.computed.weather = await getWeatherInformation(newDate, location)
+          const allLocations = [...context.locations]
+          for (const newLocation of newLocations) {
+            if (
+              allLocations.every(
+                ({ data }) => data.lat !== newLocation.data.lat && data.lng !== newLocation.data.lng
+              )
+            ) {
+              allLocations.push(newLocation)
             }
           }
 
-          console.log(context)
+          const ownDate = parseDate(await scope.getPropertyAsync("position"))
+          const transcludedDates: DataWithProvenance2<Date>[] = (
+            await Promise.all(
+              Object.values(scope.transcludedScopes).map(async (transcludedScope) => ({
+                scope: transcludedScope,
+                data: parseDate(transcludedScope.id),
+              }))
+            )
+          ).filter(({ data }) => data !== undefined) as DataWithProvenance2<Date>[]
 
+          const newDates = ownDate
+            ? transcludedDates.concat({ data: ownDate, scope })
+            : transcludedDates
 
-          * /
+          for (const newDate of newDates) {
+            for (const location of allLocations) {
+              const weather = await getWeatherInformation(newDate.data, location.data)
 
-           */
+              if (weather) {
+                const computation = {
+                  name: "Weather",
+                  data: {
+                    on: formatDate(newDate.data),
+                    at: await location.scope.valueOfAsync(),
+                    ...weather,
+                  },
+                }
+
+                scope.addComputationResult(computation)
+              }
+            }
+          }
+
+          const allDates = [...context.dates]
+          for (const newDate of newDates) {
+            if (allDates.every(({ data }) => !isDateEqual(data, newDate.data))) {
+              allDates.push(newDate)
+            }
+          }
+
           return {
-            dates: context.dates, // newDate ? context.dates.concat(newDate) : context.dates,
-            locations: context.locations.concat(newLocations),
+            dates: allDates,
+            locations: allLocations,
           }
         },
         rootContext,

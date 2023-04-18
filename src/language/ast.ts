@@ -368,5 +368,10 @@ export class NumberNode extends AstNode {
 }
 
 export function isLiteral(node: AstNode) {
-  return node instanceof StringNode || node instanceof NumberNode || node instanceof UndefinedNode
+  return (
+    node instanceof StringNode ||
+    node instanceof NumberNode ||
+    node instanceof UndefinedNode ||
+    node instanceof IdRefNode
+  )
 }

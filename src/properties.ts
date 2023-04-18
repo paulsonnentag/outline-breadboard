@@ -54,24 +54,6 @@ export function readParsedProperty<T>(
 
 const DATE_REF_REGEX = /([0-9]{2})\/([0-9]{2})\/([0-9]{4})/
 
-export function parseDateRefsInScopeValue(scope: Scope): Date[] {
-  const dates: Date[] = []
-
-  console.log(scope.bullet.value)
-
-  for (const astNode of scope.bullet.value) {
-    if (astNode instanceof InlineExprNode && astNode.expr instanceof IdRefNode) {
-      const date = parseDate(astNode.expr.id)
-
-      if (date !== undefined) {
-        dates.push(date)
-      }
-    }
-  }
-
-  return dates
-}
-
 export function parseDate(string: string | undefined): Date | undefined {
   if (string === undefined) {
     return undefined

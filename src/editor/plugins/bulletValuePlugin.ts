@@ -53,7 +53,7 @@ function getBulletDecorations(view: EditorView): DecorationSet {
         }).range(part.to - 1, part.to),
       ]
 
-      if (!isLiteral(part)) {
+      if (!isLiteral(part.expr)) {
         const value = scope.valueOf(index)
         decorations.push(
           Decoration.widget({

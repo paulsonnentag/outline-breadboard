@@ -1,5 +1,6 @@
 import { Prop } from "@automerge/automerge"
 import { getNode, Graph } from "./graph"
+import { format, subYears } from "date-fns"
 
 export function last<T>(arr: T[]) {
   return arr[arr.length - 1]
@@ -57,15 +58,6 @@ export function promisify<T>(value: T): Promise<T> {
   })
 }
 
-export function compareArrays(a: any[], b: any[]) {
-  if (a.length !== b.length) return false
-  else {
-    // Comparing each element of your array
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) {
-        return false
-      }
-    }
-    return true
-  }
+export function formatDate(date: Date): string {
+  return format(date, "MM/dd/yyyy")
 }

@@ -1,4 +1,4 @@
-import { parseDateRefsInScopeValue, parseLatLng } from "../../properties"
+import { parseDate, parseLatLng } from "../../properties"
 import {
   addDays,
   differenceInDays,
@@ -9,13 +9,14 @@ import {
   subDays,
   subYears,
 } from "date-fns"
-import { round } from "../../utils"
+import { formatDate, round } from "../../utils"
 import { FunctionDefs } from "./index"
+import { DataWithProvenance2 } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
 
 interface WeatherContext {
-  locations: LatLngLiteral[]
-  dates: Date[]
+  locations: DataWithProvenance2<google.maps.LatLngLiteral>[]
+  dates: DataWithProvenance2<Date>[]
 }
 
 export const WEATHER_FN: FunctionDefs = {
@@ -25,21 +26,54 @@ export const WEATHER_FN: FunctionDefs = {
       value: "{Weather($)}",
     },
     function: async ([node], namedArgs, scope) => {
+      let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined
+      let inLocation = namedArgs.in
+        ? parseLatLng(await namedArgs.in.getPropertyAsync("position"))
+        : undefined
+
+      const rootContext: WeatherContext = {
+        dates: onDate ? [{ scope: namedArgs.on, data: onDate }] : [],
+        locations: inLocation ? [{ scope: namedArgs.in, data: inLocation }] : [],
+      }
+
       await scope.traverseScopeAsync<WeatherContext>(
         async (scope, context: WeatherContext) => {
-          const newLocation = parseLatLng(await scope.getPropertyAsync("location"))
+          const ownLocation = parseLatLng(await scope.getPropertyAsync("position"))
+          const transcludedLocations: DataWithProvenance2<LatLngLiteral>[] = (
+            await Promise.all(
+              Object.values(scope.transcludedScopes).map(async (transcludedScope) => ({
+                scope: transcludedScope,
+                data: parseLatLng(await transcludedScope.getPropertyAsync("position")),
+              }))
+            )
+          ).filter(
+            ({ data }) => data !== undefined
+          ) as DataWithProvenance2<google.maps.LatLngLiteral>[]
 
-          console.log(context)
+          const newLocations = ownLocation
+            ? transcludedLocations.concat({ data: ownLocation, scope })
+            : transcludedLocations
 
-          if (newLocation) {
+          for (const newLocation of newLocations) {
             for (const date of context.dates) {
-              const weather = await getWeatherInformation(date, newLocation)
+              const weather = await getWeatherInformation(date.data, newLocation.data)
 
               if (weather) {
-                scope.computed.weather = weather
+                const computation = {
+                  name: "Weather",
+                  data: {
+                    on: formatDate(date.data),
+                    at: await newLocation.scope.valueOfAsync(),
+                    ...weather,
+                  },
+                }
+
+                scope.addComputationResult(computation)
               }
             }
           }
+
+          /*
 
           // todo: handle multiple dates
           const newDate = parseDateRefsInScopeValue(scope)[0]
@@ -49,15 +83,19 @@ export const WEATHER_FN: FunctionDefs = {
             }
           }
 
+          console.log(context)
+
+
+          * /
+
+           */
           return {
-            dates: newDate ? context.dates.concat(newDate) : context.dates,
-            locations: newLocation ? context.locations.concat(newLocation) : context.locations,
+            dates: context.dates, // newDate ? context.dates.concat(newDate) : context.dates,
+            locations: context.locations.concat(newLocations),
           }
         },
-        {
-          dates: namedArgs.on ? [namedArgs.on] : [],
-          locations: namedArgs.in ? [namedArgs.in] : [],
-        }
+        rootContext,
+        { skipTranscludedScopes: true }
       )
 
       // todo: return value

@@ -2,6 +2,12 @@ import { parseBullet } from "./index"
 import { BulletNode } from "./ast"
 import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
+import { useStaticCallback } from "../hooks"
+
+export interface ComputationResult {
+  name: string
+  data: any
+}
 
 export class Scope {
   id: string
@@ -11,21 +17,21 @@ export class Scope {
     [name: string]: Scope
   } = {}
 
-  computed: any = {}
+  computationResults: ComputationResult[] = []
+
+  private updateHandlers: ((scope: Scope) => void)[] = []
 
   childScopes: Scope[] = []
   transcludedScopes: { [id: string]: Scope } = {}
   bullet: BulletNode
 
-  private onUpdate: () => void
   private resolve: (x: any) => void = () => {}
   private isDisabled: boolean = false
 
-  constructor(graph: Graph, id: string, parentScope: Scope | undefined, onUpdate: () => void) {
+  constructor(graph: Graph, id: string, parentScope: Scope | undefined) {
     this.id = id
     const node = getNode(graph, id)
     this.parentScope = parentScope
-    this.onUpdate = onUpdate
     this.bullet = parseBullet(node.value)
 
     const pendingValue = new Promise((resolve) => {
@@ -40,12 +46,12 @@ export class Scope {
 
     // create scopes for child nodes
     for (const childId of node.children) {
-      this.childScopes.push(new Scope(graph, childId, this, onUpdate))
+      this.childScopes.push(new Scope(graph, childId, this))
     }
 
     // create scopes for transcluded nodes
     for (const referencedId of this.bullet.getReferencedIds()) {
-      this.transcludedScopes[referencedId] = new Scope(graph, referencedId, this, onUpdate)
+      this.transcludedScopes[referencedId] = new Scope(graph, referencedId, this)
     }
   }
 
@@ -167,32 +173,65 @@ export class Scope {
     return results
   }
 
-  traverseScope<T>(fn: (scope: Scope, context: T) => T, context: T) {
+  traverseScope<T>(fn: (scope: Scope, context: T) => T, context: T, options?: TraverseOptions) {
+    const skipTranscludedScopes = options?.skipTranscludedScopes ?? false
     const newContext = fn(this, context)
 
     for (const childScope of this.childScopes) {
-      childScope.traverseScope(fn, newContext)
+      childScope.traverseScope(fn, newContext, options)
     }
 
-    for (const transcludedScope of Object.values(this.transcludedScopes)) {
-      transcludedScope.traverseScope(fn, newContext)
+    if (!skipTranscludedScopes) {
+      for (const transcludedScope of Object.values(this.transcludedScopes)) {
+        transcludedScope.traverseScope(fn, newContext, options)
+      }
     }
   }
 
   async traverseScopeAsync<T>(
     fn: (scope: Scope, context: T) => Promise<T>,
-    context: T
+    context: T,
+    options?: TraverseOptions
   ): Promise<any> {
+    const skipTranscludedScopes = options?.skipTranscludedScopes ?? false
     const childContext = await fn(this, context)
 
     for (const childScope of this.childScopes) {
-      await childScope.traverseScopeAsync(fn, childContext)
+      await childScope.traverseScopeAsync(fn, childContext, options)
     }
 
-    for (const transcludedScope of Object.values(this.transcludedScopes)) {
-      await transcludedScope.traverseScopeAsync(fn, childContext)
+    if (!skipTranscludedScopes) {
+      for (const transcludedScope of Object.values(this.transcludedScopes)) {
+        await transcludedScope.traverseScopeAsync(fn, childContext, options)
+      }
     }
   }
+
+  addComputationResult(computation: ComputationResult) {
+    this.computationResults.push(computation)
+    this.onUpdate()
+  }
+
+  // todo: on update doesn't cover all cases
+  private onUpdate() {
+    for (const updateHandler of this.updateHandlers) {
+      updateHandler(this)
+    }
+
+    this.parentScope?.onUpdate()
+  }
+
+  registerUpdateHandler(handler: (scope: Scope) => void) {
+    if (this.updateHandlers.includes(handler)) {
+      return
+    }
+
+    this.updateHandlers.push(handler)
+  }
+}
+
+interface TraverseOptions {
+  skipTranscludedScopes: boolean
 }
 
 // if value is not resolved yet undefined is returned
@@ -226,7 +265,9 @@ export function useRootScope(rootId: string): [Scope | undefined, number] {
       scope.disable()
     }
 
-    const newScope = new Scope(graph, rootId, undefined, () => {
+    const newScope = new Scope(graph, rootId, undefined)
+
+    newScope.registerUpdateHandler(() => {
       setScope(newScope)
       setScopeIterationCount((i) => i + 1)
     })
@@ -243,4 +284,9 @@ export function useRootScope(rootId: string): [Scope | undefined, number] {
 export interface DataWithProvenance2<T> {
   scope: Scope
   data: T
+}
+
+export function useUpdateHandler(scope: Scope, handler: (scope: Scope) => void) {
+  const staticHandler = useStaticCallback(handler)
+  scope.registerUpdateHandler(staticHandler)
 }

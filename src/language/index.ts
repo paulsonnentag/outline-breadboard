@@ -43,8 +43,6 @@ export function parseExpression(source: string): AstNode {
   }
 
   const result = formulaSemantics(match).toAst()
-  console.log(source, result)
-
   return result
 }
 

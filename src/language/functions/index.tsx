@@ -3,20 +3,8 @@ import { CORE_FNS } from "./core"
 import { ROUTE_FN } from "./routes"
 import { WEATHER_FN } from "./weather"
 import { ComputationResult, Scope, useUpdateHandler } from "../scopes"
-import { FunctionComponent, useState } from "react"
-
-interface NamedArgs {
-  [name: string]: any
-}
-
-export interface FunctionDef {
-  function: (positionalArgs: any[], namedArgs: NamedArgs, scope: Scope) => any
-  autocomplete?: {
-    label: string
-    value: string // the value that is inserted, use "$" to mark where cursor should be placed
-  }
-  summaryView?: FunctionComponent<ComputationSummaryView>
-}
+import { useState } from "react"
+import { FunctionDef } from "./function-def"
 
 export interface FunctionDefs {
   [name: string]: FunctionDef
@@ -27,10 +15,6 @@ export const FUNCTIONS: FunctionDefs = {
   ...DISTANCE_FN,
   ...ROUTE_FN,
   ...WEATHER_FN,
-}
-
-interface ComputationSummaryView {
-  data: any
 }
 
 interface ComputationsSummaryViewProps {
@@ -48,5 +32,15 @@ export function ComputationResultsSummaryView({ scope }: ComputationsSummaryView
     return null
   }
 
-  return <div className="text-gray-300">{JSON.stringify(computationResults)}</div>
+  return (
+    <div>
+      {computationResults.map((result, index) => {
+        const View = FUNCTIONS[result.name].summaryView
+
+        if (View) {
+          return <View value={result.data} key={index} />
+        }
+      })}
+    </div>
+  )
 }

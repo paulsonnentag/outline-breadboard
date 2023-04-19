@@ -18,9 +18,10 @@ import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import colors from "../colors"
-import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
+import { DataWithProvenance, useUpdateHandler, Scope } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
+
 
 // this is necessary for tailwind to include the css classes
 const COLORS = [
@@ -80,11 +81,11 @@ export function MapNodeView({
       return scope.computationResults.flatMap((result) =>
         result.data.geoJson
           ? [
-              {
-                color,
-                geoJson: result.data.geoJson,
-              },
-            ]
+            {
+              color,
+              geoJson: result.data.geoJson,
+            },
+          ]
           : []
       )
     })
@@ -150,7 +151,7 @@ export function MapNodeView({
           return
         }
 
-        // writeBackMapState(graph, inputsNodeId, mapRef.current)
+        writeBackMapState(graph, scope, mapRef.current)
         setIsPanning(false)
       })
     })
@@ -177,7 +178,7 @@ export function MapNodeView({
       }
 
       changeGraph((graph) => {
-        // writeBackMapState(graph, inputsNodeId, currentMap)
+        writeBackMapState(graph, scope, currentMap)
       })
     }, 500)
   )
@@ -639,7 +640,7 @@ function PopoverOutlineView({
         }}
         onOpenNodeInNewPane={onOpenNodeInNewPane}
         isHoveringOverId={undefined} /* TODO */
-        setIsHoveringOverId={() => {}} /* TODO */
+        setIsHoveringOverId={() => { }} /* TODO */
         disableCustomViews={true}
       />
     </GraphContext.Provider>
@@ -705,17 +706,28 @@ function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBo
   return bounds
 }
 
-/*
-function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.Map) {
+// this function assumes that you are passing in a mutable graph
+function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
+
+  console.log("write back map state")
+
   const center = map.getCenter()
   const zoom = map.getZoom()
-  const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-  const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-  const inputNode = getNode(graph, inputsNodeId)
+
+
+  const latLngScope = scope.getChildScope("position")
+  const zoomScope = scope.getChildScope("zoom")
+
+
+  const latLongInputIndex = scope.childScopes.findIndex((childScope) => childScope.id === latLngScope?.id)
+  const zoomInputIndex = scope.childScopes.findIndex((childScope) => childScope.id === zoomScope?.id)
+
+
+  const inputNode = getNode(graph, scope.id)
 
   const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
 
-  if (latLongInputIndex !== undefined) {
+  if (latLongInputIndex !== -1) {
     getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
   } else {
     const latLngPropertyNode: ValueNode = {
@@ -725,6 +737,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
       children: [],
       isCollapsed: false,
       isSelected: false,
+      computedProps: []
     }
 
     graph[latLngPropertyNode.id] = latLngPropertyNode
@@ -733,7 +746,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
 
   const zoomValue = `zoom: ${zoom}`
 
-  if (zoomInputIndex !== undefined) {
+  if (zoomInputIndex !== -1) {
     const zoomPropertyNode = getNode(graph, inputNode.children[zoomInputIndex])
     if (zoomPropertyNode.value !== zoomValue) {
       zoomPropertyNode.value = zoomValue
@@ -746,10 +759,10 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
       children: [],
       isCollapsed: false,
       isSelected: false,
+      computedProps: []
     }
 
     graph[zoomPropertyNode.id] = zoomPropertyNode
     inputNode.children.push(zoomPropertyNode.id)
   }
 }
-*/

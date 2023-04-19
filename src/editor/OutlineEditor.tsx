@@ -482,7 +482,7 @@ export function OutlineEditor({
               }}
             />
             <div
-              className={classNames("pr-2 flex-1 rounded", {
+              className={classNames("flex items-center flex-wrap pr-2 flex-1 rounded", {
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
                 "bg-slate-200 rounded":
                   getIsHovering(graph, node.id, parentIds, isHoveringOverId) &&

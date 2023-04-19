@@ -82,6 +82,7 @@ export interface ValueNode {
   value: string
   children: string[]
   view?: string
+  paneWidth?: number
   computations?: string[]
   computedProps: {
     [name: string]: any
@@ -96,6 +97,7 @@ export interface RefNode {
   refId: string
   isCollapsed: boolean
   view?: string
+  paneWidth?: number
   computations?: string[]
 }
 

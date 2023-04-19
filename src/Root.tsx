@@ -1,5 +1,5 @@
 import { DocumentId } from "automerge-repo"
-import { useEffect, useMemo, useState } from "react"
+import { MouseEventHandler, useEffect, useMemo, useState } from "react"
 import {
   createValueNode,
   getNode,
@@ -109,32 +109,41 @@ export function Root({ documentId }: RootProps) {
           const selectedSubPath =
             selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
 
+          let width: number = doc.graph[rootId].paneWidth || 600
+
           return (
-            <div
-              className="p-6 bg-white border border-gray-200 max-w-2xl flex-1 relative overflow-auto"
-              key={index}
-            >
-              <div className="absolute top-1 right-1 z-50">
-                <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
+            <div key={index} className="flex-none flex gap-4">
+              <div
+                className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none"
+                style={{width: `${width}px`}}
+              >
+                <div className="absolute top-1 right-1 z-50">
+                  <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
+                </div>
+                <RootOutlineEditor
+                  index={0}
+                  nodeId={rootId}
+                  path={[]}
+                  parentIds={[]}
+                  selectedPath={selectedSubPath}
+                  focusOffset={focusOffset}
+                  onChangeSelectedPath={(newSelectedSubPath, newFocusOffset = 0) => {
+                    const newPath = newSelectedSubPath
+                      ? [index].concat(newSelectedSubPath)
+                      : undefined
+                    setSelectedPath(newPath)
+                    setFocusOffset(newFocusOffset)
+                  }}
+                  onOpenNodeInNewPane={onOpenNodeInNewPane}
+                  isHoveringOverId={isHoveringOverId}
+                  setIsHoveringOverId={setIsHoveringOverId}
+                />
               </div>
-              <RootOutlineEditor
-                index={0}
-                nodeId={rootId}
-                path={[]}
-                parentIds={[]}
-                selectedPath={selectedSubPath}
-                focusOffset={focusOffset}
-                onChangeSelectedPath={(newSelectedSubPath, newFocusOffset = 0) => {
-                  const newPath = newSelectedSubPath
-                    ? [index].concat(newSelectedSubPath)
-                    : undefined
-                  setSelectedPath(newPath)
-                  setFocusOffset(newFocusOffset)
-                }}
-                onOpenNodeInNewPane={onOpenNodeInNewPane}
-                isHoveringOverId={isHoveringOverId}
-                setIsHoveringOverId={setIsHoveringOverId}
-              />
+              <WidthAdjust startingWidth={width} setNewWidth={(newWidth) => {
+                graphContext.changeGraph(graph => {
+                  graph[rootId].paneWidth = newWidth
+                })
+              }} />
             </div>
           )
         })}
@@ -180,6 +189,41 @@ export function Root({ documentId }: RootProps) {
     </GraphContext.Provider>
   )
 }
+
+interface WidthAdjustProps {
+  startingWidth: number
+  setNewWidth: (newWidth: number) => void
+}
+
+export function WidthAdjust(props: WidthAdjustProps) {
+  const handler: MouseEventHandler = (mouseDownEvent) => {
+    const startSize = props.startingWidth
+    const startPosition = mouseDownEvent.pageX
+    
+    function onMouseMove(mouseMoveEvent: MouseEvent) {
+      props.setNewWidth(startSize - startPosition + mouseMoveEvent.pageX)
+      mouseMoveEvent.preventDefault()
+      mouseMoveEvent.stopPropagation()
+    }
+
+    function onMouseUp() {
+      document.body.removeEventListener("mousemove", onMouseMove);
+    }
+    
+    document.body.addEventListener("mousemove", onMouseMove);
+    document.body.addEventListener("mouseup", onMouseUp, { once: true });
+  };
+
+  return (
+    <div className="flex flex-col justify-center h-full">
+      <div
+        className="w-1 h-32 rounded-full bg-gray-300 hover:bg-gray-600 transition-all"
+        onMouseDown={handler}
+      ></div>
+    </div>
+  )
+}
+
 
 type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope">
 

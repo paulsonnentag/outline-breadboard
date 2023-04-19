@@ -82,7 +82,7 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
         className={
           isToday
             ? "text-blue-600 font-medium"
-            : data === undefined
+            : data.length < 1
             ? "text-gray-400 font-medium"
             : "text-gray-600 font-medium"
         }

@@ -67,10 +67,7 @@ export function TextInput({
         getRefIdTokenPlugin(setIsHoveringOverId),
         autocompletion({
           activateOnTyping: true,
-          override: [
-            getMentionCompletionContext(nodeId, changeGraph),
-            functionAutocompletionContext,
-          ],
+          override: [getMentionCompletionContext(changeGraph), functionAutocompletionContext],
         }),
         nodeIdFacet.of(nodeId),
         //scopeFacet.of(scope),

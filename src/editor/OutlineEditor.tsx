@@ -563,7 +563,6 @@ export function OutlineEditor({
                     focusOffset={focusOffset}
                     onChangeSelectedPath={onChangeSelectedPath}
                     onOpenNodeInNewPane={onOpenNodeInNewPane}
-                    onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
                     isHoveringOverId={isHoveringOverId}
                     setIsHoveringOverId={setIsHoveringOverId}
                     disableCustomViews={disableCustomViews}

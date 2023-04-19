@@ -1,11 +1,10 @@
 import { FunctionDefs } from "./index"
 import { googleApi } from "../../google"
-import { last, round } from "../../utils"
+import { round } from "../../utils"
 import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
-import { Scope } from "../scopes"
+import { DataWithProvenance, Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
-import { DataWithProvenance } from "../scopes"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
@@ -166,7 +165,7 @@ interface RouteInfoViewProps {
 function RouteInfoView({ value }: RouteInfoViewProps) {
   return (
     <span>
-      {value.from} -> {value.to} - {value.duration}, {value.distance},
+      {value.from} -&gt; {value.to} - {value.duration}, {value.distance},
     </span>
   )
 }

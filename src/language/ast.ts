@@ -241,6 +241,12 @@ export class BulletNode extends AstNode {
   getReferencedIds(): string[] {
     return this.value.flatMap((part) => part.getReferencedIds())
   }
+
+  isRangeInInlineExpression(from: number, to: number): boolean {
+    return this.value.some(
+      (expr) => expr instanceof InlineExprNode && expr.from < from && expr.to > to
+    )
+  }
 }
 
 export class InlineExprNode extends AstNode {

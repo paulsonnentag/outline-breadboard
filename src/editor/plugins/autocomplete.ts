@@ -3,14 +3,12 @@ import { Completion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "../../utils"
 import { placesAutocompleteApi } from "../../google"
 import { createPlaceNode } from "../../views/MapNodeView"
-import { FunctionDef, FUNCTIONS } from "../../language/functions"
+import { FUNCTIONS } from "../../language/functions"
 import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
+import { FunctionDef } from "../../language/functions/function-def"
 
-export function getMentionCompletionContext(
-  nodeId: string,
-  changeGraph: (fn: (graph: Graph) => void) => void
-) {
+export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {
     const scope = context.state.facet(scopeFacet)
 

@@ -96,7 +96,13 @@ export const WEATHER_FN: FunctionDefs = {
             }
           }
 
-          const ownDate = parseDate(await scope.getPropertyAsync("date"))
+          // can't use getOwnPropertyAndPropertiesOfTransclusionAsync because parsing dates for own scope and transcluded scope works differently
+
+          console.log(await scope.getPropertyAsync("date"))
+
+          // const value = await scope.getPropertyAsync("date")
+
+          const ownDate = parseDate((await scope.getPropertyAsync("date"))?.id)
           const transcludedDates: DataWithProvenance<Date>[] = (
             await Promise.all(
               Object.values(scope.transcludedScopes).map(async (transcludedScope) => ({

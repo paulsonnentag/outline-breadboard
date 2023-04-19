@@ -4,6 +4,7 @@ import {
   AstNode,
   BulletNode,
   formulaSemantics,
+  IdRefNode,
   InlineExprNode,
   StringNode,
   UndefinedNode,
@@ -52,13 +53,13 @@ export function parseBullet(source: string): BulletNode {
   const key = parseKey(source)
   const bulletValue = []
 
-  const EXPRESSION_REGEX = /\{([^}]*?)}/g
+  const EXPRESSION_REGEX = /(#\[([^\]]*?)]|\{([^}]*?)})/g
   let match,
     prevIndex = key ? key.to : 0
   while ((match = EXPRESSION_REGEX.exec(source)) != null) {
-    const [inlineExpr, exprSource] = match
+    const expr = match[0]
     const from = match.index
-    const to = from + inlineExpr.length
+    const to = from + expr.length
 
     if (from > prevIndex) {
       const text = source.slice(prevIndex, from)
@@ -67,12 +68,19 @@ export function parseBullet(source: string): BulletNode {
         bulletValue.push(new StringNode(prevIndex, from, text))
       }
     }
-
     prevIndex = to
 
-    const expression = parseExpression(exprSource)
-    expression.applyOffset(from)
-    bulletValue.push(new InlineExprNode(from, to, expression))
+    const isIdRef = expr.startsWith("#")
+    if (isIdRef) {
+      const id = match[2]
+      bulletValue.push(new IdRefNode(from, to, id))
+    } else {
+      const exprSource = match[3]
+      const expression = parseExpression(exprSource)
+
+      expression.applyOffset(from)
+      bulletValue.push(new InlineExprNode(from, to, expression))
+    }
   }
 
   if (prevIndex < source.length) {

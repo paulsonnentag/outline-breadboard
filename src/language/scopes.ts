@@ -3,7 +3,6 @@ import { BulletNode } from "./ast"
 import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
 import { useStaticCallback } from "../hooks"
-import { parseLatLng } from "../properties"
 
 export interface ComputationResult {
   name: string

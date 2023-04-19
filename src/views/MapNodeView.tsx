@@ -12,7 +12,6 @@ import {
 import classNames from "classnames"
 import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
-import { OutlineEditor } from "../editor/OutlineEditor"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
 import { parseLatLng, readLatLng } from "../properties"
@@ -20,6 +19,7 @@ import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import colors from "../colors"
 import { DataWithProvenance2 } from "../language/scopes"
+import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
 
 // this is necessary for tailwind to include the css classes
@@ -614,10 +614,9 @@ function PopoverOutlineView({
 }: PopoverOutlineViewProps) {
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>([])
   const [focusOffset, setFocusOffset] = useState<number>(0)
-
   return (
     <GraphContext.Provider value={graphContext}>
-      <OutlineEditor
+      <RootOutlineEditor
         focusOffset={focusOffset}
         nodeId={rootId}
         index={0}
@@ -629,9 +628,9 @@ function PopoverOutlineView({
           setFocusOffset(newFocusOffset)
         }}
         onOpenNodeInNewPane={onOpenNodeInNewPane}
-        onReplaceNode={() => {}} // it's not possible to replace the root nodeId in the pop over
         isHoveringOverId={undefined} /* TODO */
         setIsHoveringOverId={() => {}} /* TODO */
+        disableCustomViews={true}
       />
     </GraphContext.Provider>
   )

@@ -182,15 +182,15 @@ export function Root({ documentId }: RootProps) {
   )
 }
 
-type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope" | "scopeIterationCount">
+type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope">
 
 export function RootOutlineEditor(props: RootOutlineEditorProps) {
   const { nodeId } = props
-  const [scope, scopeIterationCount] = useRootScope(nodeId)
+  const scope = useRootScope(nodeId)
 
   if (!scope) {
     return null
   }
 
-  return <OutlineEditor scope={scope} scopeIterationCount={scopeIterationCount} {...props} />
+  return <OutlineEditor scope={scope} {...props} />
 }

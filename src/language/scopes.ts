@@ -251,10 +251,9 @@ export async function valueOfAsync(obj: any) {
   return obj
 }
 
-export function useRootScope(rootId: string): [Scope | undefined, number] {
+export function useRootScope(rootId: string): Scope | undefined {
   const { graph } = useGraph()
   const [scope, setScope] = useState<Scope | undefined>()
-  const [scopeIterationCount, setScopeIterationCount] = useState(0)
 
   useEffect(() => {
     if (!graph) {
@@ -267,18 +266,12 @@ export function useRootScope(rootId: string): [Scope | undefined, number] {
 
     const newScope = new Scope(graph, rootId, undefined)
 
-    newScope.registerUpdateHandler(() => {
-      setScope(newScope)
-      setScopeIterationCount((i) => i + 1)
-    })
-
+    newScope.registerUpdateHandler(() => setScope(newScope))
     newScope.eval()
-
     setScope(newScope)
-    setScopeIterationCount(1)
   }, [graph, rootId])
 
-  return [scope, scopeIterationCount]
+  return scope
 }
 
 export interface DataWithProvenance2<T> {

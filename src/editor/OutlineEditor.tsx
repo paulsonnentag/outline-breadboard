@@ -18,12 +18,11 @@ import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
 import colors, { defaultAccentColors } from "../colors"
-import { ComputationResult, Scope } from "../language/scopes"
+import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView } from "../language/functions"
 
 export interface OutlineEditorProps {
   scope: Scope
-  scopeIterationCount: number
   nodeId: string
   index: number
   parentIds: string[]
@@ -33,16 +32,15 @@ export interface OutlineEditorProps {
   focusOffset: number // this is kind of hacky, it's necessary so that when two bullets are joined through deletion the cursor is set to the right position
   onOpenNodeInNewPane: (nodeId: string) => void
   onChangeSelectedPath: (path: number[] | undefined, focusOffset?: number) => void
-  onReplaceNode: (newNodeId: string) => void
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
+  disableCustomViews?: boolean
 }
 
 export function OutlineEditor({
   nodeId,
   path,
   scope,
-  scopeIterationCount,
   index,
   parentIds,
   isParentDragged,
@@ -52,6 +50,7 @@ export function OutlineEditor({
   onOpenNodeInNewPane,
   isHoveringOverId,
   setIsHoveringOverId,
+  disableCustomViews = false,
 }: OutlineEditorProps) {
   const { graph, changeGraph, setIsDragging } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
@@ -513,11 +512,13 @@ export function OutlineEditor({
               />
               <ComputationResultsSummaryView scope={scope} />
             </div>
-            <NodeViewOptions
-              node={node}
-              isFocused={isFocused || isHovered}
-              onOpenNodeInNewPane={onOpenNodeInNewPane}
-            />
+            {!disableCustomViews && (
+              <NodeViewOptions
+                node={node}
+                isFocused={isFocused || isHovered}
+                onOpenNodeInNewPane={onOpenNodeInNewPane}
+              />
+            )}
           </div>
 
           <div className="pl-8">
@@ -552,7 +553,6 @@ export function OutlineEditor({
                 scope ? (
                   <OutlineEditor
                     scope={childScope}
-                    scopeIterationCount={scopeIterationCount}
                     isParentDragged={isBeingDragged}
                     key={index}
                     nodeId={childScope.id}
@@ -566,6 +566,7 @@ export function OutlineEditor({
                     onReplaceNode={(newNodeId) => onReplaceChildNodeAt(index, newNodeId)}
                     isHoveringOverId={isHoveringOverId}
                     setIsHoveringOverId={setIsHoveringOverId}
+                    disableCustomViews={disableCustomViews}
                   />
                 ) : null
               )}

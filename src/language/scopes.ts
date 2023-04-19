@@ -171,12 +171,17 @@ export class Scope {
       : transcludedProperties
   }
 
-  extractDataInScope<T>(extractFn: (scope: Scope) => T | undefined): DataWithProvenance<T>[] {
+  extractDataInScope<T>(extractFn: (scope: Scope) => T | T[] | undefined): DataWithProvenance<T>[] {
     const results: DataWithProvenance<T>[] = []
 
     this.traverseScope((scope) => {
       const data = extractFn(scope)
-      if (data !== undefined) {
+
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          results.push({ scope, data: item })
+        }
+      } else if (data !== undefined) {
         results.push({ scope, data })
       }
     }, null)
@@ -219,8 +224,6 @@ export class Scope {
   }
 
   addComputationResult(computation: ComputationResult) {
-    console.log("update computation")
-
     this.computationResults.push(computation)
     this.onUpdate()
   }

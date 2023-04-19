@@ -18,7 +18,7 @@ import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import colors from "../colors"
-import { DataWithProvenance } from "../language/scopes"
+import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
 
@@ -70,19 +70,28 @@ export function MapNodeView({
   })
 
   // todo: replace when complex computed results are also represented as scopes
-  const geoJsonShapes = scope.extractDataInScope<GeoJsonShape>((scope) => {
-    const value = scope.valueOf()
+  const [geoJsonShapes, setGeoJsonShapes] = useState<DataWithProvenance<GeoJsonShape>[]>([])
 
-    if (!value || !value.geoJson) {
-      return
-    }
+  const onUpdateScope = useStaticCallback(() => {
+    const newGeoJsonShapes = scope.extractDataInScope<GeoJsonShape>((scope) => {
+      const color = scope.getProperty("color")
 
-    const color = scope.getProperty("color")
-    return {
-      color,
-      geoJson: value.geoJson,
-    }
+      return scope.computationResults.flatMap((result) =>
+        result.data.geoJson
+          ? [
+              {
+                color,
+                geoJson: result.data.geoJson,
+              },
+            ]
+          : []
+      )
+    })
+
+    setGeoJsonShapes(newGeoJsonShapes)
   })
+
+  useUpdateHandler(scope, onUpdateScope)
 
   // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
   // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
@@ -379,7 +388,7 @@ export function MapNodeView({
 
       dataLayer.setMap(currentMap)
       dataLayersRef.current.push({
-        scope,
+        scope: geoJsonShape.scope,
         data: dataLayer,
       })
     }
@@ -695,6 +704,7 @@ function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBo
   return bounds
 }
 
+/*
 function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.Map) {
   const center = map.getCenter()
   const zoom = map.getZoom()
@@ -741,3 +751,4 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
     inputNode.children.push(zoomPropertyNode.id)
   }
 }
+*/

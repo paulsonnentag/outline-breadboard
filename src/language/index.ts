@@ -65,7 +65,7 @@ export function parseBullet(source: string): BulletNode {
       const text = source.slice(prevIndex, from)
       // ignore leading space
       if (bulletValue.length !== 0 || text.trim() !== "") {
-        bulletValue.push(new StringNode(prevIndex, from, text))
+        bulletValue.push(new StringNode(prevIndex, from, text.trim()))
       }
     }
     prevIndex = to
@@ -85,7 +85,7 @@ export function parseBullet(source: string): BulletNode {
 
   if (prevIndex < source.length) {
     const text = source.slice(prevIndex, source.length)
-    bulletValue.push(new StringNode(prevIndex, source.length, text))
+    bulletValue.push(new StringNode(prevIndex, source.length, text.trim()))
   }
 
   return new BulletNode(0, source.length, key, bulletValue)

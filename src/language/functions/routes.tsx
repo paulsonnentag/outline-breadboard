@@ -5,6 +5,8 @@ import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
 import { DataWithProvenance, Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
+import humanize from "humanize-duration"
+import humanizeDuration from "humanize-duration"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
@@ -129,6 +131,22 @@ const directionsServiceApi = googleApi.then((google) => {
   return new google.maps.DirectionsService()
 })
 
+const shortEnglishHumanizer = humanizeDuration.humanizer({
+  language: "shortEn",
+  languages: {
+    shortEn: {
+      y: () => "y",
+      mo: () => "mo",
+      w: () => "w",
+      d: () => "d",
+      h: () => "h",
+      m: () => "m",
+      s: () => "s",
+      ms: () => "ms",
+    },
+  },
+})
+
 function directionsResultToRoute(
   result: google.maps.DirectionsResult
 ): RouteInformation | undefined {
@@ -138,9 +156,10 @@ function directionsResultToRoute(
     return undefined
   }
 
-  const duration = `${round(
-    route.legs.reduce((sum, leg) => (leg.duration?.value ?? 0) + sum, 0) / 60 / 60
-  )} h`
+  const duration = shortEnglishHumanizer(
+    route.legs.reduce((sum, leg) => (leg.duration?.value ?? 0) + sum, 0) * 1000,
+    { largest: 2 }
+  )
   const distance = `${round(
     route.legs.reduce((sum, leg) => (leg.distance?.value ?? 0) + sum, 0) / 1000
   )} km`

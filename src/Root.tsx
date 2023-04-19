@@ -132,7 +132,6 @@ export function Root({ documentId }: RootProps) {
                   setFocusOffset(newFocusOffset)
                 }}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
-                onReplaceNode={(newNodeId) => onReplaceRootNodeAt(index, newNodeId)}
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
               />

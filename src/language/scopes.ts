@@ -3,6 +3,7 @@ import { BulletNode } from "./ast"
 import { getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
 import { useStaticCallback } from "../hooks"
+import { parseLatLng } from "../properties"
 
 export interface ComputationResult {
   name: string
@@ -13,6 +14,8 @@ export class Scope {
   id: string
   parentScope: Scope | undefined
   value: any
+  source: string
+
   props: {
     [name: string]: Scope
   } = {}
@@ -30,8 +33,9 @@ export class Scope {
 
   constructor(graph: Graph, id: string, parentScope: Scope | undefined) {
     this.id = id
-    const node = getNode(graph, id)
     this.parentScope = parentScope
+    const node = getNode(graph, id)
+    this.source = node.value
     this.bullet = parseBullet(node.value)
 
     const pendingValue = new Promise((resolve) => {
@@ -147,21 +151,28 @@ export class Scope {
     return this.parentScope ? this.parentScope.isInScope(id) : false
   }
 
-  private _extractDataInScope<T>(
-    extractFn: (scope: Scope) => T | undefined,
-    results: DataWithProvenance2<T>[]
-  ) {
-    for (const childScope of this.childScopes) {
-      childScope._extractDataInScope(extractFn, results)
-    }
+  // returns a list of all properties that are either defined on the node itself or in transcluded nodes
+  async getOwnPropertyAndPropertiesOfTransclusionAsync<T>(
+    key: string,
+    parse: (value: string) => T | undefined
+  ): Promise<DataWithProvenance<T>[]> {
+    const ownProperty = parse(await this.getPropertyAsync(key))
+    const transcludedProperties: DataWithProvenance<T>[] = (
+      await Promise.all(
+        Object.values(this.transcludedScopes).map(async (transcludedScope) => ({
+          scope: transcludedScope,
+          data: parse(await transcludedScope.getPropertyAsync(key)),
+        }))
+      )
+    ).filter(({ data }) => data !== undefined) as DataWithProvenance<T>[]
 
-    for (const transcludedScope of Object.values(this.transcludedScopes)) {
-      transcludedScope._extractDataInScope(extractFn, results)
-    }
+    return ownProperty
+      ? transcludedProperties.concat({ data: ownProperty, scope: this })
+      : transcludedProperties
   }
 
-  extractDataInScope<T>(extractFn: (scope: Scope) => T | undefined): DataWithProvenance2<T>[] {
-    const results: DataWithProvenance2<T>[] = []
+  extractDataInScope<T>(extractFn: (scope: Scope) => T | undefined): DataWithProvenance<T>[] {
+    const results: DataWithProvenance<T>[] = []
 
     this.traverseScope((scope) => {
       const data = extractFn(scope)
@@ -208,6 +219,8 @@ export class Scope {
   }
 
   addComputationResult(computation: ComputationResult) {
+    console.log("update computation")
+
     this.computationResults.push(computation)
     this.onUpdate()
   }
@@ -227,6 +240,11 @@ export class Scope {
     }
 
     this.updateHandlers.push(handler)
+  }
+
+  // todo: do something better than just return the source, it's fine for nodes without formulas
+  async getLabelAsync() {
+    return this.source
   }
 }
 
@@ -274,7 +292,7 @@ export function useRootScope(rootId: string): Scope | undefined {
   return scope
 }
 
-export interface DataWithProvenance2<T> {
+export interface DataWithProvenance<T> {
   scope: Scope
   data: T
 }

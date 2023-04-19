@@ -5,7 +5,7 @@ import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
 import { Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
-import { WeatherInfoView } from "./weather"
+import { DataWithProvenance } from "../scopes"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
@@ -17,10 +17,14 @@ export const ROUTE_FN: FunctionDefs = {
       value: "{Route(from:$ to:)}",
     },
     function: async ([], { from, to }, scope) => {
-      const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
-      const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))
+      if (from && to) {
+        const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
+        const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))
 
-      if (fromPos && toPos) {
+        if (!fromPos || !toPos) {
+          return undefined
+        }
+
         const routeInformation = await getRouteInformation(fromPos, toPos)
 
         if (routeInformation) {
@@ -29,11 +33,42 @@ export const ROUTE_FN: FunctionDefs = {
           scope.addComputationResult({
             name: "Route",
             data: {
-              from: await from.valueOfAsync(),
-              to: await to.valueOfAsync(),
+              from: await from.getLabelAsync(),
+              to: await to.getLabelAsync(),
               ...routeInformation,
             },
           })
+        }
+
+        return
+      }
+
+      let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
+
+      for (const childScope of scope.childScopes) {
+        const currentPositions: DataWithProvenance<google.maps.LatLngLiteral>[] =
+          await childScope.getOwnPropertyAndPropertiesOfTransclusionAsync("position", parseLatLng)
+
+        for (const prevPosition of prevPositions) {
+          for (const currentPosition of currentPositions) {
+            const routeInformation = await getRouteInformation(
+              prevPosition.data,
+              currentPosition.data
+            )
+
+            childScope.addComputationResult({
+              name: "Route",
+              data: {
+                from: await prevPosition.scope.getLabelAsync(),
+                to: await currentPosition.scope.getLabelAsync(),
+                ...routeInformation,
+              },
+            })
+          }
+        }
+
+        if (currentPositions.length !== 0) {
+          prevPositions = currentPositions
         }
       }
     },
@@ -131,7 +166,7 @@ interface RouteInfoViewProps {
 function RouteInfoView({ value }: RouteInfoViewProps) {
   return (
     <span>
-      {value.duration}, {value.distance}
+      {value.from} -> {value.to} - {value.duration}, {value.distance},
     </span>
   )
 }

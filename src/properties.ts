@@ -1,9 +1,6 @@
 import { isString } from "./utils"
 import { getNode, Graph, ValueNode } from "./graph"
 import LatLngLiteral = google.maps.LatLngLiteral
-import { getReferencedNodeIds } from "./language"
-import { Scope } from "./language/scopes"
-import { IdRefNode, InlineExprNode } from "./language/ast"
 
 const LAT_LONG_REGEX = /(-?\d+\.\d+),\s*(-?\d+\.\d+)/
 
@@ -72,30 +69,6 @@ export function parseDate(string: string | undefined): Date | undefined {
   return new Date(year, month - 1, day)
 }
 
-// read position property or referencedLocations
-export function readLatLngsOfNode(
-  graph: Graph,
-  nodeId: string
-): DataWithProvenance<LatLngLiteral>[] {
-  const node = getNode(graph, nodeId)
-
-  const ownPosition = readLatLng(graph, nodeId)
-  const referencedNodesPosition = parseReferencedLocationsInString(graph, node.value)
-  return ownPosition
-    ? referencedNodesPosition.concat({ nodeId, data: ownPosition, parentIds: [] }) // todo: add proper parentIds
-    : referencedNodesPosition
-}
-
-export function parseReferencedLocationsInString(
-  graph: Graph,
-  string: string
-): DataWithProvenance<LatLngLiteral>[] {
-  return getReferencedNodeIds(string).flatMap((referencedNodeId) => {
-    const latLng = readLatLng(graph, referencedNodeId)
-    return latLng ? [{ nodeId: referencedNodeId, data: latLng, parentIds: [] }] : [] // todo: add proper parentIds
-  })
-}
-
 export function readLatLng(graph: Graph, nodeId: string): LatLngLiteral | undefined {
   return readParsedProperty<LatLngLiteral>(graph, nodeId, "position", (value) => {
     if (value.lat && value.lng) {
@@ -108,10 +81,4 @@ export function readLatLng(graph: Graph, nodeId: string): LatLngLiteral | undefi
 
     return undefined
   })
-}
-
-export interface DataWithProvenance<T> {
-  nodeId: string
-  parentIds: string[]
-  data: T
 }

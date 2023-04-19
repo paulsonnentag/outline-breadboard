@@ -1,16 +1,21 @@
 import React, { useState } from "react"
 import { NodeViewProps } from "."
 import { useGraph } from "../graph"
-import { DataWithProvenance2 } from "../language/scopes"
+import { DataWithProvenance } from "../language/scopes"
 import CalendarGrid from "./CalendarGrid"
 import CalendarList from "./CalendarList"
 import { parseDate } from "../properties"
 
-export function CalendarNodeView({ node, scope, isHoveringOverId, setIsHoveringOverId }: NodeViewProps) {
+export function CalendarNodeView({
+  node,
+  scope,
+  isHoveringOverId,
+  setIsHoveringOverId,
+}: NodeViewProps) {
   const { graph } = useGraph()
   const [view, setView] = useState(0)
 
-  const dates: DataWithProvenance2<Date>[] = scope.extractDataInScope((scope) => {
+  const dates: DataWithProvenance<Date>[] = scope.extractDataInScope((scope) => {
     return parseDate(scope.getProperty("date"))
   })
 
@@ -48,8 +53,9 @@ function CalendarTabs({ view, setView }: CalendarTabsProps) {
         <li className="mr-2">
           <a
             href="#"
-            className={`inline-flex items-center p-4 border-b-2 group ${view === 0 ? "border-blue-600 text-blue-600" : "border-transparent"
-              }`}
+            className={`inline-flex items-center p-4 border-b-2 group ${
+              view === 0 ? "border-blue-600 text-blue-600" : "border-transparent"
+            }`}
             onClick={() => setView(0)}
           >
             <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>
@@ -61,8 +67,9 @@ function CalendarTabs({ view, setView }: CalendarTabsProps) {
         <li className="mr-2">
           <a
             href="#"
-            className={`inline-flex items-center p-4 border-b-2 group ${view === 1 ? "border-blue-600 text-blue-600" : "border-transparent"
-              }`}
+            className={`inline-flex items-center p-4 border-b-2 group ${
+              view === 1 ? "border-blue-600 text-blue-600" : "border-transparent"
+            }`}
             onClick={() => setView(1)}
           >
             <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>

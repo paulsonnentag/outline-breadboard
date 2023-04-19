@@ -11,13 +11,13 @@ import {
 } from "date-fns"
 import { formatDate, round } from "../../utils"
 import { FunctionDefs } from "./index"
-import { DataWithProvenance2 } from "../scopes"
+import { DataWithProvenance } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { isEqual as isDateEqual } from "date-fns"
 
 interface WeatherContext {
-  locations: DataWithProvenance2<google.maps.LatLngLiteral>[]
-  dates: DataWithProvenance2<Date>[]
+  locations: DataWithProvenance<google.maps.LatLngLiteral>[]
+  dates: DataWithProvenance<Date>[]
 }
 
 export const WEATHER_FN: FunctionDefs = {
@@ -43,7 +43,7 @@ export const WEATHER_FN: FunctionDefs = {
             name: "Weather",
             data: {
               on: formatDate(onDate),
-              at: await namedArgs.in.valueOfAsync(),
+              at: await namedArgs.in.getLabelAsync(),
               ...weather,
             },
           }
@@ -61,21 +61,10 @@ export const WEATHER_FN: FunctionDefs = {
 
       await scope.traverseScopeAsync<WeatherContext>(
         async (scope, context: WeatherContext) => {
-          const ownLocation = parseLatLng(await scope.getPropertyAsync("position"))
-          const transcludedLocations: DataWithProvenance2<LatLngLiteral>[] = (
-            await Promise.all(
-              Object.values(scope.transcludedScopes).map(async (transcludedScope) => ({
-                scope: transcludedScope,
-                data: parseLatLng(await transcludedScope.getPropertyAsync("position")),
-              }))
-            )
-          ).filter(
-            ({ data }) => data !== undefined
-          ) as DataWithProvenance2<google.maps.LatLngLiteral>[]
-
-          const newLocations = ownLocation
-            ? transcludedLocations.concat({ data: ownLocation, scope })
-            : transcludedLocations
+          const newLocations = await scope.getOwnPropertyAndPropertiesOfTransclusionAsync(
+            "position",
+            parseLatLng
+          )
 
           for (const newLocation of newLocations) {
             for (const date of context.dates) {
@@ -86,7 +75,7 @@ export const WEATHER_FN: FunctionDefs = {
                   name: "Weather",
                   data: {
                     on: formatDate(date.data),
-                    at: await newLocation.scope.valueOfAsync(),
+                    at: await newLocation.scope.getLabelAsync(),
                     ...weather,
                   },
                 }
@@ -107,15 +96,15 @@ export const WEATHER_FN: FunctionDefs = {
             }
           }
 
-          const ownDate = parseDate(await scope.getPropertyAsync("position"))
-          const transcludedDates: DataWithProvenance2<Date>[] = (
+          const ownDate = parseDate(await scope.getPropertyAsync("date"))
+          const transcludedDates: DataWithProvenance<Date>[] = (
             await Promise.all(
               Object.values(scope.transcludedScopes).map(async (transcludedScope) => ({
                 scope: transcludedScope,
                 data: parseDate(transcludedScope.id),
               }))
             )
-          ).filter(({ data }) => data !== undefined) as DataWithProvenance2<Date>[]
+          ).filter(({ data }) => data !== undefined) as DataWithProvenance<Date>[]
 
           const newDates = ownDate
             ? transcludedDates.concat({ data: ownDate, scope })
@@ -130,7 +119,7 @@ export const WEATHER_FN: FunctionDefs = {
                   name: "Weather",
                   data: {
                     on: formatDate(newDate.data),
-                    at: await location.scope.valueOfAsync(),
+                    at: await location.scope.getLabelAsync(),
                     ...weather,
                   },
                 }

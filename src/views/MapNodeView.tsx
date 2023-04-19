@@ -18,7 +18,7 @@ import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import colors from "../colors"
-import { DataWithProvenance2 } from "../language/scopes"
+import { DataWithProvenance } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
 
@@ -95,7 +95,7 @@ export function MapNodeView({
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
   const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
-  const dataLayersRef = useRef<DataWithProvenance2<google.maps.Data>[]>([])
+  const dataLayersRef = useRef<DataWithProvenance<google.maps.Data>[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
   const minBounds = google && getMinBounds(markers.map((marker) => marker.data.position))

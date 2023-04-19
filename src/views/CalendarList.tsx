@@ -1,13 +1,17 @@
-import { DataWithProvenance2 } from "../language/scopes"
+import { DataWithProvenance } from "../language/scopes"
 import { DateContents, isSameDay } from "./CalendarGrid"
 
 interface CalendarListProps {
-  dates: DataWithProvenance2<Date>[]
+  dates: DataWithProvenance<Date>[]
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
-export default function CalendarList({ dates, isHoveringOverId, setIsHoveringOverId }: CalendarListProps) {
+export default function CalendarList({
+  dates,
+  isHoveringOverId,
+  setIsHoveringOverId,
+}: CalendarListProps) {
   const sortedDates = [...dates].sort((a, b) => a.data.getTime() - b.data.getTime())
   const startDate = sortedDates[0].data
   const endDate = sortedDates[sortedDates.length - 1].data
@@ -24,14 +28,22 @@ export default function CalendarList({ dates, isHoveringOverId, setIsHoveringOve
     <div>
       {datesInRange.map((date) => {
         const matchingDate = dates.find((d) => d.data.getTime() === date.getTime())
-        return <DateRow key={date.toISOString()} data={matchingDate} date={date} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
+        return (
+          <DateRow
+            key={date.toISOString()}
+            data={matchingDate}
+            date={date}
+            isHoveringOverId={isHoveringOverId}
+            setIsHoveringOverId={setIsHoveringOverId}
+          />
+        )
       })}
     </div>
   )
 }
 
 interface DateRowProps {
-  data: DataWithProvenance2<Date> | undefined
+  data: DataWithProvenance<Date> | undefined
   date: Date
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
@@ -42,12 +54,24 @@ function DateRow({ data, date, isHoveringOverId, setIsHoveringOverId }: DateRowP
 
   return (
     <div
-      className={`py-2 mb-1 ${isToday ? "text-blue-600" : data === undefined ? "text-gray-400" : ""} ${data && data.scope.id === isHoveringOverId ? "bg-slate-200" : ""} ${data ? "border-t-2 border-slate-400" : "border-t-2 border-slate-100"}`}
+      className={`py-2 mb-1 ${
+        isToday ? "text-blue-600" : data === undefined ? "text-gray-400" : ""
+      } ${data && data.scope.id === isHoveringOverId ? "bg-slate-200" : ""} ${
+        data ? "border-t-2 border-slate-400" : "border-t-2 border-slate-100"
+      }`}
       onMouseEnter={() => data && setIsHoveringOverId(data.scope.id)}
-      onMouseLeave={() => data && isHoveringOverId == data.scope.id && setIsHoveringOverId(undefined)}
+      onMouseLeave={() =>
+        data && isHoveringOverId == data.scope.id && setIsHoveringOverId(undefined)
+      }
     >
       {date.toDateString()}
-      {data && <DateContents nodeId={data.scope.id} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />}
+      {data && (
+        <DateContents
+          nodeId={data.scope.id}
+          isHoveringOverId={isHoveringOverId}
+          setIsHoveringOverId={setIsHoveringOverId}
+        />
+      )}
     </div>
   )
 }

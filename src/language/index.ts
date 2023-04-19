@@ -83,7 +83,7 @@ export function parseBullet(source: string): BulletNode {
   return new BulletNode(0, source.length, key, bulletValue)
 }
 
-export const KEYWORD_REGEX = /(^.*?):/
+export const KEYWORD_REGEX = /(^[^{]*?):/
 function parseKey(source: string): StringNode | undefined {
   const match = source.match(KEYWORD_REGEX)
   if (match) {

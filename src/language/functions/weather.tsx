@@ -25,7 +25,6 @@ export const WEATHER_FN: FunctionDefs = {
     summaryView: ({ value }) => {
       return <WeatherInfoView value={value} />
     },
-
     autocomplete: {
       label: "Weather",
       value: "{Weather($)}",
@@ -315,15 +314,13 @@ export function WeatherInfoView({ value }: WeatherInfoViewProps) {
     : ""
 
   return (
-    <div className="text-purple-500 flex gap-2">
-      <div className="px-1 rounded border border-gray-300 bg-gray-100 w-fit flex gap-1">
-        {value.weatherCode && getWeatherIcon(value.weatherCode)}
-        <span className="text-gray-500">{description}</span>
-        <span className="text-gray-300"> </span>
-        <span className={value.min <= 0 ? "text-blue-500" : "text-gray-500"}>{value.min}</span>
-        <span className="text-gray-300">•</span>
-        <span className={value.max <= 0 ? "text-blue-500" : "text-gray-500"}>{value.max}</span>
-      </div>
+    <div className="flex gap-2">
+      {value.weatherCode && getWeatherIcon(value.weatherCode)}
+      <span className="text-gray-500">{description}</span>
+      <span className="text-gray-300"> </span>
+      <span className={value.min <= 0 ? "text-blue-500" : "text-gray-500"}>{value.min}</span>
+      <span className="text-gray-300">•</span>
+      <span className={value.max <= 0 ? "text-blue-500" : "text-gray-500"}>{value.max}</span>
     </div>
   )
 }

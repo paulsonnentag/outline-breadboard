@@ -22,7 +22,9 @@ interface ComputationsSummaryViewProps {
 }
 
 export function ComputationResultsSummaryView({ scope }: ComputationsSummaryViewProps) {
-  const [computationResults, setComputationResults] = useState<ComputationResult[]>([])
+  const [computationResults, setComputationResults] = useState<ComputationResult[]>(
+    scope.computationResults
+  )
 
   useUpdateHandler(scope, (scope) => {
     setComputationResults(scope.computationResults)
@@ -37,9 +39,15 @@ export function ComputationResultsSummaryView({ scope }: ComputationsSummaryView
       {computationResults.map((result, index) => {
         const View = FUNCTIONS[result.name].summaryView
 
-        if (View) {
-          return <View value={result.data} key={index} />
-        }
+        return (
+          <div
+            className="rounded bg-gray-100 border border-gray-200 w-fit px-1 flex gap-1"
+            key={index}
+          >
+            <span>{result.name.toLowerCase()}:</span>
+            {View ? <View value={result.data} /> : JSON.stringify(result.data).slice(0, 100)}
+          </div>
+        )
       })}
     </div>
   )

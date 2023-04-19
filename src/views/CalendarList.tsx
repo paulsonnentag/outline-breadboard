@@ -27,11 +27,12 @@ export default function CalendarList({
   return (
     <div>
       {datesInRange.map((date) => {
-        const matchingDate = dates.find((d) => d.data.getTime() === date.getTime())
+        // todo: filter might filter out things that happen on the same day, but don't start at the beginning of the day
+        const matchingDates = dates.filter((d) => d.data.getTime() === date.getTime())
         return (
           <DateRow
             key={date.toISOString()}
-            data={matchingDate}
+            data={matchingDates}
             date={date}
             isHoveringOverId={isHoveringOverId}
             setIsHoveringOverId={setIsHoveringOverId}
@@ -43,7 +44,7 @@ export default function CalendarList({
 }
 
 interface DateRowProps {
-  data: DataWithProvenance<Date> | undefined
+  data: DataWithProvenance<Date>[]
   date: Date
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
@@ -56,22 +57,16 @@ function DateRow({ data, date, isHoveringOverId, setIsHoveringOverId }: DateRowP
     <div
       className={`py-2 mb-1 ${
         isToday ? "text-blue-600" : data === undefined ? "text-gray-400" : ""
-      } ${data && data.scope.id === isHoveringOverId ? "bg-slate-200" : ""} ${
-        data ? "border-t-2 border-slate-400" : "border-t-2 border-slate-100"
       }`}
-      onMouseEnter={() => data && setIsHoveringOverId(data.scope.id)}
-      onMouseLeave={() =>
-        data && isHoveringOverId == data.scope.id && setIsHoveringOverId(undefined)
-      }
     >
       {date.toDateString()}
-      {data && (
+      {data.map(data => (
         <DateContents
-          nodeId={data.scope.id}
+          scope={data.scope}
           isHoveringOverId={isHoveringOverId}
           setIsHoveringOverId={setIsHoveringOverId}
         />
-      )}
+      ))}
     </div>
   )
 }

@@ -141,8 +141,8 @@ function DateContentsBlock(props: DateContentsBlockProps) {
       onMouseLeave={() => isHoveringOverId === scope.id && setIsHoveringOverId(undefined)}
     >
       {summary && <>
-        {/* {scope.valueOf()} */}
-        {/* <SummaryView scope={scope} /> */}
+        {scope.valueOf()}
+        <SummaryView scope={scope} />
         <DateSummary {...props} />
       </>
       }

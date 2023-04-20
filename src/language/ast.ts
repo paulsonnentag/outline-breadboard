@@ -157,21 +157,13 @@ export class FnNode extends AstNode {
   to: number
   name: string
   args: ArgumentNode[]
-  isMethod: boolean
 
-  constructor(
-    from: number,
-    to: number,
-    fnName: string,
-    args: ArgumentNode[],
-    isMethod: boolean = false // if true function is evaluated to apply to node where it's called from
-  ) {
+  constructor(from: number, to: number, fnName: string, args: ArgumentNode[]) {
     super()
     this.from = from
     this.to = to
     this.name = fnName
     this.args = args
-    this.isMethod = isMethod
   }
 
   async eval(scope: Scope) {

@@ -10,8 +10,8 @@ import {
   subDays,
   subYears,
 } from "date-fns"
-import { formatDate, round } from "../../utils"
-import { FunctionDefs } from "./index"
+import { round } from "../../utils"
+import { FunctionDefs, HAS_MISSING_ARGUMENTS_VALUE } from "./index"
 import { DataWithProvenance } from "../scopes"
 
 interface WeatherContext {
@@ -26,7 +26,7 @@ export const WEATHER_FN: FunctionDefs = {
     },
     autocomplete: {
       label: "Weather",
-      value: "{Weather(on:$ in:)}",
+      value: "{Weather(in: $, on: )}",
     },
     function: async ([node], namedArgs, scope) => {
       let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined
@@ -34,23 +34,8 @@ export const WEATHER_FN: FunctionDefs = {
         ? parseLatLng(await namedArgs.in.getPropertyAsync("position"))
         : undefined
 
-      if (onDate && inLocation) {
-        const weather = await getWeatherInformation(onDate, inLocation)
-
-        if (weather) {
-          const computation = {
-            name: "Weather",
-            data: {
-              on: formatDate(onDate),
-              at: await namedArgs.in.getLabelAsync(),
-              ...weather,
-            },
-          }
-
-          scope.addComputationResult(computation)
-        }
-
-        return
+      if (namedArgs.on && namedArgs.in) {
+        return onDate && inLocation ? getWeatherInformation(onDate, inLocation) : undefined
       }
 
       const rootContext: WeatherContext = {
@@ -58,33 +43,29 @@ export const WEATHER_FN: FunctionDefs = {
         locations: inLocation ? [{ scope: namedArgs.in, data: inLocation }] : [],
       }
 
-      await scope.traverseScopeAsync<WeatherContext>(
+      scope.traverseScopeAsync<WeatherContext>(
         async (scope, context: WeatherContext) => {
+          // hack to prevent infinite loop, where computations are added on the inserted result output, should be solved more cleanly
+          if (scope.source.startsWith("weather:")) {
+            return context
+          }
+
           const newLocations = await scope.getOwnPropertyAndPropertiesOfTransclusionAsync(
             "position",
             parseLatLng
           )
 
+          const allLocations = [...context.locations]
+
           for (const newLocation of newLocations) {
             for (const date of context.dates) {
-              const weather = await getWeatherInformation(date.data, newLocation.data)
-
-              if (weather) {
-                const computation = {
-                  name: "Weather",
-                  data: {
-                    on: formatDate(date.data),
-                    at: await newLocation.scope.getLabelAsync(),
-                    ...weather,
-                  },
-                }
-
-                scope.addComputationResult(computation)
-              }
+              scope.setProperty(
+                "weather",
+                `{Weather(in: #[${newLocation.scope.id}] on: #[${date.scope.id}] )}`
+              )
             }
           }
 
-          const allLocations = [...context.locations]
           for (const newLocation of newLocations) {
             if (
               allLocations.every(
@@ -96,11 +77,6 @@ export const WEATHER_FN: FunctionDefs = {
           }
 
           // can't use getOwnPropertyAndPropertiesOfTransclusionAsync because parsing dates for own scope and transcluded scope works differently
-
-          console.log(await scope.getPropertyAsync("date"))
-
-          // const value = await scope.getPropertyAsync("date")
-
           const ownDate = parseDate((await scope.getPropertyAsync("date"))?.id)
           const transcludedDates: DataWithProvenance<Date>[] = (
             await Promise.all(
@@ -117,20 +93,10 @@ export const WEATHER_FN: FunctionDefs = {
 
           for (const newDate of newDates) {
             for (const location of allLocations) {
-              const weather = await getWeatherInformation(newDate.data, location.data)
-
-              if (weather) {
-                const computation = {
-                  name: "Weather",
-                  data: {
-                    on: formatDate(newDate.data),
-                    at: await location.scope.getLabelAsync(),
-                    ...weather,
-                  },
-                }
-
-                scope.addComputationResult(computation)
-              }
+              scope.setProperty(
+                "weather",
+                `{Weather(in: #[${location.scope.id}] on: #[${newDate.scope.id}] )}`
+              )
             }
           }
 
@@ -150,7 +116,8 @@ export const WEATHER_FN: FunctionDefs = {
         { skipTranscludedScopes: true }
       )
 
-      // todo: return value
+      // return this value to indicate that the function has missing arguments and is using the tree traversal strategy
+      return HAS_MISSING_ARGUMENTS_VALUE
     },
   },
 }

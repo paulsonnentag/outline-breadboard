@@ -18,9 +18,7 @@ export const bulletEvalPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      //if (update.docChanged || update.viewportChanged || update.focusChanged || update.) {
       this.decorations = getBulletDecorations(update.view)
-      //}
     }
   },
   {

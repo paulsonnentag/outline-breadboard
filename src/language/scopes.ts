@@ -1,6 +1,6 @@
 import { parseBullet } from "./index"
 import { BulletNode } from "./ast"
-import { getNode, Graph, useGraph } from "../graph"
+import { createValueNode, getGraphDocHandle, getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
 import { useStaticCallback } from "../hooks"
 
@@ -225,6 +225,38 @@ export class Scope {
   addComputationResult(computation: ComputationResult) {
     this.computationResults.push(computation)
     this.onUpdate()
+  }
+
+  setProperty(name: string, value: string) {
+    const graphDocHandle = getGraphDocHandle()
+    const propertyScope = this.getChildScope(name)
+
+    // property already exists => override value
+    if (propertyScope) {
+      const keyValue = `${name}: ${value}`
+
+      // skip if value already matches
+      if (propertyScope.source === keyValue) {
+        return
+      }
+
+      graphDocHandle.change(({ graph }) => {
+        if (propertyScope) {
+          const node = getNode(graph, propertyScope.id)
+          node.value = keyValue
+        }
+      })
+      return
+    }
+
+    // otherwise create new node
+    graphDocHandle.change(({ graph }) => {
+      // otherwise create new property
+      const parentNode = getNode(graph, this.id)
+      const childNode = createValueNode(graph, { key: name, value })
+
+      parentNode.children.push(childNode.id)
+    })
   }
 
   // todo: on update doesn't cover all cases

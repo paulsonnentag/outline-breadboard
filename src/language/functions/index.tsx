@@ -10,6 +10,9 @@ export interface FunctionDefs {
   [name: string]: FunctionDef
 }
 
+// you should only return this value if the parameters are missing not if they are invalid
+export const HAS_MISSING_ARGUMENTS_VALUE = Symbol("hasMissingArguments")
+
 export const FUNCTIONS: FunctionDefs = {
   ...CORE_FNS,
   ...DISTANCE_FN,

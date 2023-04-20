@@ -1,6 +1,7 @@
 import { DataWithProvenance, Scope } from "../language/scopes"
 import classNames from "classnames"
 import { SummaryView } from "./index"
+import { RootOutlineEditor } from "../Root"
 
 interface CalendarGridProps {
   dates: DataWithProvenance<Date>[]
@@ -92,6 +93,7 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
 
       <DateContents
         scopes={data.map(value => value.scope)}
+        summary={true}
         setIsHoveringOverId={setIsHoveringOverId}
         isHoveringOverId={isHoveringOverId}
       />
@@ -101,18 +103,19 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
 
 interface DateContentsProps {
   scopes: Scope[]
+  summary?: boolean
   setIsHoveringOverId: (nodeId: string | undefined) => void
   isHoveringOverId: string | undefined
 }
 
-export function DateContents({ scopes, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
+export function DateContents({ scopes, summary, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
   return (<>
     {scopes.map(scope => 
       <div key={scope.id}>
-        <DateContentsBlock scope={scope} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
+        <DateContentsBlock scope={scope} summary={summary} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
         {/* Below includes an additional block of the local outline's tree if this date is included because of a reference to a date (that root date item is included in the above line) */}
         {(scope.parentScope && !scope.parentScope.childScopes.map(s => s.id).includes(scope.id)) && (
-          <DateContentsBlock scope={scope.parentScope} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
+          <DateContentsBlock scope={scope.parentScope} summary={summary} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
         )}
       </div>
     )}
@@ -122,19 +125,40 @@ export function DateContents({ scopes, setIsHoveringOverId, isHoveringOverId }: 
 
 interface DateContentsBlockProps {
   scope: Scope
+  summary?: boolean
   setIsHoveringOverId: (nodeId: string | undefined) => void
   isHoveringOverId: string | undefined
 }
 
-export function DateContentsBlock({ scope, setIsHoveringOverId, isHoveringOverId }: DateContentsBlockProps) {
+export function DateContentsBlock({ scope, summary, setIsHoveringOverId, isHoveringOverId }: DateContentsBlockProps) {
   return (
     <div
       className={classNames("text-sm text-gray-600", { "bg-slate-200 rounded": isHoveringOverId && scope.isInScope(isHoveringOverId) })}
       onMouseEnter={() => setIsHoveringOverId(scope.id)}
       onMouseLeave={() => isHoveringOverId === scope.id && setIsHoveringOverId(undefined)}
     >
-      {scope.valueOf()}
-      <SummaryView scope={scope} />
+      {summary && <>
+        {scope.valueOf()}
+        <SummaryView scope={scope} />
+      </>
+      }
+      {!summary && 
+        <RootOutlineEditor
+          focusOffset={0}
+          nodeId={scope.id}
+          index={0}
+          path={[]}
+          parentIds={[]}
+          selectedPath={[]}
+          onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
+            
+          }}
+          onOpenNodeInNewPane={node => {}}
+          isHoveringOverId={undefined}
+          setIsHoveringOverId={() => {}}
+          disableCustomViews={true}
+        />
+      }
     </div>
   )
 }

@@ -12,9 +12,16 @@ export default function CalendarList({
   isHoveringOverId,
   setIsHoveringOverId,
 }: CalendarListProps) {
-  const sortedDates = [...dates].sort((a, b) => a.data.getTime() - b.data.getTime())
-  const startDate = sortedDates[0].data
-  const endDate = sortedDates[sortedDates.length - 1].data
+  let sortedDates = dates.map((d) => d.data).sort((a, b) => a.getTime() - b.getTime())
+
+  if (sortedDates.length === 0) {
+    sortedDates = [new Date(), new Date()]
+  } else if (sortedDates.length === 1) {
+    sortedDates.push(sortedDates[0])
+  }
+
+  const startDate = sortedDates[0]
+  const endDate = sortedDates[sortedDates.length - 1]
 
   const datesInRange: Date[] = []
   const currentDate = new Date(startDate)

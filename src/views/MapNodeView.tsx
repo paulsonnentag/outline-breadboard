@@ -21,6 +21,7 @@ import colors from "../colors"
 import { DataWithProvenance, useUpdateHandler, Scope } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
+import { getGraphDocHandle } from "../graph"
 
 
 // this is necessary for tailwind to include the css classes
@@ -200,7 +201,7 @@ export function MapNodeView({
     evt.cancelBubble = true
 
     if (!graph[placeId]) {
-      await createPlaceNode(changeGraph, placeId)
+      await createPlaceNode(placeId)
     }
 
     // defer to selection handler if it's active
@@ -648,9 +649,10 @@ function PopoverOutlineView({
 }
 
 export async function createPlaceNode(
-  changeGraph: (fn: (graph: Graph) => void) => void,
   placeId: string
 ): Promise<ValueNode> {
+  const graphDocHandle = getGraphDocHandle()
+
   return new Promise((resolve) => {
     placesServiceApi.then((placesService) => {
       placesService.getDetails(
@@ -675,8 +677,8 @@ export async function createPlaceNode(
           const position = result?.geometry?.location
           const photo = result?.photos ? result.photos[0].getUrl() : undefined
 
-          changeGraph((graph) => {
-            const placeNode = createRecordNode(graph, {
+          graphDocHandle.change((graphDoc) => {
+            const placeNode = createRecordNode(graphDoc.graph, {
               id: placeId,
               name,
               props: [

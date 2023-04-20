@@ -5,6 +5,7 @@ import { WEATHER_FN } from "./weather"
 import { ComputationResult, Scope, useUpdateHandler } from "../scopes"
 import { useState } from "react"
 import { FunctionDef } from "./function-def"
+import { SEARCHLOCATIONS_FN } from "./search"
 
 export interface FunctionDefs {
   [name: string]: FunctionDef
@@ -15,6 +16,7 @@ export const FUNCTIONS: FunctionDefs = {
   ...DISTANCE_FN,
   ...ROUTE_FN,
   ...WEATHER_FN,
+  ...SEARCHLOCATIONS_FN
 }
 
 interface ComputationsSummaryViewProps {

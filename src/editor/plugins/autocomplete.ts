@@ -73,7 +73,7 @@ async function getPlacesAutocompletion(
         label: prediction.description,
         apply: async (view, completion, from, to) => {
           if (!graph[prediction.place_id]) {
-            await createPlaceNode(changeGraph, prediction.place_id)
+            await createPlaceNode(prediction.place_id)
           }
 
           view.dispatch(

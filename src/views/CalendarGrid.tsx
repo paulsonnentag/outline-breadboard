@@ -2,6 +2,7 @@ import { DataWithProvenance, Scope } from "../language/scopes"
 import classNames from "classnames"
 import { SummaryView } from "./index"
 import { RootOutlineEditor } from "../Root"
+import { ComputationResultsSummaryView } from "../language/functions"
 
 interface CalendarGridProps {
   dates: DataWithProvenance<Date>[]
@@ -130,7 +131,9 @@ interface DateContentsBlockProps {
   isHoveringOverId: string | undefined
 }
 
-export function DateContentsBlock({ scope, summary, setIsHoveringOverId, isHoveringOverId }: DateContentsBlockProps) {
+function DateContentsBlock(props: DateContentsBlockProps) {
+  const { scope, summary, setIsHoveringOverId, isHoveringOverId } = props
+
   return (
     <div
       className={classNames("text-sm text-gray-600", { "bg-slate-200 rounded": isHoveringOverId && scope.isInScope(isHoveringOverId) })}
@@ -138,8 +141,9 @@ export function DateContentsBlock({ scope, summary, setIsHoveringOverId, isHover
       onMouseLeave={() => isHoveringOverId === scope.id && setIsHoveringOverId(undefined)}
     >
       {summary && <>
-        {scope.valueOf()}
-        <SummaryView scope={scope} />
+        {/* {scope.valueOf()} */}
+        {/* <SummaryView scope={scope} /> */}
+        <DateSummary {...props} />
       </>
       }
       {!summary && 
@@ -159,6 +163,32 @@ export function DateContentsBlock({ scope, summary, setIsHoveringOverId, isHover
           disableCustomViews={true}
         />
       }
+    </div>
+  )
+}
+
+function DateSummary(props: DateContentsBlockProps) {
+  const { scope, summary, setIsHoveringOverId, isHoveringOverId } = props
+
+  return (
+    <ScopeSummary {...props} />
+  )
+}
+
+interface ScopeSummaryProps {
+  scope: Scope
+  setIsHoveringOverId: (nodeId: string | undefined) => void
+  isHoveringOverId: string | undefined
+}
+
+function ScopeSummary(props: ScopeSummaryProps) {
+  return (
+    <div>
+      <ComputationResultsSummaryView scope={props.scope} />
+
+      {props.scope.childScopes.map(scope => 
+        <ScopeSummary {...props} scope={scope} />
+      )}
     </div>
   )
 }

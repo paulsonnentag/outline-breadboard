@@ -187,7 +187,7 @@ function ScopeSummary(props: ScopeSummaryProps) {
       <ComputationResultsSummaryView scope={props.scope} />
 
       {props.scope.childScopes.map(scope => 
-        <ScopeSummary {...props} scope={scope} />
+        <ScopeSummary {...props} scope={scope} key={scope.id} />
       )}
     </div>
   )

@@ -5,6 +5,7 @@ import { DataWithProvenance } from "../language/scopes"
 import CalendarGrid from "./CalendarGrid"
 import CalendarList from "./CalendarList"
 import { parseDate } from "../properties"
+import CalendarCols from "./CalendarCols"
 
 export function CalendarNodeView({
   node,
@@ -37,6 +38,13 @@ export function CalendarNodeView({
           setIsHoveringOverId={setIsHoveringOverId}
         />
       )}
+      {view === 2 && (
+        <CalendarCols
+          dates={dates}
+          isHoveringOverId={isHoveringOverId}
+          setIsHoveringOverId={setIsHoveringOverId}
+        />
+      )}
     </div>
   )
 }
@@ -62,6 +70,20 @@ function CalendarTabs({ view, setView }: CalendarTabsProps) {
               calendar_view_month
             </span>{" "}
             Grid
+          </a>
+        </li>
+        <li className="mr-2">
+          <a
+            href="#"
+            className={`inline-flex items-center p-4 border-b-2 group ${
+              view === 2 ? "border-blue-600 text-blue-600" : "border-transparent"
+            }`}
+            onClick={() => setView(2)}
+          >
+            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>
+              calendar_view_week
+            </span>{" "}
+            Cols
           </a>
         </li>
         <li className="mr-2">

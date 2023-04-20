@@ -128,7 +128,9 @@ function getDatesAutocompletion(
       apply: (view, completion, from, to) => {
         if (!graph[date]) {
           changeGraph((graph) => {
-            createValueNode(graph, { id: date, value: date })
+            const node = createValueNode(graph, { id: date, value: date })
+            const attribute = createValueNode(graph, { value: `date: ${date}` })
+            node.children.push(attribute.id)
           })
         }
         setTimeout(() => {

@@ -53,6 +53,7 @@ export function createGraphDoc(repo: Repo) {
       computedProps: {},
       isCollapsed: false,
       isSelected: false,
+      expandedResultsByIndex: {},
     }
 
     doc.cache = {}
@@ -89,6 +90,7 @@ export interface ValueNode {
   }
   isCollapsed: boolean
   isSelected: boolean
+  expandedResultsByIndex: { [index: number]: boolean }
 }
 
 export interface RefNode {
@@ -158,6 +160,7 @@ export function createValueNode(graph: Graph, nodeDef: NodeDef): ValueNode {
     computedProps: {},
     isCollapsed: false,
     isSelected: false,
+    expandedResultsByIndex: {},
   }
 
   if (key) {

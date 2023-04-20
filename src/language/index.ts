@@ -1,4 +1,3 @@
-import { getNode, Graph } from "../graph"
 import { grammar } from "./grammar"
 import {
   AstNode,
@@ -9,31 +8,6 @@ import {
   StringNode,
   UndefinedNode,
 } from "./ast"
-
-interface Bullet {
-  key?: string // todo: implement key
-  value: any[]
-}
-
-export function getReferencedNodeIds(source: string): string[] {
-  const match = grammar.match(source)
-
-  if (!match.succeeded()) {
-    return []
-  }
-
-  const idMap: { [id: string]: boolean } = {}
-
-  const parts = formulaSemantics(match).toAst()
-
-  for (const part of parts) {
-    for (const id of part.getIdRefs()) {
-      idMap[id] = true
-    }
-  }
-
-  return Object.keys(idMap)
-}
 
 export function parseExpression(source: string): AstNode {
   const match = grammar.match(source, "Exp")

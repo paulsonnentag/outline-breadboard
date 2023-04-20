@@ -272,17 +272,16 @@ interface WeatherInfoViewProps {
 export function WeatherInfoView({ value }: WeatherInfoViewProps) {
   const description = value.weatherCode
     ? getWeatherDescription(value.weatherCode).toLowerCase()
-    : ""
+    : undefined
 
   return (
-    <div className="flex gap-2">
-      {value.weatherCode && getWeatherIcon(value.weatherCode)}
-      <span className="text-gray-500">{description}</span>
-      <span className="text-gray-300"> </span>
-      <span className={value.min <= 0 ? "text-blue-500" : "text-gray-500"}>{value.min}</span>
-      <span className="text-gray-300">•</span>
-      <span className={value.max <= 0 ? "text-blue-500" : "text-gray-500"}>{value.max}</span>
-    </div>
+    <span className="flex gap-2">
+      {value.weatherCode && <span>getWeatherIcon(value.weatherCode)</span>}
+      {description && <span>{description}</span>}
+      <span>{value.min}</span>
+      <span>•</span>
+      <span>{value.max}</span>
+    </span>
   )
 }
 

@@ -1,7 +1,7 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { useGraph } from "../graph"
+import { getNode, useGraph } from "../graph"
 import { autocompletion, completionStatus } from "@codemirror/autocomplete"
 import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
@@ -131,6 +131,12 @@ export function TextInput({
 
   useEffect(() => {
     const currentEditorView = editorViewRef.current
+
+    // todo: it's bad to reset the expand state here, but it should be fine
+    changeGraph(() => {
+      const node = getNode(graph, nodeId)
+      node.expandedResultsByIndex = {}
+    })
 
     if (!currentEditorView) {
       return

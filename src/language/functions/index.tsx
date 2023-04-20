@@ -39,19 +39,26 @@ export function ComputationResultsSummaryView({ scope }: ComputationsSummaryView
 
   return (
     <div>
-      {computationResults.map((result, index) => {
-        const View = FUNCTIONS[result.name].summaryView
-
-        return (
-          <div
-            className="rounded bg-gray-100 border border-gray-200 w-fit px-1 flex gap-1"
-            key={index}
-          >
-            <span>{result.name.toLowerCase()}:</span>
-            {View ? <View value={result.data} /> : JSON.stringify(result.data).slice(0, 100)}
-          </div>
-        )
-      })}
+      {computationResults.map((result, index) => (
+        <div
+          className="rounded bg-gray-100 border border-gray-200 w-fit px-1 flex gap-1"
+          key={index}
+        >
+          <span>{result.name.toLowerCase()}:</span>
+          <ComputationSummaryView functionName={result.name} value={result.data} />
+        </div>
+      ))}
     </div>
   )
+}
+
+interface ComputationSummaryViewProps {
+  functionName: string
+  value: any
+}
+
+export function ComputationSummaryView({ functionName, value }: ComputationSummaryViewProps) {
+  const View = FUNCTIONS[functionName].summaryView
+
+  return View ? <View value={value} /> : <span>{JSON.stringify(value)}</span>
 }

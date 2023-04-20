@@ -21,6 +21,8 @@ export class Scope {
 
   computationResults: ComputationResult[] = []
 
+  readonly expandedResultsByIndex: { [index: number]: boolean }
+
   private updateHandlers: ((scope: Scope) => void)[] = []
 
   childScopes: Scope[] = []
@@ -34,6 +36,7 @@ export class Scope {
     this.id = id
     this.parentScope = parentScope
     const node = getNode(graph, id)
+    this.expandedResultsByIndex = node.expandedResultsByIndex
     this.source = node.value
     this.bullet = parseBullet(node.value)
 

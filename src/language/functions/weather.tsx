@@ -5,6 +5,7 @@ import {
   format,
   isAfter,
   isBefore,
+  isEqual as isDateEqual,
   startOfDay,
   subDays,
   subYears,
@@ -12,8 +13,6 @@ import {
 import { formatDate, round } from "../../utils"
 import { FunctionDefs } from "./index"
 import { DataWithProvenance } from "../scopes"
-import LatLngLiteral = google.maps.LatLngLiteral
-import { isEqual as isDateEqual } from "date-fns"
 
 interface WeatherContext {
   locations: DataWithProvenance<google.maps.LatLngLiteral>[]
@@ -27,7 +26,7 @@ export const WEATHER_FN: FunctionDefs = {
     },
     autocomplete: {
       label: "Weather",
-      value: "{Weather($)}",
+      value: "{Weather(on:$ in:)}",
     },
     function: async ([node], namedArgs, scope) => {
       let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined

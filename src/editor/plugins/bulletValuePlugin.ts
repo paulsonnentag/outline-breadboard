@@ -6,9 +6,8 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view"
-import { InlineExprNode, isLiteral } from "../../language/ast"
+import { FnNode, InlineExprNode, isLiteral } from "../../language/ast"
 import { scopeFacet } from "./state"
-import { valueOf } from "../../language/scopes"
 
 export const bulletEvalPlugin = ViewPlugin.fromClass(
   class {
@@ -40,16 +39,13 @@ function getBulletDecorations(view: EditorView): DecorationSet {
     if (part instanceof InlineExprNode) {
       const decorations = [
         Decoration.mark({
-          class: "font-mono",
-          inclusive: true,
-        }).range(part.from, part.to),
-        Decoration.mark({
-          class: "text-gray-400",
-          inclusive: true,
+          class: "text-gray-300 inline-expr start",
         }).range(part.from, part.from + 1),
         Decoration.mark({
-          inclusive: true,
-          class: "text-gray-400",
+          class: "inline-expr middle",
+        }).range(part.from + 1, part.to - 1),
+        Decoration.mark({
+          class: "text-gray-300 inline-expr end",
         }).range(part.to - 1, part.to),
       ]
 

@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useRef } from "react"
+import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { useGraph } from "../graph"
@@ -50,6 +50,7 @@ export function TextInput({
   const { graph, changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
+  const [tempValue, setTempValue] = useState(value)
 
   // mount editor
 
@@ -78,7 +79,10 @@ export function TextInput({
         view.update([transaction])
 
         if (transaction.docChanged) {
-          onChange(view.state.doc.toString())
+          const newValue = view.state.doc.toString()
+
+          onChange(newValue)
+          setTempValue(newValue)
         }
       },
     }))

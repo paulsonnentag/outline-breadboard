@@ -9,10 +9,12 @@ import {
 } from "@codemirror/view"
 import { getGraph, getLabelOfNode, getNode } from "../../graph"
 import { triggerSelect } from "../../selectionHandler"
+import { scopeFacet } from "./state"
 
 class RefIdWidget extends WidgetType {
   constructor(
     readonly id: string,
+    readonly isInInlineExpr: boolean,
     readonly setIsHoveringOverId: (nodeId: string | undefined) => void
   ) {
     super()
@@ -26,28 +28,34 @@ class RefIdWidget extends WidgetType {
     const graph = getGraph()
     const node = getNode(graph, this.id)
 
-    const wrap = document.createElement("span")
-    wrap.setAttribute("aria-hidden", "true")
-    wrap.className = "px-1 rounded border border-gray-300 bg-gray-100"
-    wrap.innerText = getLabelOfNode(node)
+    const refIdElement = document.createElement("span")
+    refIdElement.setAttribute("aria-hidden", "true")
+    refIdElement.className = `-ml-1 px-1 text-blue-500 font-bold rounded`
+    refIdElement.innerText = `${getLabelOfNode(node)}`
 
-    wrap.addEventListener("click", () => {
+    refIdElement.addEventListener("click", () => {
       triggerSelect(this.id)
     })
 
-    wrap.addEventListener("mouseenter", () => {
-      wrap.classList.remove("bg-gray-100")
-      wrap.classList.add("bg-gray-200")
+    refIdElement.addEventListener("mouseenter", () => {
+      refIdElement.classList.add("bg-blue-200")
       this.setIsHoveringOverId(this.id)
     })
 
-    wrap.addEventListener("mouseleave", () => {
-      wrap.classList.add("bg-gray-100")
-      wrap.classList.remove("bg-gray-200")
+    refIdElement.addEventListener("mouseleave", () => {
+      refIdElement.classList.remove("bg-blue-200")
       this.setIsHoveringOverId(this.id)
     })
 
-    return wrap
+    if (this.isInInlineExpr) {
+      const inlineExprWrapper = document.createElement("span")
+      inlineExprWrapper.className = "inline-expr middle"
+
+      inlineExprWrapper.append(refIdElement)
+      return inlineExprWrapper
+    }
+
+    return refIdElement
   }
 
   ignoreEvent() {
@@ -58,10 +66,19 @@ class RefIdWidget extends WidgetType {
 export function getRefIdTokenPlugin(setIsHoveringOverId: (nodeId: string | undefined) => void) {
   const refIdMatcher = new MatchDecorator({
     regexp: /#\[([^\]]+)]/g,
-    decoration: ([, id]) =>
-      Decoration.replace({
-        widget: new RefIdWidget(id, setIsHoveringOverId),
-      }),
+    decorate: (add, from, to, [, id], view) => {
+      const scope = view.state.facet(scopeFacet)
+
+      const isInInlineExpr = scope.bullet.isRangeInInlineExpression(from, to)
+
+      add(
+        from,
+        to,
+        Decoration.replace({
+          widget: new RefIdWidget(id, isInInlineExpr, setIsHoveringOverId),
+        })
+      )
+    },
   })
 
   return ViewPlugin.fromClass(

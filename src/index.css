@@ -109,6 +109,7 @@
 .cm-line {
   font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu;
   font-size: 16px !important;
+  line-height: 1.5em;
 }
 
 .cm-content {
@@ -118,3 +119,26 @@
 .ͼ1.cm-focused{
   outline: 0 !important;
 }
+
+/* inline expr */
+
+.inline-expr {
+  background: theme('colors.gray.100');
+  border-top: 1px solid theme('colors.gray.300');
+  border-bottom: 1px solid theme('colors.gray.300');
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.inline-expr.end {
+  border-radius: 0 10px 10px 0;
+  border-right: 1px solid theme('colors.gray.300');
+  padding-right: 2px;
+}
+
+.inline-expr.start {
+  border-radius: 10px 0 0 10px;
+  border-left: 1px solid theme('colors.gray.300');
+  padding-left: 2px;
+}
+

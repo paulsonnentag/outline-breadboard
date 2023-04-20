@@ -60,13 +60,11 @@ function DateRow({ data, date, isHoveringOverId, setIsHoveringOverId }: DateRowP
       }`}
     >
       {date.toDateString()}
-      {data.map(data => (
-        <DateContents
-          scope={data.scope}
+      <DateContents
+          scopes={data.map(value => value.scope)}
           isHoveringOverId={isHoveringOverId}
           setIsHoveringOverId={setIsHoveringOverId}
         />
-      ))}
     </div>
   )
 }

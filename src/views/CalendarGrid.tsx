@@ -90,33 +90,48 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
         {date.getDate()} {monthName}
       </div>
 
-      {data.map((item, index) => (
-        <DateContents
-          key={index}
-          scope={item.scope}
-          setIsHoveringOverId={setIsHoveringOverId}
-          isHoveringOverId={isHoveringOverId}
-        />
-      ))}
+      <DateContents
+        scopes={data.map(value => value.scope)}
+        setIsHoveringOverId={setIsHoveringOverId}
+        isHoveringOverId={isHoveringOverId}
+      />
     </td>
   )
 }
 
 interface DateContentsProps {
+  scopes: Scope[]
+  setIsHoveringOverId: (nodeId: string | undefined) => void
+  isHoveringOverId: string | undefined
+}
+
+export function DateContents({ scopes, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
+  return (<>
+    {scopes.map(scope => 
+      <div key={scope.id}>
+        <DateContentsBlock scope={scope} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
+        {/* Below includes an additional block of the local outline's tree if this date is included because of a reference to a date (that root date item is included in the above line) */}
+        {(scope.parentScope && !scope.parentScope.childScopes.map(s => s.id).includes(scope.id)) && (
+          <DateContentsBlock scope={scope.parentScope} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
+        )}
+      </div>
+    )}
+  </>
+  )
+}
+
+interface DateContentsBlockProps {
   scope: Scope
   setIsHoveringOverId: (nodeId: string | undefined) => void
   isHoveringOverId: string | undefined
 }
 
-export function DateContents({ scope, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
-  const nodeId = scope.id
-  const isHovering = isHoveringOverId && scope.isInScope(isHoveringOverId)
-
+export function DateContentsBlock({ scope, setIsHoveringOverId, isHoveringOverId }: DateContentsBlockProps) {
   return (
     <div
-      className={classNames("text-sm text-gray-600", { "bg-slate-200 rounded": isHovering })}
-      onMouseEnter={() => setIsHoveringOverId(nodeId)}
-      onMouseLeave={() => isHoveringOverId === nodeId && setIsHoveringOverId(undefined)}
+      className={classNames("text-sm text-gray-600", { "bg-slate-200 rounded": isHoveringOverId && scope.isInScope(isHoveringOverId) })}
+      onMouseEnter={() => setIsHoveringOverId(scope.id)}
+      onMouseLeave={() => isHoveringOverId === scope.id && setIsHoveringOverId(undefined)}
     >
       {scope.valueOf()}
       <SummaryView scope={scope} />

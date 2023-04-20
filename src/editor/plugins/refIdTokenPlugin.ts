@@ -30,7 +30,7 @@ class RefIdWidget extends WidgetType {
 
     const refIdElement = document.createElement("span")
     refIdElement.setAttribute("aria-hidden", "true")
-    refIdElement.className = `-ml-1 px-1 text-blue-500 font-bold rounded`
+    refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded`
     refIdElement.innerText = `${getLabelOfNode(node)}`
 
     refIdElement.addEventListener("click", () => {

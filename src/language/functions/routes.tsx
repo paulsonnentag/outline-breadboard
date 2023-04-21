@@ -5,7 +5,6 @@ import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
 import { DataWithProvenance, Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
-import humanize from "humanize-duration"
 import humanizeDuration from "humanize-duration"
 
 export const ROUTE_FN: FunctionDefs = {
@@ -15,7 +14,7 @@ export const ROUTE_FN: FunctionDefs = {
     },
     autocomplete: {
       label: "Route",
-      value: "{Route(from:$ to:)}",
+      value: "{Route(from: $, to:)}",
     },
     function: async ([], { from, to }, scope) => {
       if (from && to) {
@@ -26,22 +25,7 @@ export const ROUTE_FN: FunctionDefs = {
           return undefined
         }
 
-        const routeInformation = await getRouteInformation(fromPos, toPos)
-
-        if (routeInformation) {
-          console.log("add", routeInformation, scope)
-
-          scope.addComputationResult({
-            name: "Route",
-            data: {
-              from: await from.getLabelAsync(),
-              to: await to.getLabelAsync(),
-              ...routeInformation,
-            },
-          })
-        }
-
-        return
+        return getRouteInformation(fromPos, toPos)
       }
 
       let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
@@ -57,14 +41,10 @@ export const ROUTE_FN: FunctionDefs = {
               currentPosition.data
             )
 
-            childScope.addComputationResult({
-              name: "Route",
-              data: {
-                from: await prevPosition.scope.getLabelAsync(),
-                to: await currentPosition.scope.getLabelAsync(),
-                ...routeInformation,
-              },
-            })
+            childScope.setProperty(
+              "route",
+              `{Route(from: #[${prevPosition.scope.id}], to: #[${currentPosition.scope.id}])}`
+            )
           }
         }
 
@@ -80,6 +60,12 @@ async function getRouteInformation(
   from: LatLngLiteral,
   to: LatLngLiteral
 ): Promise<RouteInformation | undefined> {
+  return {
+    distance: "100 km",
+    duration: "2h",
+    geoJson: {},
+  }
+
   const graphDocHandle = getGraphDocHandle()
   const doc = await graphDocHandle.value()
 
@@ -184,7 +170,7 @@ interface RouteInfoViewProps {
 function RouteInfoView({ value }: RouteInfoViewProps) {
   return (
     <span>
-      {value.from} -&gt; {value.to} - {value.duration}, {value.distance},
+      {value.duration}, {value.distance}
     </span>
   )
 }

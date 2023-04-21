@@ -275,8 +275,8 @@ export function WeatherInfoView({ value }: WeatherInfoViewProps) {
     : undefined
 
   return (
-    <span className="flex gap-2">
-      {value.weatherCode && <span>getWeatherIcon(value.weatherCode)</span>}
+    <span className="flex flex-wrap gap-2">
+      {value.weatherCode && <span>{getWeatherIcon(value.weatherCode)}</span>}
       {description && <span>{description}</span>}
       <span>{value.min}</span>
       <span>•</span>

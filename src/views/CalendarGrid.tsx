@@ -3,9 +3,10 @@ import classNames from "classnames"
 import { SummaryView } from "./index"
 import { RootOutlineEditor } from "../Root"
 import { ComputationResultsSummaryView } from "../language/functions"
+import { WeatherInfoView } from "../language/functions/weather"
 
 interface CalendarGridProps {
-  dates: DataWithProvenance<Date>[]
+  dates: { date: Date, scopes: Scope[] }[]
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
@@ -15,7 +16,7 @@ export default function CalendarGrid({
   isHoveringOverId,
   setIsHoveringOverId,
 }: CalendarGridProps) {
-  let sortedDates = dates.map((d) => d.data).sort((a, b) => a.getTime() - b.getTime())
+  let sortedDates = dates.map((d) => d.date).sort((a, b) => a.getTime() - b.getTime())
 
   if (sortedDates.length === 0) {
     sortedDates = [new Date(), new Date()]
@@ -52,7 +53,7 @@ export default function CalendarGrid({
                 <DateCell
                   key={j}
                   date={date}
-                  data={dates.filter((d) => d.data.getTime() === date.getTime())}
+                  scopes={dates.filter((d) => d.date.getTime() === date.getTime()).flatMap(d => d.scopes)}
                   showMonth={(i == 0 && j == 0) || date.getDate() === 1}
                   isHoveringOverId={isHoveringOverId}
                   setIsHoveringOverId={setIsHoveringOverId}
@@ -68,13 +69,13 @@ export default function CalendarGrid({
 
 interface DateCellProps {
   date: Date
-  data: DataWithProvenance<Date>[]
+  scopes: Scope[]
   showMonth: boolean
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
-function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId }: DateCellProps) {
+function DateCell({ date, scopes, showMonth, isHoveringOverId, setIsHoveringOverId }: DateCellProps) {
   const isToday = isSameDay(date, new Date())
   const monthName = showMonth ? date.toLocaleString("default", { month: "long" }) : null
 
@@ -84,7 +85,7 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
         className={
           isToday
             ? "text-blue-600 font-medium"
-            : data.length < 1
+            : scopes.length < 1
             ? "text-gray-400 font-medium"
             : "text-gray-600 font-medium"
         }
@@ -93,7 +94,7 @@ function DateCell({ date, data, showMonth, isHoveringOverId, setIsHoveringOverId
       </div>
 
       <DateContents
-        scopes={data.map(value => value.scope)}
+        scopes={scopes}
         summary={true}
         setIsHoveringOverId={setIsHoveringOverId}
         isHoveringOverId={isHoveringOverId}
@@ -114,10 +115,6 @@ export function DateContents({ scopes, summary, setIsHoveringOverId, isHoveringO
     {scopes.map(scope => 
       <div key={scope.id}>
         <DateContentsBlock scope={scope} summary={summary} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
-        {/* Below includes an additional block of the local outline's tree if this date is included because of a reference to a date (that root date item is included in the above line) */}
-        {(scope.parentScope && !scope.parentScope.childScopes.map(s => s.id).includes(scope.id)) && (
-          <DateContentsBlock scope={scope.parentScope} summary={summary} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
-        )}
       </div>
     )}
   </>
@@ -141,8 +138,8 @@ function DateContentsBlock(props: DateContentsBlockProps) {
       onMouseLeave={() => isHoveringOverId === scope.id && setIsHoveringOverId(undefined)}
     >
       {summary && <>
-        {`${scope.valueOf()}`}
-        <SummaryView scope={scope} />
+        {/* {`${scope.valueOf()}`} */}
+        {/* <SummaryView scope={scope} /> */}
         <DateSummary {...props} />
       </>
       }
@@ -182,9 +179,13 @@ interface ScopeSummaryProps {
 }
 
 function ScopeSummary(props: ScopeSummaryProps) {
+  let value = props.scope.valueOf()
+  
   return (
     <div>
-      <ComputationResultsSummaryView scope={props.scope} />
+      {value && value.min && value.max && value.weatherCode && <>
+        <WeatherInfoView value={value} />
+      </>}
 
       {props.scope.childScopes.map(scope => 
         <ScopeSummary {...props} scope={scope} key={scope.id} />

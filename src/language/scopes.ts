@@ -173,7 +173,23 @@ export class Scope {
       : transcludedProperties
   }
 
-  extractDataInScope<T>(extractFn: (scope: Scope) => T | T[] | undefined): DataWithProvenance<T>[] {
+  getOwnPropertyAndPropertiesOfTransclusion<T>(
+    key: string,
+    parse: (value: string) => T | undefined
+  ): DataWithProvenance<T>[] {
+    const ownProperty = parse(this.getProperty(key))
+    const transcludedProperties: DataWithProvenance<T>[] = Object.values(this.transcludedScopes).map((transcludedScope) => ({
+          scope: transcludedScope,
+          data: parse(transcludedScope.getProperty(key)),
+        })
+    ).filter(({ data }) => data !== undefined) as DataWithProvenance<T>[]
+
+    return ownProperty
+      ? transcludedProperties.concat({ data: ownProperty, scope: this })
+      : transcludedProperties
+  }
+
+  extractDataInScope<T>(extractFn: (scope: Scope) => T | T[] | undefined, options?: TraverseOptions): DataWithProvenance<T>[] {
     const results: DataWithProvenance<T>[] = []
 
     this.traverseScope((scope) => {
@@ -186,7 +202,7 @@ export class Scope {
       } else if (data !== undefined) {
         results.push({ scope, data })
       }
-    }, null)
+    }, null, options)
 
     return results
   }

@@ -6,6 +6,7 @@ import CalendarGrid from "./CalendarGrid"
 import CalendarList from "./CalendarList"
 import { parseDate } from "../properties"
 import CalendarCols from "./CalendarCols"
+import { Scope } from "../language/scopes"
 
 export function CalendarNodeView({
   node,
@@ -16,9 +17,28 @@ export function CalendarNodeView({
   const { graph } = useGraph()
   const [view, setView] = useState(0)
 
-  const dates: DataWithProvenance<Date>[] = scope.extractDataInScope((scope) => {
-    return parseDate(scope.getProperty("date"))
+  const bulletsWithDate: DataWithProvenance<DataWithProvenance<Date>>[] = scope.extractDataInScope((scope) => {  
+    return scope.getOwnPropertyAndPropertiesOfTransclusion<Date>("date", parseDate)
+  }, { skipTranscludedScopes: true})
+
+  const dateScopesWithBullets: {[date:string] : { date: Date, dateScope: Scope, scopes: Scope[]}} = {  }
+
+  bulletsWithDate.forEach((bulletWithDate) => {
+      const referencedDate = bulletWithDate.data.data
+      const key = referencedDate.toString()
+
+      let dateScope = dateScopesWithBullets[key]
+
+      if (!dateScope) {
+        dateScope = dateScopesWithBullets[key] = {date: referencedDate, scopes: [], dateScope: bulletWithDate.data.scope}
+      }
+      dateScope.scopes.push(bulletWithDate.scope)
   })
+
+
+  Object.values(dateScopesWithBullets).forEach((dateScopes) => {
+    dateScopes.scopes = [dateScopes.dateScope].concat(dateScopes.scopes.filter((scope) => dateScopes.scopes.every(otherScope => otherScope.id == scope.id || !scope.isInScope(otherScope.id))))
+  }) 
 
   return (
     <div>
@@ -26,21 +46,21 @@ export function CalendarNodeView({
 
       {view === 0 && (
         <CalendarGrid
-          dates={dates}
+          dates={Object.values(dateScopesWithBullets)}
           isHoveringOverId={isHoveringOverId}
           setIsHoveringOverId={setIsHoveringOverId}
         />
       )}
       {view === 1 && (
         <CalendarList
-          dates={dates}
+          dates={Object.values(dateScopesWithBullets)}
           isHoveringOverId={isHoveringOverId}
           setIsHoveringOverId={setIsHoveringOverId}
         />
       )}
       {view === 2 && (
         <CalendarCols
-          dates={dates}
+          dates={Object.values(dateScopesWithBullets)}
           isHoveringOverId={isHoveringOverId}
           setIsHoveringOverId={setIsHoveringOverId}
         />

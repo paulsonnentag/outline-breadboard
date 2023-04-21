@@ -29,18 +29,12 @@ export const ROUTE_FN: FunctionDefs = {
       }
 
       let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
-
       for (const childScope of scope.childScopes) {
         const currentPositions: DataWithProvenance<google.maps.LatLngLiteral>[] =
           await childScope.getOwnPropertyAndPropertiesOfTransclusionAsync("position", parseLatLng)
 
         for (const prevPosition of prevPositions) {
           for (const currentPosition of currentPositions) {
-            const routeInformation = await getRouteInformation(
-              prevPosition.data,
-              currentPosition.data
-            )
-
             childScope.setProperty(
               "route",
               `{Route(from: #[${prevPosition.scope.id}], to: #[${currentPosition.scope.id}])}`
@@ -108,11 +102,6 @@ interface RouteInformation {
   geoJson: object
 }
 
-interface RouteComputationResult extends RouteInformation {
-  from: string
-  to: string
-}
-
 const directionsServiceApi = googleApi.then((google) => {
   return new google.maps.DirectionsService()
 })
@@ -164,7 +153,7 @@ function directionsResultToRoute(
 }
 
 interface RouteInfoViewProps {
-  value: RouteComputationResult
+  value: RouteInformation
 }
 
 function RouteInfoView({ value }: RouteInfoViewProps) {

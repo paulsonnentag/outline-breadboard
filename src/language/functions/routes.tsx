@@ -27,6 +27,7 @@ export const ROUTE_FN: FunctionDefs = {
       }
 
       let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
+
       for (const childScope of scope.childScopes) {
         const currentPositions: DataWithProvenance<google.maps.LatLngLiteral>[] =
           await childScope.getOwnPropertyAndPropertiesOfTransclusionAsync("position", parseLatLng)
@@ -52,12 +53,6 @@ async function getRouteInformation(
   from: LatLngLiteral,
   to: LatLngLiteral
 ): Promise<RouteInformation | undefined> {
-  return {
-    distance: "100 km",
-    duration: "2h",
-    geoJson: {},
-  }
-
   const graphDocHandle = getGraphDocHandle()
   const doc = await graphDocHandle.value()
 

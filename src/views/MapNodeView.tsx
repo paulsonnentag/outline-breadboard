@@ -58,28 +58,19 @@ export function MapNodeView({
   })
 
   // todo: replace when complex computed results are also represented as scopes
-  const [geoJsonShapes, setGeoJsonShapes] = useState<DataWithProvenance<GeoJsonShape>[]>([])
+  // const [geoJsonShapes, setGeoJsonShapes] = useState<DataWithProvenance<GeoJsonShape>[]>([])
 
-  const onUpdateScope = useStaticCallback(() => {
-    const newGeoJsonShapes = scope.extractDataInScope<GeoJsonShape>((scope) => {
-      const color = scope.lookupValue("color")
+  const geoJsonShapes = scope.extractDataInScope<GeoJsonShape>((scope) => {
+    const color = scope.lookupValue("color")
+    const value = scope.valueOf()
 
-      return scope.computationResults.flatMap((result) =>
-        result.data.geoJson
-          ? [
-              {
-                color,
-                geoJson: result.data.geoJson,
-              },
-            ]
-          : []
-      )
-    })
-
-    setGeoJsonShapes(newGeoJsonShapes)
+    if (value && value.geoJson) {
+      return {
+        color,
+        geoJson: value.geoJson,
+      }
+    }
   })
-
-  useUpdateHandler(scope, onUpdateScope)
 
   // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
   // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]

@@ -36,9 +36,9 @@ if (!handle) {
 registerGraphHandle(handle)
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <RepoContext.Provider value={repo}>
-      <Root documentId={documentId} />
-    </RepoContext.Provider>
-  </React.StrictMode>
+  //<React.StrictMode>
+  <RepoContext.Provider value={repo}>
+    <Root documentId={documentId} />
+  </RepoContext.Provider>
+  // </React.StrictMode>
 )

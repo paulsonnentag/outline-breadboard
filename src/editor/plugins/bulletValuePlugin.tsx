@@ -48,13 +48,19 @@ function getBulletDecorations(view: EditorView): DecorationSet {
         Decoration.mark({
           class: "text-gray-300 inline-expr start",
         }).range(part.from, part.from + 1),
-        Decoration.mark({
-          class: "inline-expr middle",
-        }).range(part.from + 1, part.to - 1),
-        Decoration.mark({
-          class: "text-gray-300 inline-expr end",
-        }).range(part.to - 1, part.to),
       ]
+        .concat(
+          part.to - part.from > 2
+            ? Decoration.mark({
+                class: "inline-expr middle",
+              }).range(part.from + 1, part.to - 1)
+            : []
+        )
+        .concat(
+          Decoration.mark({
+            class: "text-gray-300 inline-expr end",
+          }).range(part.to - 1, part.to)
+        )
 
       if (!isLiteral(part.expr)) {
         const value = scope.valueOf(index)

@@ -187,22 +187,52 @@ export class Scope {
     return ownProperty
       ? transcludedProperties.concat({ data: ownProperty, scope: this })
       : transcludedProperties
-  }
-
-  extractDataInScope<T>(extractFn: (scope: Scope) => T | T[] | undefined, options?: TraverseOptions): DataWithProvenance<T>[] {
+  }extractDataInScope<T>(
+    extractFn: (scope: Scope) => T | T[] | undefined,
+    options?: TraverseOptions
+  ): DataWithProvenance<T>[] {
     const results: DataWithProvenance<T>[] = []
 
-    this.traverseScope((scope) => {
-      const data = extractFn(scope)
+    this.traverseScope(
+      (scope) => {
+        const data = extractFn(scope)
 
-      if (Array.isArray(data)) {
-        for (const item of data) {
-          results.push({ scope, data: item })
+        if (Array.isArray(data)) {
+          for (const item of data) {
+            results.push({ scope, data: item })
+          }
+        } else if (data !== undefined) {
+          results.push({ scope, data })
         }
-      } else if (data !== undefined) {
-        results.push({ scope, data })
-      }
-    }, null, options)
+      },
+      null,
+      options
+    )
+
+    return results
+  }
+
+  async extractDataInScopeAsync<T>(
+    extractFn: (scope: Scope) => Promise<T | T[] | undefined>,
+    options?: TraverseOptions
+  ): Promise<DataWithProvenance<T>[]> {
+    const results: DataWithProvenance<T>[] = []
+
+    await this.traverseScopeAsync(
+      async (scope) => {
+        const data = await extractFn(scope)
+
+        if (Array.isArray(data)) {
+          for (const item of data) {
+            results.push({ scope, data: item })
+          }
+        } else if (data !== undefined) {
+          results.push({ scope, data })
+        }
+      },
+      null,
+      options
+    )
 
     return results
   }

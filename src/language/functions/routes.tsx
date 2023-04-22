@@ -28,6 +28,9 @@ export const ROUTE_FN: FunctionDefs = {
 
       let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
 
+      const positions: DataWithProvenance<LatLngLiteral>[][] = []
+      const inBetweenLocations: DataWithProvenance<number>[] = []
+
       for (const childScope of scope.childScopes) {
         const currentPositions: DataWithProvenance<google.maps.LatLngLiteral>[] =
           await childScope.getOwnPropertyAndPropertiesOfTransclusionAsync("position", parseLatLng)
@@ -41,9 +44,56 @@ export const ROUTE_FN: FunctionDefs = {
           }
         }
 
-        if (currentPositions.length !== 0) {
+        if (currentPositions.length === 0) {
+          console.log("nothing", childScope.value)
+
+          const containedLocations = await childScope.extractDataInScopeAsync(
+            async (scope) => {
+              if (scope.source.startsWith("route:")) {
+                return
+              }
+
+              const positions = await scope.getOwnPropertyAndPropertiesOfTransclusionAsync(
+                "position",
+                parseLatLng
+              )
+              // console.log("inside", positions)
+
+              return positions
+            },
+            { skipTranscludedScopes: true }
+          )
+
+          for (const containedLocation of containedLocations) {
+            inBetweenLocations.push({
+              data: positions.length,
+              scope: containedLocation.scope,
+            })
+          }
+        } else {
           prevPositions = currentPositions
+          positions.push(currentPositions)
         }
+      }
+
+      console.log(inBetweenLocations)
+
+      for (const inBetweenLocation of inBetweenLocations) {
+        const prevPosition = positions[inBetweenLocation.data - 1][0]
+        const nextPosition = positions[inBetweenLocation.data][0]
+
+        if (!prevPosition || !nextPosition) {
+          continue
+        }
+
+        inBetweenLocation.scope.setProperty(
+          "route",
+
+          `{Route(from: #[${prevPosition.scope.id}], to:${inBetweenLocation.scope.source})} {Route(from: ${inBetweenLocation.scope.source}, to: #[${nextPosition.scope.id}])}`
+
+          // `${prevPosition.scope.source} -> ${curr}`
+          //`{Route(from: #[${prevPosition.scope.id}], to: #[${inBetweenLocation.scope.id}])} {Route(from: #[${inBetweenLocation.scope.id}], to: ${nextPosition.scope.id}])}`
+        )
       }
     },
   },

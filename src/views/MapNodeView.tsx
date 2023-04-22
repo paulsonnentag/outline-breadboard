@@ -62,14 +62,20 @@ export function MapNodeView({
 
   const geoJsonShapes = scope.extractDataInScope<GeoJsonShape>((scope) => {
     const color = scope.lookupValue("color")
-    const value = scope.valueOf()
+    const values = scope.value instanceof Promise ? [] : scope.value
 
-    if (value && value.geoJson) {
-      return {
-        color,
-        geoJson: value.geoJson,
+    return values.flatMap((value: any) => {
+      if (!value || !value.geoJson) {
+        return []
       }
-    }
+
+      return [
+        {
+          color,
+          geoJson: value.geoJson,
+        },
+      ]
+    })
   })
 
   // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])

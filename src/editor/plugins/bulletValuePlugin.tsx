@@ -8,11 +8,8 @@ import {
 } from "@codemirror/view"
 import { FnNode, InlineExprNode, isLiteral } from "../../language/ast"
 import { scopeFacet } from "./state"
-import {
-  ComputationSummaryView,
-  FUNCTIONS,
-  HAS_MISSING_ARGUMENTS_VALUE,
-} from "../../language/functions"
+import { ComputationSummaryView, FUNCTIONS } from "../../language/functions"
+import { HAS_MISSING_ARGUMENTS_VALUE } from "../../language/functions/function-def"
 import { getGraphDocHandle, getNode } from "../../graph"
 import { createRoot } from "react-dom/client"
 import { Scope } from "../../language/scopes"

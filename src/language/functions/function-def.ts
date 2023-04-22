@@ -1,12 +1,7 @@
 import { Scope } from "../scopes"
-import { FunctionComponent } from "react"
 
 interface NamedArgs {
   [name: string]: any
-}
-
-interface ComputationSummaryView {
-  value: any
 }
 
 export interface FunctionDef {
@@ -17,3 +12,10 @@ export interface FunctionDef {
   }
   summaryView?: (value: any) => HTMLElement | string
 }
+
+export interface FunctionDefs {
+  [name: string]: FunctionDef
+}
+
+// you should only return this value if the parameters are missing not if they are invalid
+export const HAS_MISSING_ARGUMENTS_VALUE = Symbol("hasMissingArguments")

@@ -4,14 +4,7 @@ import { ROUTE_FN } from "./routes"
 import { WEATHER_FN } from "./weather"
 import { ComputationResult, Scope, useUpdateHandler } from "../scopes"
 import { useState } from "react"
-import { FunctionDef } from "./function-def"
-
-export interface FunctionDefs {
-  [name: string]: FunctionDef
-}
-
-// you should only return this value if the parameters are missing not if they are invalid
-export const HAS_MISSING_ARGUMENTS_VALUE = Symbol("hasMissingArguments")
+import { FunctionDefs } from "./function-def"
 
 export const FUNCTIONS: FunctionDefs = {
   ...CORE_FNS,

@@ -11,7 +11,7 @@ import {
   subYears,
 } from "date-fns"
 import { round } from "../../utils"
-import { FunctionDefs, HAS_MISSING_ARGUMENTS_VALUE } from "./index"
+import { FunctionDefs, HAS_MISSING_ARGUMENTS_VALUE } from "./function-def"
 import { DataWithProvenance } from "../scopes"
 
 interface WeatherContext {
@@ -268,11 +268,7 @@ interface WeatherInfoViewProps {
 }
 
 export function WeatherInfoView({ value }: WeatherInfoViewProps) {
-  return (
-    <span className="flex flex-wrap gap-2">
-      {getWeatherSummary(value)}
-    </span>
-  )
+  return <span className="flex flex-wrap gap-2">{getWeatherSummary(value)}</span>
 }
 
 export function getWeatherSummary(value: WeatherInformation): string {

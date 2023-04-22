@@ -21,9 +21,7 @@ interface WeatherContext {
 
 export const WEATHER_FN: FunctionDefs = {
   Weather: {
-    summaryView: ({ value }) => {
-      return <WeatherInfoView value={value} />
-    },
+    summaryView: (value) => getWeatherSummary(value),
     autocomplete: {
       label: "Weather",
       value: "{Weather(in: $, on: )}",
@@ -270,19 +268,31 @@ interface WeatherInfoViewProps {
 }
 
 export function WeatherInfoView({ value }: WeatherInfoViewProps) {
+  return (
+    <span className="flex flex-wrap gap-2">
+      {getWeatherSummary(value)}
+    </span>
+  )
+}
+
+export function getWeatherSummary(value: WeatherInformation): string {
+  const result: string[] = []
+
+  const weatherIcon = value.weatherCode ? getWeatherIcon(value.weatherCode) : undefined
+  if (weatherIcon) {
+    result.push(weatherIcon)
+  }
+
   const description = value.weatherCode
     ? getWeatherDescription(value.weatherCode).toLowerCase()
     : undefined
+  if (description) {
+    result.push(description)
+  }
 
-  return (
-    <span className="flex flex-wrap gap-2">
-      {value.weatherCode && <span>{getWeatherIcon(value.weatherCode)}</span>}
-      {description && <span>{description}</span>}
-      <span>{value.min}</span>
-      <span>•</span>
-      <span>{value.max}</span>
-    </span>
-  )
+  result.push(`${value.min} • ${value.max}`)
+
+  return result.join(" ")
 }
 
 function getWeatherDescription(code: number): string {

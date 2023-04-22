@@ -9,9 +9,7 @@ import humanizeDuration from "humanize-duration"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
-    summaryView: ({ value }) => {
-      return <RouteInfoView value={value} />
-    },
+    summaryView: (value) => `${value.duration}, ${value.distance}`,
     autocomplete: {
       label: "Route",
       value: "{Route(from: $, to:)}",
@@ -150,16 +148,4 @@ function directionsResultToRoute(
       },
     },
   }
-}
-
-interface RouteInfoViewProps {
-  value: RouteInformation
-}
-
-function RouteInfoView({ value }: RouteInfoViewProps) {
-  return (
-    <span>
-      {value.duration}, {value.distance}
-    </span>
-  )
 }

@@ -58,7 +58,7 @@ interface ComputationSummaryViewProps {
 }
 
 export function ComputationSummaryView({ functionName, value }: ComputationSummaryViewProps) {
-  const View = FUNCTIONS[functionName].summaryView
+  const view = FUNCTIONS[functionName].summaryView
 
-  return View ? <View value={value} /> : <span>{JSON.stringify(value)}</span>
+  return view ? <span>view(value)</span> : <span>{JSON.stringify(value)}</span>
 }

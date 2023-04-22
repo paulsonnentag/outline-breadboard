@@ -2,7 +2,7 @@ import colors from "tailwindcss/colors"
 
 export function accentColors(setColor: string) {
   switch (setColor) {
-    case "red": 
+    case "red":
       return [
         colors.red[100],
         colors.red[200],
@@ -11,7 +11,7 @@ export function accentColors(setColor: string) {
         colors.red[500],
         colors.red[600],
       ]
-    case "orange": 
+    case "orange":
       return [
         colors.orange[100],
         colors.orange[200],
@@ -20,7 +20,7 @@ export function accentColors(setColor: string) {
         colors.orange[500],
         colors.orange[600],
       ]
-    case "yellow": 
+    case "yellow":
       return [
         colors.yellow[100],
         colors.yellow[200],
@@ -29,7 +29,7 @@ export function accentColors(setColor: string) {
         colors.yellow[500],
         colors.yellow[600],
       ]
-    case "green": 
+    case "green":
       return [
         colors.green[100],
         colors.green[200],
@@ -38,7 +38,7 @@ export function accentColors(setColor: string) {
         colors.green[500],
         colors.green[600],
       ]
-    case "blue": 
+    case "blue":
       return [
         colors.blue[100],
         colors.blue[300],
@@ -47,7 +47,7 @@ export function accentColors(setColor: string) {
         colors.blue[500],
         colors.blue[600],
       ]
-    case "purple": 
+    case "purple":
       return [
         colors.purple[100],
         colors.purple[200],
@@ -56,7 +56,7 @@ export function accentColors(setColor: string) {
         colors.purple[500],
         colors.purple[600],
       ]
-    case "pink": 
+    case "pink":
       return [
         colors.pink[100],
         colors.pink[200],
@@ -71,15 +71,15 @@ export function accentColors(setColor: string) {
 }
 
 export const defaultAccentColors = [
-  colors.gray[200], 
-  colors.gray[300], 
-  colors.gray[400], 
-  colors.purple[400], 
-  colors.purple[500], 
-  colors.purple[600], 
+  colors.gray[200],
+  colors.gray[300],
+  colors.gray[400],
+  colors.purple[400],
+  colors.purple[500],
+  colors.purple[600],
 ]
 
 export default {
   accentColors,
-  defaultAccentColors
+  defaultAccentColors,
 }

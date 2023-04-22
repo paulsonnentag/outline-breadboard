@@ -2,14 +2,11 @@ import { FunctionDefs } from "./index"
 import turfDistance from "@turf/distance"
 import { point as turfPoint } from "@turf/helpers"
 import { parseLatLng } from "../../properties"
-import { last } from "../../utils"
 import { DataWithProvenance, Scope } from "../scopes"
 
 export const DISTANCE_FN: FunctionDefs = {
   Distance: {
-    summaryView: ({ value }) => {
-      return <DistanceInfoView value={value} />
-    },
+    summaryView: (value) => `${Math.round(value.value)} ${unitShortName(value.unit)}`,
     autocomplete: {
       label: "Distance",
       value: "{Distance(from: $, to:)}",
@@ -92,12 +89,4 @@ interface DistanceInformation {
 
 interface DistanceInfoViewProps {
   value: DistanceInformation
-}
-
-function DistanceInfoView({ value }: DistanceInfoViewProps) {
-  return (
-    <span>
-      {Math.round(value.value)} {unitShortName(value.unit)}
-    </span>
-  )
 }

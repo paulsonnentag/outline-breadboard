@@ -10,7 +10,6 @@ import {
   ValueNode,
 } from "../graph"
 import classNames from "classnames"
-import { v4 } from "uuid"
 import { useStaticCallback } from "../hooks"
 import { createRoot } from "react-dom/client"
 import debounce from "lodash.debounce"
@@ -21,18 +20,6 @@ import colors from "../colors"
 import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
-
-// this is necessary for tailwind to include the css classes
-const COLORS = [
-  "border-blue-700",
-  "border-green-700",
-  "border-yellow-700",
-  "border-red-700",
-  "bg-blue-500",
-  "bg-green-500",
-  "bg-yellow-500",
-  "bg-red-500",
-]
 
 interface Marker {
   color?: string

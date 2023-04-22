@@ -17,6 +17,7 @@ import { getGraphDocHandle, getNode } from "../../graph"
 import { createRoot } from "react-dom/client"
 import { Scope } from "../../language/scopes"
 import classNames from "classnames"
+import colors from "../../colors"
 
 export const bulletEvalPlugin = ViewPlugin.fromClass(
   class {
@@ -85,15 +86,34 @@ function getBulletDecorations(view: EditorView): DecorationSet {
   return Decoration.set(decorations)
 }
 
-class ResultOutputWidget extends WidgetType {
-  container: HTMLElement
+//  listed here, so they will be included in the tailwind build
+const COLOR_CLASSES = [
+  "text-red-700",
+  "text-orange-700",
+  "text-yellow-700",
+  "text-green-700",
+  "text-blue-700",
+  "text-purple-700",
+  "text-pink-700",
+  "hover:bg-red-200",
+  "hover:bg-orange-200",
+  "hover:bg-yellow-200",
+  "hover:bg-green-200",
+  "hover:bg-blue-200",
+  "hover:bg-purple-200",
+  "hover:bg-pink-200",
+  "bg-red-200",
+  "bg-orange-200",
+  "bg-yellow-200",
+  "bg-green-200",
+  "bg-blue-200",
+  "bg-purple-200",
+  "bg-pink-200",
+]
 
-  constructor(readonly scope: any, readonly index: number, readonly functionName?: string) {
+class ResultOutputWidget extends WidgetType {
+  constructor(readonly scope: Scope, readonly index: number, readonly functionName?: string) {
     super()
-    this.container = document.createElement("span")
-    createRoot(this.container).render(
-      <ResultView index={index} scope={scope} functionName={functionName} />
-    )
   }
 
   eq(other: ResultOutputWidget) {
@@ -101,7 +121,42 @@ class ResultOutputWidget extends WidgetType {
   }
 
   toDOM() {
-    return this.container
+    const container = document.createElement("span")
+
+    const color = this.scope.lookup("color") ?? "purple"
+    const value = this.scope.valueOf(this.index)
+    const summaryView = this.functionName && FUNCTIONS[this.functionName].summaryView
+    const isExpandable = summaryView || typeof value === "object"
+    const isExpanded = this.scope.expandedResultsByIndex[this.index]
+
+    container.className = `ml-2 text-${color}-600 `
+    container.append("= ")
+
+    if (!isExpanded) {
+      const valueElement = document.createElement("span")
+      valueElement.className = classNames("px-1 rounded", {
+        [`border border-${color}-200`]: isExpandable,
+        [`hover:bg-${color}-200`]: isExpandable && !isExpanded,
+        [`bg-${color}-200`]: isExpanded,
+      })
+
+      const summaryElement = summaryView ? summaryView(value) : valueToString(value)
+      valueElement.append(summaryElement)
+      container.append(valueElement)
+
+      if (isExpandable) {
+        valueElement.addEventListener("click", () => {
+          getGraphDocHandle().change(({ graph }) => {
+            const node = getNode(graph, this.scope.id)
+            node.expandedResultsByIndex[this.index] = true
+          })
+
+          valueElement.remove()
+        })
+      }
+    }
+
+    return container
   }
 
   ignoreEvent() {
@@ -118,12 +173,7 @@ interface ResultViewProps {
 function ResultView({ index, scope, functionName }: ResultViewProps) {
   const isExpanded = scope.expandedResultsByIndex[index]
 
-  const toggleIsExpanded = () => {
-    getGraphDocHandle().change(({ graph }) => {
-      const node = getNode(graph, scope.id)
-      node.expandedResultsByIndex[index] = !node.expandedResultsByIndex[index]
-    })
-  }
+  const toggleIsExpanded = () => {}
 
   const value = scope.valueOf(index)
   const isExpandable = functionName && FUNCTIONS[functionName].summaryView
@@ -152,7 +202,7 @@ function ResultView({ index, scope, functionName }: ResultViewProps) {
       ={" "}
       <div
         className={classNames("rounded text-purple-600 w-fit px-1", {
-          "hover:bg-purple-200": isExpandable,
+          "hover:bg-purple-200 border border-purple-200": isExpandable,
         })}
         onClick={() => {
           if (isExpandable) {

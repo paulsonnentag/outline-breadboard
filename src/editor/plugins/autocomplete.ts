@@ -21,7 +21,7 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     const graph = getGraph()
     const search = reference.text.toString().slice(1).trim()
 
-    const placesOptions = await getPlacesAutocompletion(search, graph, changeGraph)
+    const placesOptions: any[] = [] //await getPlacesAutocompletion(search, graph, changeGraph)
 
     const dateOptions = getDatesAutocompletion(search, graph, changeGraph)
 

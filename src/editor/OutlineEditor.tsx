@@ -482,7 +482,7 @@ export function OutlineEditor({
               }}
             />
             <div
-              className={classNames("flex items-center flex-wrap pr-2 flex-1 rounded", {
+              className={classNames("pr-2 flex-1 rounded", {
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
                 "bg-slate-200 rounded":
                   getIsHovering(graph, node.id, parentIds, isHoveringOverId) &&
@@ -511,6 +511,36 @@ export function OutlineEditor({
                 setIsHoveringOverId={setIsHoveringOverId}
               />
               <ComputationResultsSummaryView scope={scope} />
+
+              <div className="flex gap-1 mt-2 ml-[5px]">
+                {Object.entries(scope.expandedResultsByIndex).map(([key, isExpanded]) => {
+                  const index = parseInt(key)
+
+                  console.log(isExpanded)
+
+                  if (!isExpanded) {
+                    return null
+                  }
+
+                  const computationColor = color ?? "purple"
+
+                  return (
+                    <pre
+                      className={`bg-${computationColor}-200 text-${computationColor}-600 rounded p-1`}
+                      onClick={() => {
+                        console.log("not")
+
+                        changeGraph((graph) => {
+                          const node = getNode(graph, nodeId)
+                          delete node.expandedResultsByIndex[index]
+                        })
+                      }}
+                    >
+                      {JSON.stringify(scope.valueOf(index), null, 2)}
+                    </pre>
+                  )
+                })}
+              </div>
             </div>
             {!disableCustomViews && (
               <NodeViewOptions

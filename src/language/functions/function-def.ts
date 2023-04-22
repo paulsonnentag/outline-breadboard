@@ -15,5 +15,5 @@ export interface FunctionDef {
     label: string
     value: string // the value that is inserted, use "$" to mark where cursor should be placed
   }
-  summaryView?: FunctionComponent<ComputationSummaryView>
+  summaryView?: (value: any) => HTMLElement | string
 }

@@ -5,12 +5,14 @@ import { WEATHER_FN } from "./weather"
 import { ComputationResult, Scope, useUpdateHandler } from "../scopes"
 import { useState } from "react"
 import { FunctionDefs } from "./function-def"
+import { SUNSET_FN } from "./sunset"
 
 export const FUNCTIONS: FunctionDefs = {
   ...CORE_FNS,
   ...DISTANCE_FN,
   ...ROUTE_FN,
   ...WEATHER_FN,
+  ...SUNSET_FN,
 }
 
 interface ComputationsSummaryViewProps {

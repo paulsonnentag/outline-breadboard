@@ -43,6 +43,7 @@
     "react-contenteditable": "^3.3.6",
     "react-dom": "^18.2.0",
     "seed-to-color": "^1.0.4",
+    "suncalc": "^1.9.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
@@ -53,6 +54,7 @@
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@types/seed-random": "^2.2.1",
+    "@types/suncalc": "^1.9.0",
     "@types/uuid": "^8.3.4",
     "@vitejs/plugin-react": "^2.1.0",
     "@welldone-software/why-did-you-render": "^7.0.1",

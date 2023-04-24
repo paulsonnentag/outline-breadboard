@@ -1,4 +1,3 @@
-import { FunctionDefs } from "./index"
 import { googleApi } from "../../google"
 import { round } from "../../utils"
 import { parseLatLng } from "../../properties"
@@ -6,6 +5,7 @@ import { getGraphDocHandle } from "../../graph"
 import { DataWithProvenance, Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
 import humanizeDuration from "humanize-duration"
+import { FunctionDefs } from "./function-def"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {

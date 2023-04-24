@@ -184,6 +184,7 @@ function ScopeSummary(props: ScopeSummaryProps) {
   return (
     <div>
       {value && value.min && value.max && value.weatherCode && <>
+        {/* This is hard-coded, but should be made abstract */}
         <WeatherInfoView value={value} />
       </>}
 

@@ -40,6 +40,7 @@ export default function CalendarCols({
           const matchingDates = dates.filter((d) => d.date.getTime() === date.getTime())
           const scopes = matchingDates.reduce((prev, cur) => prev.concat(cur.scopes), [] as Scope[])
           return (
+            <div className="min-w-[200px]">
             <DateRow
               key={date.toISOString()}
               scopes={scopes}
@@ -47,6 +48,7 @@ export default function CalendarCols({
               isHoveringOverId={isHoveringOverId}
               setIsHoveringOverId={setIsHoveringOverId}
             />
+            </div>
           )
         })}
       </div>

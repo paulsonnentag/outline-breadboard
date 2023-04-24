@@ -6,6 +6,7 @@ import { ComputationResult, Scope, useUpdateHandler } from "../scopes"
 import { useState } from "react"
 import { FunctionDefs } from "./function-def"
 import { SUNSET_FN } from "./sunset"
+import { safeJsonStringify } from "../../utils"
 
 export const FUNCTIONS: FunctionDefs = {
   ...CORE_FNS,
@@ -55,5 +56,5 @@ interface ComputationSummaryViewProps {
 export function ComputationSummaryView({ functionName, value }: ComputationSummaryViewProps) {
   const view = FUNCTIONS[functionName].summaryView
 
-  return view ? <span>view(value)</span> : <span>{JSON.stringify(value)}</span>
+  return view ? <span>view(value)</span> : <span>{safeJsonStringify(value)}</span>
 }

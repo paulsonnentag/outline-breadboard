@@ -61,3 +61,11 @@ export function promisify<T>(value: T): Promise<T> {
 export function formatDate(date: Date): string {
   return format(date, "MM/dd/yyyy")
 }
+
+export function safeJsonStringify(obj: any): string {
+  try {
+    return JSON.stringify(obj, null, 2)
+  } catch (err) {
+    return `[circular object]`
+  }
+}

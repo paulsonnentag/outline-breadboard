@@ -13,7 +13,7 @@ import {
 } from "../graph"
 import { DragEvent, MouseEvent, RefObject, useCallback, useState } from "react"
 import classNames from "classnames"
-import { getIsHovering, isString, last } from "../utils"
+import { getIsHovering, isString, last, safeJsonStringify } from "../utils"
 import { NodeView, NodeViewOptions } from "../views"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
@@ -536,7 +536,7 @@ export function OutlineEditor({
                         })
                       }}
                     >
-                      {JSON.stringify(scope.valueOf(index), null, 2)}
+                      {safeJsonStringify(scope.valueOf(index))}
                     </pre>
                   )
                 })}

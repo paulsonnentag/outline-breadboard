@@ -178,16 +178,18 @@ export class Scope {
     parse: (value: string) => T | undefined
   ): DataWithProvenance<T>[] {
     const ownProperty = parse(this.getProperty(key))
-    const transcludedProperties: DataWithProvenance<T>[] = Object.values(this.transcludedScopes).map((transcludedScope) => ({
-          scope: transcludedScope,
-          data: parse(transcludedScope.getProperty(key)),
-        })
-    ).filter(({ data }) => data !== undefined) as DataWithProvenance<T>[]
+    const transcludedProperties: DataWithProvenance<T>[] = Object.values(this.transcludedScopes)
+      .map((transcludedScope) => ({
+        scope: transcludedScope,
+        data: parse(transcludedScope.getProperty(key)),
+      }))
+      .filter(({ data }) => data !== undefined) as DataWithProvenance<T>[]
 
     return ownProperty
       ? transcludedProperties.concat({ data: ownProperty, scope: this })
       : transcludedProperties
-  }extractDataInScope<T>(
+  }
+  extractDataInScope<T>(
     extractFn: (scope: Scope) => T | T[] | undefined,
     options?: TraverseOptions
   ): DataWithProvenance<T>[] {
@@ -352,7 +354,11 @@ export async function valueOfAsync(obj: any) {
   return obj
 }
 
-export function useRootScope(rootId: string): Scope | undefined {
+interface UseRootScopeOptions {
+  disableEval: boolean
+}
+
+export function useRootScope(rootId: string, options?: UseRootScopeOptions): Scope | undefined {
   const { graph } = useGraph()
   const [scope, setScope] = useState<Scope | undefined>()
 
@@ -368,7 +374,10 @@ export function useRootScope(rootId: string): Scope | undefined {
     const newScope = new Scope(graph, rootId, undefined)
 
     newScope.registerUpdateHandler(() => setScope(newScope))
-    newScope.eval()
+
+    if (!options || !options.disableEval) {
+      newScope.eval()
+    }
     setScope(newScope)
   }, [graph, rootId])
 

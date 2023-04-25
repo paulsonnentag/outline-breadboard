@@ -14,13 +14,14 @@ const url = "ws://67.207.88.83" // cloud sync server on DigitalOcean
 
 const repo = new Repo({
   storage: new LocalForageStorageAdapter(),
-  network: [], //[new BrowserWebSocketClientAdapter(url)],
+  network: [new BrowserWebSocketClientAdapter(url)],
   sharePolicy: (peerId) => peerId.includes("storage-server"),
 })
 
 const params = new URLSearchParams(window.location.search)
 
 let documentId = params.get("documentId") as DocumentId
+let disableEval = params.get("disableEval") === "true"
 let handle
 
 if (!documentId) {
@@ -33,12 +34,14 @@ if (!handle) {
   handle = repo.find<GraphDoc>(documentId)
 }
 
+handle.value().then((doc) => console.log(JSON.parse(JSON.stringify(doc))))
+
 registerGraphHandle(handle)
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   //<React.StrictMode>
   <RepoContext.Provider value={repo}>
-    <Root documentId={documentId} />
+    <Root documentId={documentId} disableEval={disableEval} />
   </RepoContext.Provider>
   // </React.StrictMode>
 )

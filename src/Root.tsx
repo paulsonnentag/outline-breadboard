@@ -19,9 +19,10 @@ import { useDocumentWithHistory } from "./history"
 
 interface RootProps {
   documentId: DocumentId
+  disableEval: boolean
 }
 
-export function Root({ documentId }: RootProps) {
+export function Root({ documentId, disableEval }: RootProps) {
   const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
@@ -115,7 +116,7 @@ export function Root({ documentId }: RootProps) {
             <div key={index} className="flex-none flex gap-4">
               <div
                 className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none"
-                style={{width: `${width}px`}}
+                style={{ width: `${width}px` }}
               >
                 <div className="absolute top-1 right-1 z-50">
                   <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
@@ -134,16 +135,20 @@ export function Root({ documentId }: RootProps) {
                     setSelectedPath(newPath)
                     setFocusOffset(newFocusOffset)
                   }}
+                  disableEval={disableEval}
                   onOpenNodeInNewPane={onOpenNodeInNewPane}
                   isHoveringOverId={isHoveringOverId}
                   setIsHoveringOverId={setIsHoveringOverId}
                 />
               </div>
-              <WidthAdjust startingWidth={width} setNewWidth={(newWidth) => {
-                graphContext.changeGraph(graph => {
-                  graph[rootId].paneWidth = newWidth
-                })
-              }} />
+              <WidthAdjust
+                startingWidth={width}
+                setNewWidth={(newWidth) => {
+                  graphContext.changeGraph((graph) => {
+                    graph[rootId].paneWidth = newWidth
+                  })
+                }}
+              />
             </div>
           )
         })}
@@ -199,7 +204,7 @@ export function WidthAdjust(props: WidthAdjustProps) {
   const handler: MouseEventHandler = (mouseDownEvent) => {
     const startSize = props.startingWidth
     const startPosition = mouseDownEvent.pageX
-    
+
     function onMouseMove(mouseMoveEvent: MouseEvent) {
       props.setNewWidth(startSize - startPosition + mouseMoveEvent.pageX)
       mouseMoveEvent.preventDefault()
@@ -207,12 +212,12 @@ export function WidthAdjust(props: WidthAdjustProps) {
     }
 
     function onMouseUp() {
-      document.body.removeEventListener("mousemove", onMouseMove);
+      document.body.removeEventListener("mousemove", onMouseMove)
     }
-    
-    document.body.addEventListener("mousemove", onMouseMove);
-    document.body.addEventListener("mouseup", onMouseUp, { once: true });
-  };
+
+    document.body.addEventListener("mousemove", onMouseMove)
+    document.body.addEventListener("mouseup", onMouseUp, { once: true })
+  }
 
   return (
     <div className="flex flex-col justify-center h-full">
@@ -224,12 +229,13 @@ export function WidthAdjust(props: WidthAdjustProps) {
   )
 }
 
-
-type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope">
+type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope"> & {
+  disableEval: boolean
+}
 
 export function RootOutlineEditor(props: RootOutlineEditorProps) {
   const { nodeId } = props
-  const scope = useRootScope(nodeId)
+  const scope = useRootScope(nodeId, { disableEval: props.disableEval })
 
   if (!scope) {
     return null

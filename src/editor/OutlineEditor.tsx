@@ -461,26 +461,28 @@ export function OutlineEditor({
               </div>
             )}
 
-            <div
-              className={classNames("bullet", {
-                "is-transcluded": isReferenceNode,
-                "is-collapsed": isCollapsed,
-                invisible:
-                  !isFocused &&
-                  node.value == "" &&
-                  node.key === undefined &&
-                  node.view === undefined &&
-                  node.children.length === 0,
-              })}
-              onClick={(evt) => {
-                evt.stopPropagation()
-                if (evt.metaKey) {
-                  onOpenNodeInNewPane(node.id)
-                } else {
-                  onSelectNode(node.id)
-                }
-              }}
-            />
+            {!isRoot && (
+              <div
+                className={classNames("bullet", {
+                  "is-transcluded": isReferenceNode,
+                  "is-collapsed": isCollapsed,
+                  invisible:
+                    !isFocused &&
+                    node.value == "" &&
+                    node.key === undefined &&
+                    node.view === undefined &&
+                    node.children.length === 0,
+                })}
+                onClick={(evt) => {
+                  evt.stopPropagation()
+                  if (evt.metaKey) {
+                    onOpenNodeInNewPane(node.id)
+                  } else {
+                    onSelectNode(node.id)
+                  }
+                }}
+              />
+            )}
             <div
               className={classNames("pr-2 flex-1 rounded", {
                 "pl-2": isFocused || node.value !== "" || node.key !== undefined,
@@ -493,6 +495,7 @@ export function OutlineEditor({
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
             >
               <TextInput
+                isRoot={isRoot}
                 nodeId={node.id}
                 value={node.value as string}
                 scope={scope}

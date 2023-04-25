@@ -1,5 +1,5 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react"
-import { EditorView } from "@codemirror/view"
+import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { getNode, useGraph } from "../graph"
 import { autocompletion, completionStatus } from "@codemirror/autocomplete"
@@ -9,8 +9,11 @@ import { functionAutocompletionContext, getMentionCompletionContext } from "./pl
 import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
 import { Scope } from "../language/scopes"
 import { bulletEvalPlugin } from "./plugins/bulletValuePlugin"
+import classNames from "classnames"
 
 interface TextInputProps {
+  isRoot: boolean
+  placeholderText?: string
   nodeId: string
   scope: Scope
   value: string
@@ -30,6 +33,7 @@ interface TextInputProps {
 }
 
 export function TextInput({
+  isRoot,
   nodeId,
   scope,
   value,
@@ -50,7 +54,6 @@ export function TextInput({
   const { graph, changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
-  const [tempValue, setTempValue] = useState(value)
 
   // mount editor
 
@@ -73,6 +76,7 @@ export function TextInput({
         nodeIdFacet.of(nodeId),
         //scopeFacet.of(scope),
         scopeCompartment.of(scopeFacet.of(scope)),
+        placeholder(isRoot ? "Untitled" : ""),
       ],
       parent: containerRef.current,
       dispatch(transaction) {
@@ -82,7 +86,6 @@ export function TextInput({
           const newValue = view.state.doc.toString()
 
           onChange(newValue)
-          setTempValue(newValue)
         }
       },
     }))
@@ -230,6 +233,7 @@ export function TextInput({
 
   return (
     <div
+      className={classNames({ "is-root": isRoot })}
       onDragOverCapture={(evt) => evt.stopPropagation()}
       onDragEnterCapture={(evt) => {
         evt.preventDefault()

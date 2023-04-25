@@ -112,6 +112,10 @@
   line-height: 1.5em;
 }
 
+.is-root .cm-line {
+  font-size: 20px !important;
+}
+
 .cm-content {
   padding: 0 !important;
 }

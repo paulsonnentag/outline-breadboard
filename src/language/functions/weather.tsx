@@ -265,6 +265,11 @@ async function fetchHistoricWeatherData(location: google.maps.LatLngLiteral) {
     const max = historicWeatherRaw.daily.temperature_2m_max[i]
     const mean = historicWeatherRaw.daily.temperature_2m_mean[i]
 
+    // filter out null values of recent dates where there is no historical data available yet
+    if (min === null || max === null || mean === null) {
+      continue
+    }
+
     const [year, month, day] = date.split("-")
     const dayGroupKey = `${month}-${day}`
 
@@ -292,6 +297,8 @@ export function WeatherInfoView({ value }: WeatherInfoViewProps) {
 
 export function getWeatherSummary(value: WeatherInformation): string {
   const result: string[] = []
+
+  console.log(value)
 
   const weatherIcon = value.weatherCode ? getWeatherIcon(value.weatherCode) : undefined
   if (weatherIcon) {

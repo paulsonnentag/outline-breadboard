@@ -192,7 +192,7 @@ export class Scope {
       : transcludedProperties
   }
 
-  readAsDate(): Date[] {
+  readAsDate(): DataWithProvenance<Date>[] {
     if (this.value instanceof Promise) {
       return []
     }
@@ -203,11 +203,11 @@ export class Scope {
       }
 
       const date = parseDate(part.id)
-      return date ? [date] : []
+      return date ? [{ scope: part, data: date }] : []
     })
   }
 
-  readAsLocation(): LatLngLiteral[] {
+  readAsLocation(): DataWithProvenance<LatLngLiteral>[] {
     if (this.value instanceof Promise) {
       return []
     }
@@ -218,7 +218,7 @@ export class Scope {
       }
 
       const latLng = parseLatLng(part.getProperty("position"))
-      return latLng ? [latLng] : []
+      return latLng ? [{ scope: part, data: latLng }] : []
     })
   }
 

@@ -46,7 +46,9 @@ export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
 }
 
 export function getParameters(scope: Scope): Parameter[] {
-  return getOwnParameters(scope).concat(getSequentialParameters(scope))
+  return getOwnParameters(scope)
+    .concat(getSequentialParameters(scope))
+    .concat(getParentParameters(scope))
 }
 
 function getOwnParameters(scope: Scope): Parameter[] {
@@ -65,7 +67,7 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
   const date = scope.readAsDate()[0]
   if (date) {
     values.push({
-      expression: scope.source,
+      expression: `#[${date.scope.id}]`,
       type: "date",
     })
   }
@@ -73,7 +75,7 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
   const location = scope.readAsLocation()[0]
   if (location) {
     values.push({
-      expression: scope.source,
+      expression: `#[${location.scope.id}]`,
       type: "location",
     })
   }
@@ -127,4 +129,31 @@ function getSequentialParameters(scope: Scope): Parameter[] {
   } while (prevScope || nextScope)
 
   return parameters
+}
+
+function getParentParameters(scope: Scope): Parameter[] {
+  const parameters: Parameter[] = []
+  _getParentParameters(scope, 1, parameters)
+  return parameters
+}
+
+function _getParentParameters(scope: Scope, distance: number, parameters: Parameter[] = []) {
+  const parentScope = scope.parentScope
+
+  if (!parentScope) {
+    return
+  }
+
+  for (const value of parseValuesInScope(parentScope)) {
+    parameters.push({
+      distance,
+      relationship: "parent",
+      scope: parentScope,
+      value,
+    })
+  }
+
+  if (parentScope.parentScope) {
+    _getParentParameters(parentScope, distance + 1, parameters)
+  }
 }

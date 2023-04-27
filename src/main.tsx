@@ -1,7 +1,7 @@
 import "./wdyr"
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { DocumentId, Repo } from "automerge-repo"
+import { DocHandle, DocumentId, Repo } from "automerge-repo"
 import { RepoContext } from "automerge-repo-react-hooks"
 import "./index.css"
 import { LocalForageStorageAdapter } from "automerge-repo-storage-localforage"
@@ -22,7 +22,7 @@ const params = new URLSearchParams(window.location.search)
 
 let documentId = params.get("documentId") as DocumentId
 let disableEval = params.get("disableEval") === "true"
-let handle
+let handle: DocHandle<GraphDoc> | undefined = undefined
 
 if (!documentId) {
   handle = createGraphDoc(repo)
@@ -32,6 +32,29 @@ if (!documentId) {
 
 if (!handle) {
   handle = repo.find<GraphDoc>(documentId)
+}
+
+;(window as any).exportDoc = () => {
+  if (!handle) {
+    return
+  }
+
+  handle.value().then((value) => {
+    console.log("copy out the doc value", { value: JSON.stringify(value) })
+  })
+}
+;(window as any).replaceDoc = async (jsonString: string) => {
+  if (!handle) {
+    return
+  }
+
+  handle.change((doc) => {
+    Object.entries(JSON.parse(jsonString)).forEach(([key, value]) => {
+      ;(doc as any)[key] = value
+    })
+  })
+
+  console.log("replace doc")
 }
 
 registerGraphHandle(handle)

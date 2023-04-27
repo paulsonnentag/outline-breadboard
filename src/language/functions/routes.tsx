@@ -63,8 +63,6 @@ export const ROUTE_FN: FunctionDefs = {
         }
 
         if (currentPositions.length === 0) {
-          console.log("nothing", childScope.value)
-
           const containedLocations = await childScope.extractDataInScopeAsync(
             async (scope) => {
               if (scope.source.startsWith("route:")) {
@@ -93,8 +91,6 @@ export const ROUTE_FN: FunctionDefs = {
           positions.push(currentPositions)
         }
       }
-
-      console.log(inBetweenLocations)
 
       for (const inBetweenLocation of inBetweenLocations) {
         const prevPosition = positions[inBetweenLocation.data - 1][0]

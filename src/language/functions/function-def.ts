@@ -1,4 +1,5 @@
 import { Scope } from "../scopes"
+import { FunctionSuggestion, Parameter } from "../relationships"
 
 interface NamedArgs {
   [name: string]: any
@@ -11,6 +12,7 @@ export interface FunctionDef {
     value: string // the value that is inserted, use "$" to mark where cursor should be placed
   }
   summaryView?: (value: any) => HTMLElement | string
+  suggestions?: (parameters: Parameter[]) => FunctionSuggestion[]
 }
 
 export interface FunctionDefs {

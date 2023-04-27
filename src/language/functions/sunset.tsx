@@ -7,7 +7,7 @@ export const SUNSET_FN: FunctionDefs = {
   Sunset: {
     autocomplete: {
       label: "Sunset",
-      value: "{Sunset(in: $, on:)}",
+      value: "Sunset(in: $, on:)",
     },
     function: async ([], namedArgs) => {
       if (namedArgs.on && namedArgs.in) {

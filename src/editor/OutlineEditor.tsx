@@ -38,6 +38,8 @@ export interface OutlineEditorProps {
   disableCustomViews?: boolean
 }
 
+const SHOW_PARAMETERS = false
+
 export function OutlineEditor({
   nodeId,
   path,
@@ -516,11 +518,13 @@ export function OutlineEditor({
               />
               <ComputationResultsSummaryView scope={scope} />
 
-              <div>
-                {getParameters(scope).map((parameter, index) => (
-                  <div key={index}>{JSON.stringify(parameter)}</div>
-                ))}
-              </div>
+              {SHOW_PARAMETERS && (
+                <div>
+                  {getParameters(scope).map((parameter, index) => (
+                    <div key={index}>{JSON.stringify(parameter)}</div>
+                  ))}
+                </div>
+              )}
 
               <div className="flex gap-1 mt-2 ml-[5px]">
                 {Object.entries(scope.expandedResultsByIndex).map(([key, isExpanded]) => {

@@ -1,12 +1,11 @@
-import { createValueNode, getGraph, Graph, Node } from "../../graph"
+import { createValueNode, getGraph, getNode, Graph, Node } from "../../graph"
 import { Completion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "../../utils"
 import { placesAutocompleteApi } from "../../google"
 import { createPlaceNode } from "../../views/MapNodeView"
-import { FUNCTIONS } from "../../language/functions"
 import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
-import { FunctionDef } from "../../language/functions/function-def"
+import { getSuggestedFunctions } from "../../language/relationships"
 
 export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {
@@ -149,6 +148,15 @@ function getDatesAutocompletion(
   ]
 }
 
+function expressionToLabel(expression: string) {
+  const graph = getGraph()
+  return expression
+    .replace(/#\[([^\]]+)]/g, (match, id) => {
+      return getNode(graph, id).value
+    })
+    .replace("$", "")
+}
+
 export function functionAutocompletionContext(context: CompletionContext) {
   let reference = context.matchBefore(/\/.*/)
 
@@ -157,20 +165,18 @@ export function functionAutocompletionContext(context: CompletionContext) {
   }
 
   const search = reference.text.toString().slice(1).trim()
+  const scope = context.state.facet(scopeFacet)
 
-  const options = Object.values(FUNCTIONS).flatMap((fn: FunctionDef) => {
-    if (!fn.autocomplete || !fn.autocomplete.label.toLowerCase().includes(search.toLowerCase())) {
-      return []
-    }
+  const options = getSuggestedFunctions(scope)
+    .filter((suggestion) => suggestion.expression.startsWith(search))
+    .map(({ expression }) => {
+      const inlineExpr = `{${expression}}`
 
-    const { label, value } = fn.autocomplete
-
-    return [
-      {
-        label,
+      return {
+        label: expressionToLabel(expression),
         apply: (view, completion, from, to) => {
-          const indexOfDollarSign = value.indexOf("$")
-          const cursorOffset = indexOfDollarSign !== -1 ? indexOfDollarSign : value.length
+          const indexOfDollarSign = inlineExpr.indexOf("$")
+          const cursorOffset = indexOfDollarSign !== -1 ? indexOfDollarSign : inlineExpr.length
 
           view.dispatch(
             view.state.update({
@@ -179,8 +185,9 @@ export function functionAutocompletionContext(context: CompletionContext) {
                 to: to,
                 insert:
                   indexOfDollarSign !== -1
-                    ? value.slice(0, indexOfDollarSign) + value.slice(indexOfDollarSign + 1)
-                    : value,
+                    ? inlineExpr.slice(0, indexOfDollarSign) +
+                      inlineExpr.slice(indexOfDollarSign + 1)
+                    : inlineExpr,
               },
               selection: {
                 anchor: from + cursorOffset,
@@ -189,9 +196,8 @@ export function functionAutocompletionContext(context: CompletionContext) {
             })
           )
         },
-      } as Completion,
-    ]
-  })
+      } as Completion
+    })
 
   return {
     from: reference.from,

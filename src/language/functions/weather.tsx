@@ -13,6 +13,7 @@ import {
 import { round } from "../../utils"
 import { FunctionDefs, HAS_MISSING_ARGUMENTS_VALUE } from "./function-def"
 import { DataWithProvenance } from "../scopes"
+import { FunctionSuggestion, Parameter } from "../relationships"
 
 interface WeatherContext {
   locations: DataWithProvenance<google.maps.LatLngLiteral>[]
@@ -21,10 +22,27 @@ interface WeatherContext {
 
 export const WEATHER_FN: FunctionDefs = {
   Weather: {
+    suggestions: (parameters: Parameter[]) => {
+      const dates = parameters.filter((p) => p.value.type === "date")
+      const locations = parameters.filter((p) => p.value.type === "location")
+
+      const suggestions: FunctionSuggestion[] = []
+
+      for (const date of dates) {
+        for (const location of locations) {
+          suggestions.push({
+            name: "Weather",
+            expression: `Weather(in: ${location.value.expression}, on: ${date.value.expression})`,
+          })
+        }
+      }
+
+      return suggestions
+    },
     summaryView: (value) => getWeatherSummary(value),
     autocomplete: {
       label: "Weather",
-      value: "{Weather(in: $, on: )}",
+      value: "Weather(in: $, on: )",
     },
     function: async ([node], namedArgs, scope) => {
       let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined

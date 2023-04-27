@@ -1,15 +1,33 @@
-import { FunctionDefs } from "./index"
+import { FunctionDefs } from "./function-def"
 import turfDistance from "@turf/distance"
 import { point as turfPoint } from "@turf/helpers"
 import { parseLatLng } from "../../properties"
 import { DataWithProvenance, Scope } from "../scopes"
+import { FunctionSuggestion, Parameter } from "../relationships"
 
 export const DISTANCE_FN: FunctionDefs = {
   Distance: {
+    suggestions: (parameters: Parameter[]) => {
+      const locations = parameters.filter((p) => p.value.type === "location")
+      const suggestions: FunctionSuggestion[] = []
+
+      for (const locationA of locations) {
+        for (const locationB of locations) {
+          if (locationA !== locationB) {
+            suggestions.push({
+              name: "Distance",
+              expression: `Distance(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
+            })
+          }
+        }
+      }
+
+      return suggestions
+    },
     summaryView: (value) => `${Math.round(value.value)} ${unitShortName(value.unit)}`,
     autocomplete: {
       label: "Distance",
-      value: "{Distance(from: $, to:)}",
+      value: "Distance(from: $, to:)",
     },
     function: async ([], { from, to, unit = "kilometers" }, scope) => {
       if (from && to) {

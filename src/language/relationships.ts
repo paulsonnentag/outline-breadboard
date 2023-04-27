@@ -1,7 +1,13 @@
 import { Scope } from "./scopes"
 import { parseDate, parseLatLng } from "../properties"
+import { FUNCTIONS } from "./functions"
 
-interface Parameter {
+export interface FunctionSuggestion {
+  expression: string
+  name: string
+}
+
+export interface Parameter {
   relationship: "prev" | "next" | "parent" | "self"
   distance: number
   value: ParameterValue
@@ -10,6 +16,27 @@ interface Parameter {
 interface ParameterValue {
   expression: string
   type: "date" | "location"
+}
+
+export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
+  const parameters: Parameter[] = getParameters(scope)
+
+  return Object.entries(FUNCTIONS).flatMap(([name, fn]) => {
+    let suggestions: FunctionSuggestion[] = []
+
+    if (fn.suggestions) {
+      suggestions = suggestions.concat(fn.suggestions(parameters))
+    }
+
+    if (fn.autocomplete) {
+      suggestions.push({
+        name,
+        expression: fn.autocomplete.value,
+      })
+    }
+
+    return suggestions
+  })
 }
 
 export function getParameters(scope: Scope): Parameter[] {
@@ -50,7 +77,7 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
   return values
 }
 
-export function getSequentialParameters(scope: Scope): Parameter[] {
+function getSequentialParameters(scope: Scope): Parameter[] {
   const parent = scope.parentScope
 
   if (!parent) {

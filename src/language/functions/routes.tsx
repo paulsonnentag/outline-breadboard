@@ -6,13 +6,31 @@ import { DataWithProvenance, Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
 import humanizeDuration from "humanize-duration"
 import { FunctionDefs } from "./function-def"
+import { FunctionSuggestion, Parameter } from "../relationships"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
     summaryView: (value) => `${value.duration}, ${value.distance}`,
     autocomplete: {
       label: "Route",
-      value: "{Route(from: $, to:)}",
+      value: "Route(from: $, to:)",
+    },
+    suggestions: (parameters: Parameter[]) => {
+      const locations = parameters.filter((p) => p.value.type === "location")
+      const suggestions: FunctionSuggestion[] = []
+
+      for (const locationA of locations) {
+        for (const locationB of locations) {
+          if (locationA !== locationB) {
+            suggestions.push({
+              name: "Route",
+              expression: `Route(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
+            })
+          }
+        }
+      }
+
+      return suggestions
     },
     function: async ([], { from, to }, scope) => {
       if (from && to) {

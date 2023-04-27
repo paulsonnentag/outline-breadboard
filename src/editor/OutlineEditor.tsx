@@ -20,6 +20,7 @@ import { useStaticCallback } from "../hooks"
 import colors, { defaultAccentColors } from "../colors"
 import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView } from "../language/functions"
+import { getParameters } from "../language/relationships"
 
 export interface OutlineEditorProps {
   scope: Scope
@@ -514,6 +515,12 @@ export function OutlineEditor({
                 setIsHoveringOverId={setIsHoveringOverId}
               />
               <ComputationResultsSummaryView scope={scope} />
+
+              <div>
+                {getParameters(scope).map((parameter, index) => (
+                  <div key={index}>{JSON.stringify(parameter)}</div>
+                ))}
+              </div>
 
               <div className="flex gap-1 mt-2 ml-[5px]">
                 {Object.entries(scope.expandedResultsByIndex).map(([key, isExpanded]) => {

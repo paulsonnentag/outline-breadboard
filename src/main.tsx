@@ -34,8 +34,6 @@ if (!handle) {
   handle = repo.find<GraphDoc>(documentId)
 }
 
-handle.value().then((doc) => console.log(JSON.parse(JSON.stringify(doc))))
-
 registerGraphHandle(handle)
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

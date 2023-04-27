@@ -4,6 +4,10 @@ import { TableNodeView } from "./TableNodeView"
 import { CalendarNodeView } from "./CalendarNodeView"
 import classNames from "classnames"
 import { Scope } from "../language/scopes"
+import {
+  getGroupedSuggestedFunctions,
+  getSuggestedFunctions,
+} from "../language/function-suggestions"
 
 export interface NodeViewProps {
   node: ValueNode
@@ -47,11 +51,17 @@ export function NodeView(props: NodeViewProps) {
 // todo: the view options should be filtered depending on the data of the node
 export interface NodeViewOptionsProps {
   node: ValueNode
+  scope: Scope
   isFocused: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
 }
 
-export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeViewOptionsProps) {
+export function NodeViewOptions({
+  node,
+  scope,
+  isFocused,
+  onOpenNodeInNewPane,
+}: NodeViewOptionsProps) {
   const { graph, changeGraph } = useGraph()
   const nodeId = node.id
   const isMap = node.view === "map"
@@ -85,12 +95,33 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
     return null
   }
 
+  const suggestedFunctions = getGroupedSuggestedFunctions(scope)
+
   return (
     <div className="flex w-fit gap-1">
+      <>
+        {Object.entries(suggestedFunctions).map(([name, suggestions]) => {
+          if (suggestions.length === 0) {
+            return null
+          }
+
+          return (
+            <button
+              key={name}
+              className="rounded text-sm flex items-center justify-center hover:bg-gray-500 hover:text-white px-1"
+              onClick={() => {
+                scope.setProperty("computed", `{${suggestions[0].expression}}`)
+              }}
+            >
+              + {name}
+            </button>
+          )
+        })}
+      </>
       <button
         className={classNames(
-          "bg-gray-800 rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-800 hover:text-white",
-          isMap ? "bg-gray-800 text-white" : "bg-transparent text-gray-600"
+          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+          isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
         )}
         onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
       >
@@ -100,8 +131,8 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
       </button>
       <button
         className={classNames(
-          "bg-gray-800 rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-800 hover:text-white",
-          isTable ? "bg-gray-800 text-white" : "bg-transparent text-gray-600"
+          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+          isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
         )}
         onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
       >
@@ -111,8 +142,8 @@ export function NodeViewOptions({ node, isFocused, onOpenNodeInNewPane }: NodeVi
       </button>
       <button
         className={classNames(
-          "bg-gray-800 rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-800 hover:text-white",
-          isCalendar ? "bg-gray-800 text-white" : "bg-transparent text-gray-600"
+          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+          isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
         )}
         onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
       >

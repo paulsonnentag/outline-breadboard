@@ -1,5 +1,4 @@
 import { Scope } from "./scopes"
-import { parseDate, parseLatLng } from "../properties"
 import { FUNCTIONS } from "./functions"
 import { sortBy } from "lodash"
 
@@ -41,8 +40,25 @@ export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
 
       return suggestions
     }),
-    (suggestion) => suggestion.rank || Infinity
+    (suggestion) => suggestion.rank ?? Infinity
   )
+}
+
+interface GroupedFunctionSuggestions {
+  [name: string]: FunctionSuggestion[]
+}
+
+export function getGroupedSuggestedFunctions(scope: Scope): GroupedFunctionSuggestions {
+  const parameters: Parameter[] = getParameters(scope)
+  const groups: GroupedFunctionSuggestions = {}
+
+  Object.entries(FUNCTIONS).forEach(([name, fn]) => {
+    if (fn.suggestions) {
+      groups[name] = sortBy(fn.suggestions(parameters), (suggestion) => suggestion.rank ?? Infinity)
+    }
+  })
+
+  return groups
 }
 
 export function getParameters(scope: Scope): Parameter[] {

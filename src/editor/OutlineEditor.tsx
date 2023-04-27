@@ -70,13 +70,6 @@ export function OutlineEditor({
   const isReferenceNode = node.id !== nodeId
   const isReferenceView = isReferenceNode && graph[nodeId].view !== undefined
 
-  const onReplaceChildNodeAt = (index: number, newNodeId: string) => {
-    changeGraph((graph) => {
-      const node = getNode(graph, nodeId)
-      node.children[index] = newNodeId
-    })
-  }
-
   const onToggleIsCollapsed = useCallback(
     (evt: MouseEvent) => {
       changeGraph((graph) => {
@@ -426,6 +419,7 @@ export function OutlineEditor({
       {isReferenceView ? (
         <>
           <NodeViewOptions
+            scope={scope}
             node={graph[nodeId] as ValueNode}
             isFocused={true} // should this just be "showControls"?
             onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
@@ -559,6 +553,7 @@ export function OutlineEditor({
             {!disableCustomViews && (
               <NodeViewOptions
                 node={node}
+                scope={scope}
                 isFocused={isFocused || isHovered}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
               />

@@ -1,5 +1,5 @@
 import { Scope } from "../scopes"
-import { FunctionSuggestion, Parameter } from "../relationships"
+import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 interface NamedArgs {
   [name: string]: any

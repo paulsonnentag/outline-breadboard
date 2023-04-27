@@ -1,10 +1,12 @@
 import { Scope } from "./scopes"
 import { parseDate, parseLatLng } from "../properties"
 import { FUNCTIONS } from "./functions"
+import { sortBy } from "lodash"
 
 export interface FunctionSuggestion {
   expression: string
   name: string
+  rank?: number // lower number is better
 }
 
 export interface Parameter {
@@ -21,22 +23,25 @@ interface ParameterValue {
 export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
   const parameters: Parameter[] = getParameters(scope)
 
-  return Object.entries(FUNCTIONS).flatMap(([name, fn]) => {
-    let suggestions: FunctionSuggestion[] = []
+  return sortBy(
+    Object.entries(FUNCTIONS).flatMap(([name, fn]) => {
+      let suggestions: FunctionSuggestion[] = []
 
-    if (fn.suggestions) {
-      suggestions = suggestions.concat(fn.suggestions(parameters))
-    }
+      if (fn.suggestions) {
+        suggestions = suggestions.concat(fn.suggestions(parameters))
+      }
 
-    if (fn.autocomplete) {
-      suggestions.push({
-        name,
-        expression: fn.autocomplete.value,
-      })
-    }
+      if (fn.autocomplete) {
+        suggestions.push({
+          name,
+          expression: fn.autocomplete.value,
+        })
+      }
 
-    return suggestions
-  })
+      return suggestions
+    }),
+    (suggestion) => suggestion.rank || Infinity
+  )
 }
 
 export function getParameters(scope: Scope): Parameter[] {

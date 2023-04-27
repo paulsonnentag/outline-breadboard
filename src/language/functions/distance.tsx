@@ -3,7 +3,7 @@ import turfDistance from "@turf/distance"
 import { point as turfPoint } from "@turf/helpers"
 import { parseLatLng } from "../../properties"
 import { DataWithProvenance, Scope } from "../scopes"
-import { FunctionSuggestion, Parameter } from "../relationships"
+import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 export const DISTANCE_FN: FunctionDefs = {
   Distance: {
@@ -17,6 +17,7 @@ export const DISTANCE_FN: FunctionDefs = {
             suggestions.push({
               name: "Distance",
               expression: `Distance(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
+              rank: locationA.distance + locationB.distance,
             })
           }
         }

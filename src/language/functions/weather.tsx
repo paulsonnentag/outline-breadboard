@@ -13,7 +13,7 @@ import {
 import { round } from "../../utils"
 import { FunctionDefs, HAS_MISSING_ARGUMENTS_VALUE } from "./function-def"
 import { DataWithProvenance } from "../scopes"
-import { FunctionSuggestion, Parameter } from "../relationships"
+import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 interface WeatherContext {
   locations: DataWithProvenance<google.maps.LatLngLiteral>[]
@@ -33,6 +33,7 @@ export const WEATHER_FN: FunctionDefs = {
           suggestions.push({
             name: "Weather",
             expression: `Weather(in: ${location.value.expression}, on: ${date.value.expression})`,
+            rank: location.distance + date.distance,
           })
         }
       }

@@ -63,9 +63,11 @@ class RefIdWidget extends WidgetType {
   }
 }
 
+export const REF_ID_REGEX = /#\[([^\]]+)]/g
+
 export function getRefIdTokenPlugin(setIsHoveringOverId: (nodeId: string | undefined) => void) {
   const refIdMatcher = new MatchDecorator({
-    regexp: /#\[([^\]]+)]/g,
+    regexp: REF_ID_REGEX,
     decorate: (add, from, to, [, id], view) => {
       const scope = view.state.facet(scopeFacet)
 

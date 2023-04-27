@@ -20,7 +20,7 @@ import { useStaticCallback } from "../hooks"
 import colors, { defaultAccentColors } from "../colors"
 import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView } from "../language/functions"
-import { getParameters } from "../language/relationships"
+import { getParameters } from "../language/function-suggestions"
 
 export interface OutlineEditorProps {
   scope: Scope

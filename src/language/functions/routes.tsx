@@ -6,7 +6,7 @@ import { DataWithProvenance, Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
 import humanizeDuration from "humanize-duration"
 import { FunctionDefs } from "./function-def"
-import { FunctionSuggestion, Parameter } from "../relationships"
+import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
@@ -25,6 +25,7 @@ export const ROUTE_FN: FunctionDefs = {
             suggestions.push({
               name: "Route",
               expression: `Route(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
+              rank: locationA.distance + locationB.distance,
             })
           }
         }

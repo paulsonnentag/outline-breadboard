@@ -13,6 +13,7 @@ export interface Parameter {
   relationship: "prev" | "next" | "parent" | "self"
   distance: number
   value: ParameterValue
+  scope: Scope
 }
 
 interface ParameterValue {
@@ -53,6 +54,7 @@ function getOwnParameters(scope: Scope): Parameter[] {
     relationship: "self",
     distance: 0,
     value,
+    scope,
   }))
 }
 
@@ -105,6 +107,7 @@ function getSequentialParameters(scope: Scope): Parameter[] {
           relationship: "prev",
           distance,
           value,
+          scope: prevScope,
         })
       }
     }
@@ -118,6 +121,7 @@ function getSequentialParameters(scope: Scope): Parameter[] {
           relationship: "next",
           distance,
           value,
+          scope: nextScope,
         })
       }
     }

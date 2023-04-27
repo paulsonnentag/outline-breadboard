@@ -327,6 +327,22 @@ export class Scope {
     this.updateHandlers.push(handler)
   }
 
+  isPrecedingSiblingOf(scope: Scope): boolean {
+    if (
+      this === scope ||
+      !this.parentScope ||
+      !scope.parentScope ||
+      scope.parentScope !== this.parentScope
+    ) {
+      return false
+    }
+
+    const ownIndex = this.parentScope.childScopes.indexOf(this)
+    const otherScopeIndex = this.parentScope.childScopes.indexOf(scope)
+
+    return ownIndex < otherScopeIndex
+  }
+
   // todo: do something better than just return the source, it's fine for nodes without formulas
   async getLabelAsync() {
     return this.source

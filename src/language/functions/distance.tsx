@@ -14,10 +14,16 @@ export const DISTANCE_FN: FunctionDefs = {
       for (const locationA of locations) {
         for (const locationB of locations) {
           if (locationA !== locationB) {
+            let rank = locationA.distance + locationB.distance
+
+            if (locationA.scope.isPrecedingSiblingOf(locationB.scope)) {
+              rank -= 1
+            }
+
             suggestions.push({
               name: "Distance",
               expression: `Distance(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
-              rank: locationA.distance + locationB.distance,
+              rank,
             })
           }
         }

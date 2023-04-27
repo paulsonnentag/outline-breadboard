@@ -14,7 +14,7 @@ export const DISTANCE_FN: FunctionDefs = {
       for (const locationA of locations) {
         for (const locationB of locations) {
           if (locationA !== locationB) {
-            let rank = locationA.distance + locationB.distance
+            let rank = locationA.distance + locationB.distance + 0.5 // give distance disadvantage over route
 
             if (locationA.scope.isPrecedingSiblingOf(locationB.scope)) {
               rank -= 1

@@ -62,7 +62,7 @@ function getOwnParameters(scope: Scope): Parameter[] {
 function parseValuesInScope(scope: Scope): ParameterValue[] {
   const values: ParameterValue[] = []
 
-  const date = scope.getOwnPropertyAndPropertiesOfTransclusion<Date>("date", parseDate)[0]
+  const date = scope.readAsDate()[0]
   if (date) {
     values.push({
       expression: scope.source,
@@ -70,10 +70,7 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
     })
   }
 
-  const location = scope.getOwnPropertyAndPropertiesOfTransclusion<google.maps.LatLngLiteral>(
-    "position",
-    parseLatLng
-  )[0]
+  const location = scope.readAsLocation()[0]
   if (location) {
     values.push({
       expression: scope.source,

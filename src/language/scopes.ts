@@ -3,6 +3,8 @@ import { BulletNode } from "./ast"
 import { createValueNode, getGraphDocHandle, getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
 import { useStaticCallback } from "../hooks"
+import LatLngLiteral = google.maps.LatLngLiteral
+import { parseDate, parseLatLng } from "../properties"
 
 export interface ComputationResult {
   name: string
@@ -189,6 +191,37 @@ export class Scope {
       ? transcludedProperties.concat({ data: ownProperty, scope: this })
       : transcludedProperties
   }
+
+  readAsDate(): Date[] {
+    if (this.value instanceof Promise) {
+      return []
+    }
+
+    return this.value.flatMap((part: any) => {
+      if (!(part instanceof Scope)) {
+        return []
+      }
+
+      const date = parseDate(part.id)
+      return date ? [date] : []
+    })
+  }
+
+  readAsLocation(): LatLngLiteral[] {
+    if (this.value instanceof Promise) {
+      return []
+    }
+
+    return this.value.flatMap((part: any) => {
+      if (!(part instanceof Scope)) {
+        return []
+      }
+
+      const latLng = parseLatLng(part.getProperty("position"))
+      return latLng ? [latLng] : []
+    })
+  }
+
   extractDataInScope<T>(
     extractFn: (scope: Scope) => T | T[] | undefined,
     options?: TraverseOptions

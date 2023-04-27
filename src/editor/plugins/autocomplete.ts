@@ -164,11 +164,11 @@ export function functionAutocompletionContext(context: CompletionContext) {
     return null
   }
 
-  const search = reference.text.toString().slice(1).trim()
+  const search = reference.text.toString().slice(1).trim().toLowerCase()
   const scope = context.state.facet(scopeFacet)
 
   const options = getSuggestedFunctions(scope)
-    .filter((suggestion) => suggestion.expression.startsWith(search))
+    .filter((suggestion) => expressionToLabel(suggestion.expression).toLowerCase().includes(search))
     .map(({ expression }) => {
       const inlineExpr = `{${expression}}`
 

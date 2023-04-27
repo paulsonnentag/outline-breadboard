@@ -5,7 +5,8 @@ import { placesAutocompleteApi } from "../../google"
 import { createPlaceNode } from "../../views/MapNodeView"
 import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
-import { getSuggestedFunctions } from "../../language/relationships"
+import { getSuggestedFunctions } from "../../language/function-suggestions"
+import { REF_ID_REGEX } from "./refIdTokenPlugin"
 
 export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {
@@ -29,6 +30,7 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
         scope.isInScope(node.id) || // avoid circular references
         node.type !== "value" ||
         node.value.match(KEYWORD_REGEX) || // don't suggest nodes that are a property
+        node.value.match(REF_ID_REGEX) || // don't suggest nodes that are transclusions
         !isString(node.value) ||
         node.value === "" ||
         node.value.startsWith("=") ||

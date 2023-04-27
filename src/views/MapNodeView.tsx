@@ -12,7 +12,7 @@ import {
 import classNames from "classnames"
 import { useStaticCallback } from "../hooks"
 import { createRoot } from "react-dom/client"
-import debounce from "lodash.debounce"
+import { debounce } from "lodash"
 import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"

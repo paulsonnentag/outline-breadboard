@@ -71,11 +71,6 @@ export interface Graph {
   [id: string]: Node
 }
 
-export interface ImageValue {
-  type: "image"
-  url: string
-}
-
 export interface ValueNode {
   type: "value"
   id: string
@@ -91,6 +86,7 @@ export interface ValueNode {
   isCollapsed: boolean
   isSelected: boolean
   expandedResultsByIndex: { [index: number]: boolean }
+  isTemporary?: boolean
 }
 
 export interface RefNode {
@@ -147,6 +143,7 @@ interface NodeDef {
   value: string
   key?: string
   children?: string[]
+  isTemporary?: boolean
 }
 
 export function createValueNode(graph: Graph, nodeDef: NodeDef): ValueNode {
@@ -161,6 +158,7 @@ export function createValueNode(graph: Graph, nodeDef: NodeDef): ValueNode {
     isCollapsed: false,
     isSelected: false,
     expandedResultsByIndex: {},
+    isTemporary: nodeDef.isTemporary === true,
   }
 
   if (key) {

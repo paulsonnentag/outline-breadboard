@@ -11,16 +11,16 @@ import {
   useGraph,
   ValueNode,
 } from "../graph"
-import { DragEvent, MouseEvent, RefObject, useCallback, useState } from "react"
+import { DragEvent, MouseEvent, useCallback, useState } from "react"
 import classNames from "classnames"
 import { getIsHovering, isString, last, safeJsonStringify } from "../utils"
-import { NodeView, NodeViewOptions } from "../views"
+import { NodeView } from "../views"
+import { NodeContextMenu } from "./NodeContextMenu"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
 import colors, { defaultAccentColors } from "../colors"
 import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView } from "../language/functions"
-import { getParameters } from "../language/function-suggestions"
 
 export interface OutlineEditorProps {
   scope: Scope
@@ -59,6 +59,7 @@ export function OutlineEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isComputationSuggestionHovered, setIsComputationSuggestionHovered] = useState(false)
   const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
@@ -418,7 +419,7 @@ export function OutlineEditor({
     >
       {isReferenceView ? (
         <>
-          <NodeViewOptions
+          <NodeContextMenu
             scope={scope}
             node={graph[nodeId] as ValueNode}
             isFocused={true} // should this just be "showControls"?
@@ -437,7 +438,9 @@ export function OutlineEditor({
       ) : (
         <>
           <div
-            className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]")}
+            className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]", {
+              "opacity-50": node.isTemporary,
+            })}
             onClick={() => {
               onChangeSelectedPath(path)
             }}
@@ -482,7 +485,7 @@ export function OutlineEditor({
             )}
             <div
               className={classNames("pr-2 flex-1 rounded", {
-                "pl-2": isFocused || node.value !== "" || node.key !== undefined,
+                // "pl-2": isFocused || node.value !== "" || node.key !== undefined,
                 "bg-slate-200 rounded":
                   getIsHovering(graph, node.id, parentIds, isHoveringOverId) &&
                   !(isBeingDragged || isParentDragged),
@@ -512,20 +515,9 @@ export function OutlineEditor({
               />
               <ComputationResultsSummaryView scope={scope} />
 
-              {SHOW_PARAMETERS && (
-                <div>
-                  {getParameters(scope).map((parameter, index) => (
-                    <div key={index}>{JSON.stringify(parameter)}</div>
-                  ))}
-                </div>
-              )}
-
               <div className="flex gap-1 mt-2 ml-[5px]">
                 {Object.entries(scope.expandedResultsByIndex).map(([key, isExpanded]) => {
                   const index = parseInt(key)
-
-                  console.log(isExpanded)
-
                   if (!isExpanded) {
                     return null
                   }
@@ -536,8 +528,6 @@ export function OutlineEditor({
                     <pre
                       className={`bg-${computationColor}-200 text-${computationColor}-600 rounded p-1`}
                       onClick={() => {
-                        console.log("not")
-
                         changeGraph((graph) => {
                           const node = getNode(graph, nodeId)
                           delete node.expandedResultsByIndex[index]
@@ -551,7 +541,8 @@ export function OutlineEditor({
               </div>
             </div>
             {!disableCustomViews && (
-              <NodeViewOptions
+              <NodeContextMenu
+                onChangeIsComputationSuggestionHovered={setIsComputationSuggestionHovered}
                 node={node}
                 scope={scope}
                 isFocused={isFocused || isHovered}
@@ -616,14 +607,9 @@ export function OutlineEditor({
   )
 }
 
-export interface NodeValueViewProps {
-  value: string
-  id: string
-  innerRef: RefObject<HTMLElement>
-  onChange: (value: string) => void
-  isFocused: boolean
-  onBlur: () => void
-  onReplaceNode: (newNodeId: string) => void
+interface BulletViewProps {
+  scope: Scope
+  isHoveringOverId: string | undefined
 }
 
 function arePathsEqual(path1: number[], path2: number[]) {

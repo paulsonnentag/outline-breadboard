@@ -421,7 +421,6 @@ export function useRootScope(rootId: string, options?: UseRootScopeOptions): Sco
     }
 
     const newScope = new Scope(graph, rootId, undefined)
-
     newScope.registerUpdateHandler(() => setScope(newScope))
 
     if (!options || !options.disableEval) {

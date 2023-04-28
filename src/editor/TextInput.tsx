@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useRef, useState } from "react"
+import { KeyboardEvent, useEffect, useRef } from "react"
 import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { getNode, useGraph } from "../graph"
@@ -8,8 +8,14 @@ import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
 import { functionAutocompletionContext, getMentionCompletionContext } from "./plugins/autocomplete"
 import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
 import { Scope } from "../language/scopes"
-import { bulletEvalPlugin } from "./plugins/bulletValuePlugin"
 import classNames from "classnames"
+import {
+  ExpressionResult,
+  expressionResultsDecorations,
+  expressionResultsField,
+  setExpressionResultsEffect,
+} from "./plugins/expressionResultPlugin"
+import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
 
 interface TextInputProps {
   isRoot: boolean
@@ -67,14 +73,15 @@ export function TextInput({
       extensions: [
         minimalSetup,
         EditorView.lineWrapping,
-        bulletEvalPlugin,
         getRefIdTokenPlugin(setIsHoveringOverId),
         autocompletion({
           activateOnTyping: true,
           override: [getMentionCompletionContext(changeGraph), functionAutocompletionContext],
         }),
         nodeIdFacet.of(nodeId),
-        //scopeFacet.of(scope),
+        scopeFacet.of(scope),
+        expressionResultsField,
+        expressionResultsDecorations,
         scopeCompartment.of(scopeFacet.of(scope)),
         placeholder(isRoot ? "Untitled" : ""),
       ],
@@ -98,6 +105,48 @@ export function TextInput({
       view.destroy()
     }
   }, [])
+
+  // update values
+  useEffect(() => {
+    const currentEditorView = editorViewRef.current
+
+    if (!currentEditorView) {
+      return
+    }
+
+    scope.valuePartsOfAsync().then((parts) => {
+      const expressionResults: ExpressionResult[] = []
+      const expressions = scope.bullet.value
+
+      parts.forEach((part, index) => {
+        const expression = expressions[index]
+
+        if (expression instanceof InlineExprNode) {
+          if (!isLiteral(expression.expr)) {
+            const value = parts[index]
+
+            if (value !== undefined) {
+              expressionResults.push({
+                color: scope.getProperty("color") ?? "purple",
+                index,
+                isExpanded: false,
+                nodeId: scope.id,
+                positionInSource: expression.to,
+                value,
+                functionName: expression.expr instanceof FnNode ? expression.expr.name : undefined,
+              })
+            }
+          }
+        }
+      })
+
+      currentEditorView.dispatch({
+        effects: setExpressionResultsEffect.of(expressionResults),
+      })
+    })
+
+    scope.value
+  }, [editorViewRef.current, scope])
 
   useEffect(() => {
     const currentEditorView = editorViewRef.current

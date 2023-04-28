@@ -119,6 +119,10 @@ export class Scope {
     return (await this.value)[index]
   }
 
+  async valuePartsOfAsync(): Promise<any[]> {
+    return await this.value
+  }
+
   eval() {
     this.bullet.eval(this).then((value) => {
       this.resolve(value)

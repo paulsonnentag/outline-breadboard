@@ -62,9 +62,11 @@ export function NodeContextMenu({
         {Object.entries(suggestedFunctions).map(([name, suggestions]) => {
           const defaultSuggestion = suggestions[0] ? `{${suggestions[0].expression}}` : undefined
 
-          const hasDefaultSuggestionBeenAlreadyInserted = scope.childScopes.some(
-            (scope) => scope.source === defaultSuggestion && scope.id !== suggestionNodeId
-          )
+          const hasDefaultSuggestionBeenAlreadyInserted =
+            scope.source === defaultSuggestion ||
+            scope.childScopes.some(
+              (scope) => scope.source === defaultSuggestion && scope.id !== suggestionNodeId
+            )
 
           if (suggestions.length === 0 || hasDefaultSuggestionBeenAlreadyInserted) {
             return null

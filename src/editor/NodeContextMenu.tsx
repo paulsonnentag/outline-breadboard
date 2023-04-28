@@ -60,7 +60,13 @@ export function NodeContextMenu({
     <div className="flex w-fit gap-1">
       <>
         {Object.entries(suggestedFunctions).map(([name, suggestions]) => {
-          if (suggestions.length === 0) {
+          const defaultSuggestion = suggestions[0] ? `{${suggestions[0].expression}}` : undefined
+
+          const hasDefaultSuggestionBeenAlreadyInserted = scope.childScopes.some(
+            (scope) => scope.source === defaultSuggestion && scope.id !== suggestionNodeId
+          )
+
+          if (suggestions.length === 0 || hasDefaultSuggestionBeenAlreadyInserted) {
             return null
           }
 
@@ -69,7 +75,10 @@ export function NodeContextMenu({
               key={name}
               className="rounded text-sm flex items-center justify-center hover:bg-gray-500 hover:text-white px-1"
               onClick={() => {
-                scope.setProperty("computed", `{${suggestions[0].expression}}`)
+                if (!defaultSuggestion) {
+                  return
+                }
+                scope.insertChildNode(defaultSuggestion)
               }}
               onMouseEnter={() => {
                 // todo: awful hack create temporary node in graph that's not persisted in automerge
@@ -89,8 +98,9 @@ export function NodeContextMenu({
                   isTemporary: true,
                 }
 
-                onChangeIsComputationSuggestionHovered &&
+                if (onChangeIsComputationSuggestionHovered) {
                   onChangeIsComputationSuggestionHovered(true)
+                }
 
                 const tempScope = new Scope(graph, suggestionNodeId, scope)
                 scope.childScopes.unshift(tempScope)
@@ -102,8 +112,9 @@ export function NodeContextMenu({
                   scope.childScopes.splice(index, 1)
                 }
 
-                onChangeIsComputationSuggestionHovered &&
+                if (onChangeIsComputationSuggestionHovered) {
                   onChangeIsComputationSuggestionHovered(false)
+                }
               }}
             >
               + {name}

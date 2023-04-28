@@ -343,6 +343,18 @@ export class Scope {
     })
   }
 
+  insertChildNode(value: string) {
+    const graphDocHandle = getGraphDocHandle()
+
+    // otherwise create new node
+    graphDocHandle.change(({ graph }) => {
+      // otherwise create new property
+      const parentNode = getNode(graph, this.id)
+      const childNode = createValueNode(graph, { value })
+      parentNode.children.unshift(childNode.id)
+    })
+  }
+
   // todo: on update doesn't cover all cases
   private onUpdate() {
     for (const updateHandler of this.updateHandlers) {

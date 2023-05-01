@@ -14,7 +14,6 @@ import { scopeFacet } from "./state"
 class RefIdWidget extends WidgetType {
   constructor(
     readonly id: string,
-    readonly isInInlineExpr: boolean,
     readonly setIsHoveringOverId: (nodeId: string | undefined) => void
   ) {
     super()
@@ -47,14 +46,6 @@ class RefIdWidget extends WidgetType {
       this.setIsHoveringOverId(this.id)
     })
 
-    if (this.isInInlineExpr) {
-      const inlineExprWrapper = document.createElement("span")
-      inlineExprWrapper.className = "inline-expr middle"
-
-      inlineExprWrapper.append(refIdElement)
-      return inlineExprWrapper
-    }
-
     return refIdElement
   }
 
@@ -71,13 +62,11 @@ export function getRefIdTokenPlugin(setIsHoveringOverId: (nodeId: string | undef
     decorate: (add, from, to, [, id], view) => {
       const scope = view.state.facet(scopeFacet)
 
-      const isInInlineExpr = scope.bullet.isRangeInInlineExpression(from, to)
-
       add(
         from,
         to,
         Decoration.replace({
-          widget: new RefIdWidget(id, isInInlineExpr, setIsHoveringOverId),
+          widget: new RefIdWidget(id, setIsHoveringOverId),
         })
       )
     },

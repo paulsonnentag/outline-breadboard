@@ -59,7 +59,7 @@ export function OutlineEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isComputationSuggestionHovered, setIsComputationSuggestionHovered] = useState(false)
+  const [isComputationSuggestionHovered, setIsComputationSuggestionHovered] = useState(false) // hack: allow context menu to trigger rerender by setting isComputationSuggestionHovered
   const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
@@ -106,6 +106,11 @@ export function OutlineEditor({
   }
 
   const onChange = useStaticCallback((value: string) => {
+    // ignore change events from temporary nodes because they don't actually live in the graph
+    if (node.isTemporary) {
+      return
+    }
+
     changeGraph((graph) => {
       const node = getNode(graph, nodeId)
       node.value = value
@@ -584,7 +589,7 @@ export function OutlineEditor({
                   <OutlineEditor
                     scope={childScope}
                     isParentDragged={isBeingDragged}
-                    key={index}
+                    key={childScope.id}
                     nodeId={childScope.id}
                     index={index}
                     parentIds={parentIds.concat(node.id)}

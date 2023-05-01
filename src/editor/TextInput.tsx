@@ -187,6 +187,10 @@ export function TextInput({
 
     // todo: it's bad to reset the expand state here, but it should be fine
     changeGraph((graph) => {
+      if (!graph[nodeId]) {
+        return
+      }
+
       const node = getNode(graph, nodeId)
       node.expandedResultsByIndex = {}
     })

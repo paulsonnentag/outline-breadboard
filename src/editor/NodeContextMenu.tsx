@@ -83,7 +83,7 @@ export function NodeContextMenu({
                 scope.insertChildNode(defaultSuggestion)
               }}
               onMouseEnter={() => {
-                // todo: awful hack create temporary node in graph that's not persisted in automerge
+                // todo: awful hack, create temporary node in graph that's not persisted in automerge
                 graph[suggestionNodeId] = {
                   children: [],
                   computedProps: {},

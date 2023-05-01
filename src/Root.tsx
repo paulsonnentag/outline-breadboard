@@ -15,7 +15,7 @@ import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { isString } from "./utils"
 import { useRootScope } from "./language/scopes"
-import { useDocumentWithHistory } from "./history"
+import { useDocument } from "automerge-repo-react-hooks"
 
 interface RootProps {
   documentId: DocumentId
@@ -23,13 +23,14 @@ interface RootProps {
 }
 
 export function Root({ documentId, disableEval }: RootProps) {
-  const [doc, changeDoc, history] = useDocumentWithHistory<GraphDoc>(documentId)
+  const [doc, changeDoc] = useDocument<GraphDoc>(documentId)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isDraggedOverDelete, setIsDraggedOverDelete] = useState(false)
   const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
 
+  /*
   useEffect(() => {
     const onKeyPress = (evt: KeyboardEvent) => {
       if (evt.key === "z" && (evt.ctrlKey || evt.metaKey)) {
@@ -46,7 +47,7 @@ export function Root({ documentId, disableEval }: RootProps) {
     return () => {
       document.removeEventListener("keydown", onKeyPress)
     }
-  }, [history])
+  }, [history]) */
 
   const graphContext: GraphContextProps | undefined = useMemo(
     () =>

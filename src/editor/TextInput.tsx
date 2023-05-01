@@ -91,7 +91,6 @@ export function TextInput({
 
         if (transaction.docChanged) {
           const newValue = view.state.doc.toString()
-
           onChange(newValue)
         }
       },
@@ -148,6 +147,8 @@ export function TextInput({
     scope.value
   }, [editorViewRef.current, scope])
 
+  // update scope object
+
   useEffect(() => {
     const currentEditorView = editorViewRef.current
 
@@ -185,7 +186,7 @@ export function TextInput({
     const currentEditorView = editorViewRef.current
 
     // todo: it's bad to reset the expand state here, but it should be fine
-    changeGraph(() => {
+    changeGraph((graph) => {
       const node = getNode(graph, nodeId)
       node.expandedResultsByIndex = {}
     })

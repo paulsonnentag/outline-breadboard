@@ -139,7 +139,7 @@ async function getRouteInformation(
   const directionsService = await directionsServiceApi
 
   return new Promise((resolve) => {
-    console.log("fetch route")
+    console.log("fetch route 💰")
 
     directionsService.route(
       {
@@ -154,7 +154,7 @@ async function getRouteInformation(
           graphDoc.cache[key] = JSON.stringify(result) // store it as string, because otherwise it takes a long time to write it into automerge
         })
 
-        directionsResultToRoute(JSON.parse(JSON.stringify(result))) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
+        resolve(directionsResultToRoute(JSON.parse(JSON.stringify(result)))) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
       }
     )
   })

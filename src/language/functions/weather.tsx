@@ -22,6 +22,7 @@ interface WeatherContext {
 
 export const WEATHER_FN: FunctionDefs = {
   Weather: {
+    icon: "light_mode",
     suggestions: (parameters: Parameter[]) => {
       const dates = parameters.filter((p) => p.value.type === "date")
       const locations = parameters.filter((p) => p.value.type === "location")
@@ -30,10 +31,19 @@ export const WEATHER_FN: FunctionDefs = {
 
       for (const date of dates) {
         for (const location of locations) {
+
+
+
           suggestions.push({
+            icon: "light_mode",
             name: "Weather",
-            expression: `Weather(in: ${location.value.expression}, on: ${date.value.expression})`,
-            rank: location.distance + date.distance,
+            arguments: [{
+              label: "in",
+              value: location.value.expression
+            }, {
+              label: "on",
+              value: date.value.expression
+            }]
           })
         }
       }

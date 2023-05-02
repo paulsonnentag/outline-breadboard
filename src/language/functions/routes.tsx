@@ -10,6 +10,7 @@ import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 export const ROUTE_FN: FunctionDefs = {
   Route: {
+    icon: "route",
     summaryView: (value) => `${value.duration}, ${value.distance}`,
     autocomplete: {
       label: "Route",
@@ -29,8 +30,15 @@ export const ROUTE_FN: FunctionDefs = {
             }
 
             suggestions.push({
+              icon: "route",
               name: "Route",
-              expression: `Route(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
+              arguments: [{
+                label: "from",
+                value: locationA.value.expression
+              }, {
+                label: "to",
+                value: locationB.value.expression
+              }],
               rank,
             })
           }
@@ -40,6 +48,9 @@ export const ROUTE_FN: FunctionDefs = {
       return suggestions
     },
     function: async ([], { from, to }, scope) => {
+      console.log("call route", from, to)
+
+
       if (from && to) {
         const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
         const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))

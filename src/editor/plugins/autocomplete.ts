@@ -1,5 +1,5 @@
 import { createValueNode, getGraph, getNode, Graph, Node } from "../../graph"
-import { Completion, CompletionContext } from "@codemirror/autocomplete"
+import { Completion, CompletionContext, CompletionSection } from "@codemirror/autocomplete"
 import { isString } from "../../utils"
 import { placesAutocompleteApi } from "../../google"
 import { createPlaceNode } from "../../views/MapNodeView"
@@ -7,6 +7,7 @@ import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
 import { getSuggestedFunctions } from "../../language/function-suggestions"
 import { REF_ID_REGEX } from "./refIdTokenPlugin"
+import { EditorSelection } from "@codemirror/state"
 
 export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {
@@ -148,62 +149,4 @@ function getDatesAutocompletion(
       },
     },
   ]
-}
-
-function expressionToLabel(expression: string) {
-  const graph = getGraph()
-  return expression
-    .replace(/#\[([^\]]+)]/g, (match, id) => {
-      return getNode(graph, id).value
-    })
-    .replace("$", "")
-}
-
-export function functionAutocompletionContext(context: CompletionContext) {
-  let reference = context.matchBefore(/\/.*/)
-
-  if (reference === null) {
-    return null
-  }
-
-  const search = reference.text.toString().slice(1).trim().toLowerCase()
-  const scope = context.state.facet(scopeFacet)
-
-  const options = getSuggestedFunctions(scope)
-    .filter((suggestion) => expressionToLabel(suggestion.expression).toLowerCase().includes(search))
-    .map(({ expression }) => {
-      const inlineExpr = `{${expression}}`
-
-      return {
-        label: expressionToLabel(expression),
-        apply: (view, completion, from, to) => {
-          const indexOfDollarSign = inlineExpr.indexOf("$")
-          const cursorOffset = indexOfDollarSign !== -1 ? indexOfDollarSign : inlineExpr.length
-
-          view.dispatch(
-            view.state.update({
-              changes: {
-                from: from,
-                to: to,
-                insert:
-                  indexOfDollarSign !== -1
-                    ? inlineExpr.slice(0, indexOfDollarSign) +
-                      inlineExpr.slice(indexOfDollarSign + 1)
-                    : inlineExpr,
-              },
-              selection: {
-                anchor: from + cursorOffset,
-                head: from + cursorOffset,
-              },
-            })
-          )
-        },
-      } as Completion
-    })
-
-  return {
-    from: reference.from,
-    filter: false,
-    options,
-  }
 }

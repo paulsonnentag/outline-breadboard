@@ -98,7 +98,7 @@ class ExpressionResultWidget extends WidgetType {
   }
 }
 
-function valueToString(x: any): string {
+export function valueToString(x: any): string {
   if (x === undefined) {
     return ""
   }

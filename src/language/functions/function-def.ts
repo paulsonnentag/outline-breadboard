@@ -13,6 +13,7 @@ export interface FunctionDef {
   }
   summaryView?: (value: any) => HTMLElement | string
   suggestions?: (parameters: Parameter[]) => FunctionSuggestion[]
+  icon?: string
 }
 
 export interface FunctionDefs {

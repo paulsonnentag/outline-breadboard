@@ -23,3 +23,7 @@ export function isEnter(evt: KeyboardEvent | ReactKeyboardEvent) {
 export function isEscape(evt: KeyboardEvent | ReactKeyboardEvent) {
   return evt.key === "Escape"
 }
+
+export function isSlash(evt: KeyboardEvent | ReactKeyboardEvent) {
+  return evt.key === "/"
+}

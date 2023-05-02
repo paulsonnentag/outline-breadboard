@@ -187,6 +187,9 @@ export class FnNode extends AstNode {
       }
     }
 
+
+    console.log(this.name, namedArgs)
+
     return fn(positionalArgs, namedArgs, scope)
   }
 

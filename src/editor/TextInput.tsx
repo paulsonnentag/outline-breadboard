@@ -1,11 +1,11 @@
-import { KeyboardEvent, useEffect, useRef } from "react"
+import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { getNode, useGraph } from "../graph"
-import { autocompletion, completionStatus } from "@codemirror/autocomplete"
-import { isBackspace, isDown, isEnter, isTab, isUp } from "../keyboardEvents"
+import { getGraph, getNode, useGraph } from "../graph"
+import { autocompletion, CompletionContext, completionStatus, selectedCompletionIndex } from "@codemirror/autocomplete"
+import { isBackspace, isDown, isEnter, isEscape, isSlash, isTab, isUp } from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
-import { functionAutocompletionContext, getMentionCompletionContext } from "./plugins/autocomplete"
+import { getMentionCompletionContext } from "./plugins/autocomplete"
 import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
 import { Scope } from "../language/scopes"
 import classNames from "classnames"
@@ -16,6 +16,9 @@ import {
   setExpressionResultsEffect,
 } from "./plugins/expressionResultPlugin"
 import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
+import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
+import { SuggestionMenu, Suggestion } from "./SuggestionMenu"
+import { getSuggestedFunctions } from "../language/function-suggestions"
 
 interface TextInputProps {
   isRoot: boolean
@@ -60,6 +63,24 @@ export function TextInput({
   const { graph, changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
+  const [activeSlashIndex, setActiveSlashIndex] = useState(-1)
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
+  const isMenuOpen = activeSlashIndex !== -1
+  const search = activeSlashIndex !== -1 ? value.slice(activeSlashIndex + 1) : undefined
+
+  // load suggestions
+  useEffect(() => {
+    if (search === undefined) {
+      return
+    }
+
+    getSuggestions(scope, search).then((newSuggestions: Suggestion[]) => {
+      setSuggestions(newSuggestions)
+    })
+  }, [search])
+
+  console.log(search)
 
   // mount editor
 
@@ -76,12 +97,13 @@ export function TextInput({
         getRefIdTokenPlugin(setIsHoveringOverId),
         autocompletion({
           activateOnTyping: true,
-          override: [getMentionCompletionContext(changeGraph), functionAutocompletionContext],
+          override: [getMentionCompletionContext(changeGraph) /*functionAutocompletionContext*/],
         }),
         nodeIdFacet.of(nodeId),
         scopeFacet.of(scope),
         expressionResultsField,
         expressionResultsDecorations,
+        expressionHighlightPlugin,
         scopeCompartment.of(scopeFacet.of(scope)),
         placeholder(isRoot ? "Untitled" : ""),
       ],
@@ -216,26 +238,66 @@ export function TextInput({
     }
   }, [value, editorViewRef.current])
 
+
+  const onSelectSuggestion = (suggestion: Suggestion) => {
+    const currentEditorView = editorViewRef.current
+    if (!currentEditorView) {
+      return
+    }
+
+
+
+    const expr = `{${suggestionToExprSource(suggestion)}}`
+
+    console.log("insert", expr)
+
+
+    currentEditorView.dispatch(
+      currentEditorView.state.update({
+        changes: {
+          from: activeSlashIndex,
+          to: currentEditorView.state.selection.main.head,
+          insert: expr,
+        },
+      })
+    )
+
+    setActiveSlashIndex(-1)
+  }
+
   const onKeyDown = (evt: KeyboardEvent) => {
     const currentEditorView = editorViewRef.current
     if (!currentEditorView) {
       return
     }
 
-    if (isEnter(evt)) {
-      // ignore enter if auto complete is active
+    if (isSlash(evt)) {
+      setActiveSlashIndex(currentEditorView.state.selection.main.head)
+      setSelectedSuggestionIndex(0)
+    } else if (isEscape(evt)) {
+      setActiveSlashIndex(-1)
+    } else if (isEnter(evt)) {
+
       if (completionStatus(currentEditorView.state) !== null) {
         return
       }
 
-      evt.preventDefault()
-      const ranges = currentEditorView.state.selection.ranges
+      // ignore enter if auto complete is active
+      if (isMenuOpen) {
+        const selectedSuggestion = suggestions[selectedSuggestionIndex]
+        onSelectSuggestion(selectedSuggestion)
+      } else {
+        const ranges = currentEditorView.state.selection.ranges
 
-      // don't perform split if current selection is a range
-      if (ranges.length !== 1 || ranges[0].from !== ranges[0].to) {
-        return
+        // don't perform split if current selection is a range
+        if (ranges.length !== 1 || ranges[0].from !== ranges[0].to) {
+          return
+        }
+        onSplit(ranges[0].from)
       }
-      onSplit(ranges[0].from)
+
+      evt.preventDefault()
+
     } else if (isTab(evt)) {
       evt.preventDefault()
 
@@ -246,20 +308,24 @@ export function TextInput({
       }
     } else if (isUp(evt)) {
       // ignore up key if auto complete is active
-      if (completionStatus(currentEditorView.state) !== null) {
-        return
+      if (isMenuOpen) {
+        setSelectedSuggestionIndex((index) => index > 0 ? index - 1 : 0)
+      } else {
+        onFocusUp()
       }
 
       evt.preventDefault()
-      onFocusUp()
+
     } else if (isDown(evt)) {
       // ignore down key if auto complete is active
-      if (completionStatus(currentEditorView.state) !== null) {
-        return
-      }
+      if (isMenuOpen) {
+        setSelectedSuggestionIndex((index) => index < suggestions.length - 1 ? index + 1 : suggestions.length - 1)
 
+      } else {
+        onFocusDown()
+      }
       evt.preventDefault()
-      onFocusDown()
+
     } else if (isBackspace(evt)) {
       const ranges = currentEditorView.state.selection.ranges
 
@@ -296,6 +362,29 @@ export function TextInput({
       onDragLeaveCapture={(evt) => evt.stopPropagation()}
     >
       <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
+
+      {isMenuOpen && <SuggestionMenu scope={scope} suggestions={suggestions} focusedIndex={selectedSuggestionIndex} selectSuggestion={onSelectSuggestion} />}
     </div>
   )
+}
+
+async function getSuggestions(scope: Scope, search: string): Promise<Suggestion[]> {
+  return (
+    getSuggestedFunctions(scope)
+      .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search))
+      .map((suggestion) => {
+        //        const inlineExpr = `{${expression}}`
+
+        return {
+          title: suggestion.name,
+          icon: suggestion.icon,
+          arguments: suggestion.arguments
+        }
+      })
+  )
+}
+
+
+export function suggestionToExprSource(suggestion: Suggestion) {
+  return `${suggestion.title}(${(suggestion.arguments ?? []).map(({ label, value }) => `${label}: ${value}`).join(", ")})`
 }

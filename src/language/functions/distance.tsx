@@ -7,6 +7,7 @@ import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 export const DISTANCE_FN: FunctionDefs = {
   Distance: {
+    icon: "straighten",
     suggestions: (parameters: Parameter[]) => {
       const locations = parameters.filter((p) => p.value.type === "location")
       const suggestions: FunctionSuggestion[] = []
@@ -22,7 +23,14 @@ export const DISTANCE_FN: FunctionDefs = {
 
             suggestions.push({
               name: "Distance",
-              expression: `Distance(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
+              // expression: `Distance(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
+              arguments: [{
+                label: "from",
+                value: locationA.value.expression
+              }, {
+                label: "to",
+                value: locationB.value.expression
+              }],
               rank,
             })
           }

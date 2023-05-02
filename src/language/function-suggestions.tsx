@@ -3,8 +3,9 @@ import { FUNCTIONS } from "./functions"
 import { sortBy } from "lodash"
 
 export interface FunctionSuggestion {
-  expression: string
   name: string
+  arguments: { label: string, value?: string }[]
+  icon?: string
   rank?: number // lower number is better
 }
 
@@ -35,6 +36,7 @@ export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
         suggestions.push({
           name,
           expression: fn.autocomplete.value,
+          icon: fn.icon,
         })
       }
 

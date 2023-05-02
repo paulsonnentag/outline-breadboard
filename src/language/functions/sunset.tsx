@@ -5,6 +5,7 @@ import SunCalc from "suncalc"
 // TODO: doesn't do tree traversal
 export const SUNSET_FN: FunctionDefs = {
   Sunset: {
+    icon: "wb_twilight",
     autocomplete: {
       label: "Sunset",
       value: "Sunset(in: $, on:)",

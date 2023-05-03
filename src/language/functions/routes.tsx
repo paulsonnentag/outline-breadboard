@@ -59,8 +59,6 @@ export const ROUTE_FN: FunctionDefs = {
       return suggestions
     },
     function: async ([], { from, to }, scope) => {
-      console.log("call route", from, to)
-
       if (from && to) {
         const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
         const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))

@@ -2,8 +2,10 @@
 import { createRefNode, useGraph, ValueNode } from "../graph"
 import { Scope } from "../language/scopes"
 import { useId } from "react"
-import { getGroupedSuggestedFunctions } from "../language/function-suggestions"
+import { FunctionSuggestion, getGroupedSuggestedFunctions } from "../language/function-suggestions"
 import classNames from "classnames"
+import { Suggestion } from "./SuggestionMenu"
+import { suggestionToExprSource } from "./TextInput"
 
 export interface NodeContextMenuProps {
   node: ValueNode
@@ -60,7 +62,9 @@ export function NodeContextMenu({
     <div className="flex w-fit gap-1">
       <>
         {Object.entries(suggestedFunctions).map(([name, suggestions]) => {
-          const defaultSuggestion = suggestions[0] ? `{${suggestions[0].expression}}` : undefined
+          const defaultSuggestion = suggestions[0]
+            ? `{${suggestionToExprSource(suggestions[0])}}`
+            : undefined
 
           const hasDefaultSuggestionBeenAlreadyInserted =
             scope.source === defaultSuggestion ||
@@ -91,7 +95,7 @@ export function NodeContextMenu({
                   isSelected: false,
                   key: "",
                   paneWidth: 0,
-                  value: `{${suggestions[0].expression}}`,
+                  value: defaultSuggestion,
                   view: "",
                   computations: [],
                   id: suggestionNodeId,

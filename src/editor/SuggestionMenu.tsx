@@ -113,7 +113,6 @@ function SuggestionRow({
   }, [])
 
   const fn = FUNCTIONS[suggestion.title]
-
   const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
 
   return (

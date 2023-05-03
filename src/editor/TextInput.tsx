@@ -23,7 +23,7 @@ import {
 import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
 import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
 import { SuggestionMenu, Suggestion } from "./SuggestionMenu"
-import { getSuggestedFunctions } from "../language/function-suggestions"
+import { FunctionSuggestion, getSuggestedFunctions } from "../language/function-suggestions"
 
 interface TextInputProps {
   isRoot: boolean
@@ -389,8 +389,10 @@ async function getSuggestions(scope: Scope, search: string): Promise<Suggestion[
     })
 }
 
-export function suggestionToExprSource(suggestion: Suggestion) {
-  return `${suggestion.title}(${(suggestion.arguments ?? [])
+export function suggestionToExprSource(suggestion: Suggestion | FunctionSuggestion) {
+  const name = "title" in suggestion ? suggestion.title : suggestion.name
+
+  return `${name}(${(suggestion.arguments ?? [])
     .map(({ label, value }) => `${label}: ${value}`)
     .join(", ")})`
 }

@@ -47,11 +47,26 @@ function getHighlightDecorations(view: EditorView): DecorationSet {
           class: "text-gray-300",
         }).range(part.from, part.from + 1),
       ]
-        .concat(
-          Decoration.mark({
-            class: "text-gray-300",
-          }).range(part.to - 1, part.to)
-        )
+      .concat(
+        Decoration.mark({
+          class: "font-medium"
+        }).range(part.from + 1, part.from + 1 + (part.expr as FnNode).name.length)
+      )
+      .concat(
+        Decoration.mark({
+          class: "text-gray-300",
+        }).range(part.from + 1 + (part.expr as FnNode).name.length, part.from + 1 + (part.expr as FnNode).name.length + 1)
+      )
+      .concat((part.expr as FnNode).args.map(a => 
+        Decoration.mark({
+          class: "text-gray-400"
+        }).range(part.from + a.from, part.from + a.to)  
+      ))
+      .concat(
+        Decoration.mark({
+          class: "text-gray-300",
+        }).range(part.to - 2, part.to)
+      )
 
       return decorations
     }

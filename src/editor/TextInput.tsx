@@ -1,13 +1,8 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { getGraph, getNode, useGraph } from "../graph"
-import {
-  autocompletion,
-  CompletionContext,
-  completionStatus,
-  selectedCompletionIndex,
-} from "@codemirror/autocomplete"
+import { getNode, useGraph } from "../graph"
+import { autocompletion, closeBrackets, completionStatus } from "@codemirror/autocomplete"
 import { isBackspace, isDown, isEnter, isEscape, isSlash, isTab, isUp } from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
 import { getMentionCompletionContext } from "./plugins/autocomplete"
@@ -22,7 +17,7 @@ import {
 } from "./plugins/expressionResultPlugin"
 import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
 import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
-import { SuggestionMenu, Suggestion } from "./SuggestionMenu"
+import { Suggestion, SuggestionMenu } from "./SuggestionMenu"
 import { FunctionSuggestion, getSuggestedFunctions } from "../language/function-suggestions"
 
 interface TextInputProps {
@@ -103,12 +98,12 @@ export function TextInput({
           override: [getMentionCompletionContext(changeGraph) /*functionAutocompletionContext*/],
         }),
         nodeIdFacet.of(nodeId),
-        scopeFacet.of(scope),
         expressionResultsField,
         expressionResultsDecorations,
         expressionHighlightPlugin,
         scopeCompartment.of(scopeFacet.of(scope)),
         placeholder(isRoot ? "Untitled" : ""),
+        closeBrackets(),
       ],
       parent: containerRef.current,
       dispatch(transaction) {
@@ -377,7 +372,7 @@ export function TextInput({
 
 async function getSuggestions(scope: Scope, search: string): Promise<Suggestion[]> {
   return getSuggestedFunctions(scope)
-    .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search))
+    .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search.toLowerCase()))
     .map((suggestion) => {
       //        const inlineExpr = `{${expression}}`
 
@@ -393,6 +388,6 @@ export function suggestionToExprSource(suggestion: Suggestion | FunctionSuggesti
   const name = "title" in suggestion ? suggestion.title : suggestion.name
 
   return `${name}(${(suggestion.arguments ?? [])
-    .map(({ label, value }) => `${label}: ${value}`)
+    .map(({ label, value }) => `${label}: ${value ?? ""}`)
     .join(", ")})`
 }

@@ -295,30 +295,29 @@ export function MapNodeView({
         markerContent.style.backgroundColor = accentColors[2]
       }
 
-      listenersRef.current.push(
-        mapsMarker.addListener("click", () => {
-          // defer to selection handler if active
-          /*if (isSelectionHandlerActive()) {
+      // new version of google maps, but types haven't been updates
+      ;(mapsMarker as any).addEventListener("gmp-click", () => {
+        // defer to selection handler if active
+        /*if (isSelectionHandlerActive()) {
             triggerSelect(marker.)
             return
           }*/
 
-          changeGraph((graph) => {
-            const node = getNode(graph, marker.scope.id)
-            node.isCollapsed = false
-          })
-
-          if (popOverRef.current) {
-            popOverRef.current.position = marker.data.position
-            popOverRef.current.rootId = marker.scope.id
-            popOverRef.current.show()
-            popOverRef.current.draw()
-            popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
-          }
-
-          mapRef.current?.panTo(marker.data.position)
+        changeGraph((graph) => {
+          const node = getNode(graph, marker.scope.id)
+          node.isCollapsed = false
         })
-      )
+
+        if (popOverRef.current) {
+          popOverRef.current.position = marker.data.position
+          popOverRef.current.rootId = marker.scope.id
+          popOverRef.current.show()
+          popOverRef.current.draw()
+          popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
+        }
+
+        mapRef.current?.panTo(marker.data.position)
+      })
 
       markerContent.onmouseenter = () => {
         setIsHoveringOverId(marker.scope.id)

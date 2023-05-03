@@ -8,7 +8,15 @@ export const CORE_FNS: FunctionDefs = {
         return undefined
       }
 
-      return object.getPropertyAsync(key)
+      // first try to access property of scope
+      const propertyOfScope = await object.getPropertyAsync(key)
+
+      if (propertyOfScope) {
+        return propertyOfScope
+      }
+
+      // otherwise try to access property on transcluded object in value of bullet itself
+      return (await object.valueOfAsync())[key]
     },
   },
   Not: {

@@ -6,6 +6,8 @@ import { createPlaceNode } from "../../views/MapNodeView"
 import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
 import { REF_ID_REGEX } from "./refIdTokenPlugin"
+import { createFlightNode } from "../../flights"
+import { AIRLABS_API_KEY } from "../../api-keys"
 
 export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {
@@ -21,6 +23,7 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     const search = reference.text.toString().slice(1).trim()
 
     const placesOptions = await getPlacesAutocompletion(search, graph, changeGraph)
+    const flightsOptions = await getFlightsAutocompletion(search, graph, changeGraph)
 
     const dateOptions = getDatesAutocompletion(search, graph, changeGraph)
 
@@ -45,7 +48,7 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     return {
       from: reference.from,
       filter: false,
-      options: dateOptions.concat(nodeOptions).concat(placesOptions),
+      options: dateOptions.concat(nodeOptions).concat(flightsOptions).concat(placesOptions),
     }
   }
 }
@@ -89,6 +92,54 @@ async function getPlacesAutocompletion(
       } as Completion,
     ]
   })
+}
+
+const FLIGHTS_REGEX = /[A-Z]{2}\d{1,4}/
+
+async function getFlightsAutocompletion(
+  search: string,
+  graph: Graph,
+  changeGraph: (fn: (graph: Graph) => void) => void
+): Promise<Completion[]> {
+  if (search === "") {
+    return []
+  }
+
+  if (!search.match(FLIGHTS_REGEX)) {
+    return []
+  }
+
+  const response = await fetch(
+    [
+      "https://airlabs.co/api/v9/flight",
+      `?api_key=${AIRLABS_API_KEY}`,
+      `&flight_iata=${search}`,
+    ].join("")
+  ).then((response) => response.json())
+  if (response.error) {
+    return []
+  }
+
+  const flight = response.response
+  const flightNodeId = `flight-${flight.flight_iata}`
+
+  return [
+    {
+      label: flight.flight_iata,
+      apply: async (view, completion, from, to) => {
+        await createFlightNode(changeGraph, flight.flight_iata)
+        view.dispatch(
+          view.state.update({
+            changes: {
+              from: from,
+              to: to,
+              insert: `#[${flightNodeId}]`,
+            },
+          })
+        )
+      },
+    } as Completion,
+  ]
 }
 
 const DATE_REGEX = /^([0-9]{1,2})\/([0-9]{1,2})(\/([0-9]{2}|[0-9]{4}))?$/

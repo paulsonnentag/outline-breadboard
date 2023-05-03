@@ -31,19 +31,19 @@ export const WEATHER_FN: FunctionDefs = {
 
       for (const date of dates) {
         for (const location of locations) {
-
-
-
           suggestions.push({
             icon: "light_mode",
             name: "Weather",
-            arguments: [{
-              label: "in",
-              value: location.value.expression
-            }, {
-              label: "on",
-              value: date.value.expression
-            }]
+            arguments: [
+              {
+                label: "in",
+                value: location.value.expression,
+              },
+              {
+                label: "on",
+                value: date.value.expression,
+              },
+            ],
           })
         }
       }

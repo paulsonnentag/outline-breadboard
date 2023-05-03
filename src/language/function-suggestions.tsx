@@ -4,7 +4,7 @@ import { sortBy } from "lodash"
 
 export interface FunctionSuggestion {
   name: string
-  arguments: { label: string, value?: string }[]
+  arguments: { label: string; value?: string }[]
   icon?: string
   rank?: number // lower number is better
 }
@@ -32,17 +32,9 @@ export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
         suggestions = suggestions.concat(fn.suggestions(parameters))
       }
 
-      if (fn.autocomplete) {
-        suggestions.push({
-          name,
-          expression: fn.autocomplete.value,
-          icon: fn.icon,
-        })
-      }
-
       return suggestions
     }),
-    (suggestion) => suggestion.rank ?? Infinity
+    (suggestion: FunctionSuggestion) => suggestion.rank ?? Infinity
   )
 }
 

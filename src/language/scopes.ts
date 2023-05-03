@@ -396,6 +396,21 @@ export class Scope {
   async getLabelAsync() {
     return this.source
   }
+
+  // this is used when evaluating suggested computations where transcluded nodes are not in the scope
+  // because the expression hasn't been added to the tree
+  withTranscludedScopes(scopes: Scope[]): Scope {
+    const tempScope = Object.create(this)
+    tempScope.transcludedScopes = {
+      ...tempScope.transcludedScopes,
+    }
+
+    for (const scope of scopes) {
+      tempScope.transcludedScopes[scope.id] = scope
+    }
+
+    return tempScope
+  }
 }
 
 interface TraverseOptions {

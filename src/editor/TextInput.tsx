@@ -2,7 +2,12 @@ import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { getGraph, getNode, useGraph } from "../graph"
-import { autocompletion, CompletionContext, completionStatus, selectedCompletionIndex } from "@codemirror/autocomplete"
+import {
+  autocompletion,
+  CompletionContext,
+  completionStatus,
+  selectedCompletionIndex,
+} from "@codemirror/autocomplete"
 import { isBackspace, isDown, isEnter, isEscape, isSlash, isTab, isUp } from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
 import { getMentionCompletionContext } from "./plugins/autocomplete"
@@ -79,8 +84,6 @@ export function TextInput({
       setSuggestions(newSuggestions)
     })
   }, [search])
-
-  console.log(search)
 
   // mount editor
 
@@ -238,19 +241,13 @@ export function TextInput({
     }
   }, [value, editorViewRef.current])
 
-
   const onSelectSuggestion = (suggestion: Suggestion) => {
     const currentEditorView = editorViewRef.current
     if (!currentEditorView) {
       return
     }
 
-
-
     const expr = `{${suggestionToExprSource(suggestion)}}`
-
-    console.log("insert", expr)
-
 
     currentEditorView.dispatch(
       currentEditorView.state.update({
@@ -277,7 +274,6 @@ export function TextInput({
     } else if (isEscape(evt)) {
       setActiveSlashIndex(-1)
     } else if (isEnter(evt)) {
-
       if (completionStatus(currentEditorView.state) !== null) {
         return
       }
@@ -297,7 +293,6 @@ export function TextInput({
       }
 
       evt.preventDefault()
-
     } else if (isTab(evt)) {
       evt.preventDefault()
 
@@ -309,23 +304,22 @@ export function TextInput({
     } else if (isUp(evt)) {
       // ignore up key if auto complete is active
       if (isMenuOpen) {
-        setSelectedSuggestionIndex((index) => index > 0 ? index - 1 : 0)
+        setSelectedSuggestionIndex((index) => (index > 0 ? index - 1 : 0))
       } else {
         onFocusUp()
       }
 
       evt.preventDefault()
-
     } else if (isDown(evt)) {
       // ignore down key if auto complete is active
       if (isMenuOpen) {
-        setSelectedSuggestionIndex((index) => index < suggestions.length - 1 ? index + 1 : suggestions.length - 1)
-
+        setSelectedSuggestionIndex((index) =>
+          index < suggestions.length - 1 ? index + 1 : suggestions.length - 1
+        )
       } else {
         onFocusDown()
       }
       evt.preventDefault()
-
     } else if (isBackspace(evt)) {
       if (isMenuOpen) {
         setActiveSlashIndex(-1)
@@ -367,28 +361,36 @@ export function TextInput({
     >
       <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
 
-      {isMenuOpen && <SuggestionMenu scope={scope} suggestions={suggestions} focusedIndex={selectedSuggestionIndex} selectSuggestion={onSelectSuggestion} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />}
+      {isMenuOpen && (
+        <SuggestionMenu
+          scope={scope}
+          suggestions={suggestions}
+          focusedIndex={selectedSuggestionIndex}
+          selectSuggestion={onSelectSuggestion}
+          isHoveringOverId={isHoveringOverId}
+          setIsHoveringOverId={setIsHoveringOverId}
+        />
+      )}
     </div>
   )
 }
 
 async function getSuggestions(scope: Scope, search: string): Promise<Suggestion[]> {
-  return (
-    getSuggestedFunctions(scope)
-      .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search))
-      .map((suggestion) => {
-        //        const inlineExpr = `{${expression}}`
+  return getSuggestedFunctions(scope)
+    .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search))
+    .map((suggestion) => {
+      //        const inlineExpr = `{${expression}}`
 
-        return {
-          title: suggestion.name,
-          icon: suggestion.icon,
-          arguments: suggestion.arguments
-        }
-      })
-  )
+      return {
+        title: suggestion.name,
+        icon: suggestion.icon,
+        arguments: suggestion.arguments,
+      }
+    })
 }
 
-
 export function suggestionToExprSource(suggestion: Suggestion) {
-  return `${suggestion.title}(${(suggestion.arguments ?? []).map(({ label, value }) => `${label}: ${value}`).join(", ")})`
+  return `${suggestion.title}(${(suggestion.arguments ?? [])
+    .map(({ label, value }) => `${label}: ${value}`)
+    .join(", ")})`
 }

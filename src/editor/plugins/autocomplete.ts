@@ -1,13 +1,11 @@
-import { createValueNode, getGraph, getNode, Graph, Node } from "../../graph"
-import { Completion, CompletionContext, CompletionSection } from "@codemirror/autocomplete"
+import { createValueNode, getGraph, Graph, Node } from "../../graph"
+import { Completion, CompletionContext } from "@codemirror/autocomplete"
 import { isString } from "../../utils"
 import { placesAutocompleteApi } from "../../google"
 import { createPlaceNode } from "../../views/MapNodeView"
 import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
-import { getSuggestedFunctions } from "../../language/function-suggestions"
 import { REF_ID_REGEX } from "./refIdTokenPlugin"
-import { EditorSelection } from "@codemirror/state"
 
 export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {

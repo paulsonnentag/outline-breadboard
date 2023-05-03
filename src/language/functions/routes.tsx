@@ -32,13 +32,16 @@ export const ROUTE_FN: FunctionDefs = {
             suggestions.push({
               icon: "route",
               name: "Route",
-              arguments: [{
-                label: "from",
-                value: locationA.value.expression
-              }, {
-                label: "to",
-                value: locationB.value.expression
-              }],
+              arguments: [
+                {
+                  label: "from",
+                  value: locationA.value.expression,
+                },
+                {
+                  label: "to",
+                  value: locationB.value.expression,
+                },
+              ],
               rank,
             })
           }
@@ -49,7 +52,6 @@ export const ROUTE_FN: FunctionDefs = {
     },
     function: async ([], { from, to }, scope) => {
       console.log("call route", from, to)
-
 
       if (from && to) {
         const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))

@@ -22,15 +22,18 @@ export const DISTANCE_FN: FunctionDefs = {
             }
 
             suggestions.push({
+              icon: "straighten",
               name: "Distance",
-              // expression: `Distance(from: ${locationA.value.expression}, to: ${locationB.value.expression})`,
-              arguments: [{
-                label: "from",
-                value: locationA.value.expression
-              }, {
-                label: "to",
-                value: locationB.value.expression
-              }],
+              arguments: [
+                {
+                  label: "from",
+                  value: locationA.value.expression,
+                },
+                {
+                  label: "to",
+                  value: locationB.value.expression,
+                },
+              ],
               rank,
             })
           }

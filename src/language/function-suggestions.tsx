@@ -24,7 +24,7 @@ interface ParameterValue {
 export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
   const parameters: Parameter[] = getParameters(scope)
 
-  return sortBy(
+  const result = sortBy(
     Object.entries(FUNCTIONS).flatMap(([name, fn]) => {
       let suggestions: FunctionSuggestion[] = []
 
@@ -32,10 +32,18 @@ export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
         suggestions = suggestions.concat(fn.suggestions(parameters))
       }
 
+      if (fn.autocomplete) {
+        suggestions.push(fn.autocomplete)
+      }
+
       return suggestions
     }),
     (suggestion: FunctionSuggestion) => suggestion.rank ?? Infinity
   )
+
+  console.log(result)
+
+  return result
 }
 
 interface GroupedFunctionSuggestions {

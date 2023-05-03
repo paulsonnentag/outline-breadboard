@@ -31,6 +31,8 @@ export const WEATHER_FN: FunctionDefs = {
 
       for (const date of dates) {
         for (const location of locations) {
+          let rank = location.distance + date.distance
+
           suggestions.push({
             icon: "light_mode",
             name: "Weather",
@@ -44,6 +46,7 @@ export const WEATHER_FN: FunctionDefs = {
                 value: date.value.expression,
               },
             ],
+            rank,
           })
         }
       }
@@ -52,8 +55,16 @@ export const WEATHER_FN: FunctionDefs = {
     },
     summaryView: (value) => getWeatherSummary(value),
     autocomplete: {
-      label: "Weather",
-      value: "Weather(in: $, on: )",
+      icon: "light_mode",
+      name: "Weather",
+      arguments: [
+        {
+          label: "in",
+        },
+        {
+          label: "on",
+        },
+      ],
     },
     function: async ([node], namedArgs, scope) => {
       let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined

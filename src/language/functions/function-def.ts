@@ -7,10 +7,7 @@ interface NamedArgs {
 
 export interface FunctionDef {
   function: (positionalArgs: any[], namedArgs: NamedArgs, scope: Scope) => any
-  autocomplete?: {
-    label: string
-    value: string // the value that is inserted, use "$" to mark where cursor should be placed
-  }
+  autocomplete?: FunctionSuggestion
   summaryView?: (value: any) => string
   suggestions?: (parameters: Parameter[]) => FunctionSuggestion[]
   icon?: string

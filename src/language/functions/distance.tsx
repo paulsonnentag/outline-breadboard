@@ -44,8 +44,16 @@ export const DISTANCE_FN: FunctionDefs = {
     },
     summaryView: (value) => `${Math.round(value.value)} ${unitShortName(value.unit)}`,
     autocomplete: {
-      label: "Distance",
-      value: "Distance(from: $, to:)",
+      icon: "straighten",
+      name: "Distance",
+      arguments: [
+        {
+          label: "from",
+        },
+        {
+          label: "to",
+        },
+      ],
     },
     function: async ([], { from, to, unit = "kilometers" }, scope) => {
       if (from && to) {

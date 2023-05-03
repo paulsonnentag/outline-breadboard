@@ -7,8 +7,16 @@ export const SUNSET_FN: FunctionDefs = {
   Sunset: {
     icon: "wb_twilight",
     autocomplete: {
-      label: "Sunset",
-      value: "Sunset(in: $, on:)",
+      icon: "wb_twilight",
+      name: "Sunset",
+      arguments: [
+        {
+          label: "in",
+        },
+        {
+          label: "on",
+        },
+      ],
     },
     function: async ([], namedArgs) => {
       if (namedArgs.on && namedArgs.in) {

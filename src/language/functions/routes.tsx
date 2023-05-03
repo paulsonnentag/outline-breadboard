@@ -13,8 +13,16 @@ export const ROUTE_FN: FunctionDefs = {
     icon: "route",
     summaryView: (value) => `${value.duration}, ${value.distance}`,
     autocomplete: {
-      label: "Route",
-      value: "Route(from: $, to:)",
+      icon: "route",
+      name: "Route",
+      arguments: [
+        {
+          label: "from",
+        },
+        {
+          label: "to",
+        },
+      ],
     },
     suggestions: (parameters: Parameter[]) => {
       const locations = parameters.filter((p) => p.value.type === "location")

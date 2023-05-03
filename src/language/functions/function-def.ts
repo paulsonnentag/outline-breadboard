@@ -11,7 +11,7 @@ export interface FunctionDef {
     label: string
     value: string // the value that is inserted, use "$" to mark where cursor should be placed
   }
-  summaryView?: (value: any) => HTMLElement | string
+  summaryView?: (value: any) => string
   suggestions?: (parameters: Parameter[]) => FunctionSuggestion[]
   icon?: string
 }

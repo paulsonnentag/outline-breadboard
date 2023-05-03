@@ -7,6 +7,7 @@ import { Scope } from "../language/scopes"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { HAS_MISSING_ARGUMENTS_VALUE } from "../language/functions/function-def"
 import { IdRefNode } from "../language/ast"
+import { FUNCTIONS } from "../language/functions"
 
 export interface Suggestion {
   icon?: string
@@ -84,8 +85,6 @@ function SuggestionRow({
   useEffect(() => {
     const expr = suggestionToExprSource(suggestion)
 
-    console.log("eval", expr, parseExpression(expr))
-
     const parametersScopes: Scope[] = []
 
     for (const arg of suggestion.arguments) {
@@ -107,13 +106,15 @@ function SuggestionRow({
     parseExpression(expr)
       .eval(scopeWithParameters)
       .then((result) => {
-        console.log("result", result)
-
         if (result !== HAS_MISSING_ARGUMENTS_VALUE) {
           setResult(result)
         }
       })
   }, [])
+
+  const fn = FUNCTIONS[suggestion.title]
+
+  const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
 
   return (
     <div
@@ -146,8 +147,7 @@ function SuggestionRow({
           )
       )}
 
-      {/* <p className="italic text-purple-600">{result && FUNCTIONS[suggestion.title].summaryView(result)}</p> */}
-      <p className="italic text-purple-600">{result && valueToString(result)}</p>
+      {result && <p className="italic text-purple-600">= {summaryView(result)}</p>}
     </div>
   )
 }

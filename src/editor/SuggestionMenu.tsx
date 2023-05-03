@@ -6,6 +6,7 @@ import { parseExpression } from '../language'
 import { Scope } from "../language/scopes"
 import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
+import { HAS_MISSING_ARGUMENTS_VALUE } from "../language/functions/function-def"
 
 export interface Suggestion {
   icon?: string
@@ -72,12 +73,11 @@ function SuggestionRow({ suggestion, scope, isFocused, onHover, onUnhover, onCli
     parseExpression(expr).eval(scope).then(result => {
       console.log("result", result);
 
-      setResult(result)
+      if (result !== HAS_MISSING_ARGUMENTS_VALUE) {
+        setResult(result)
+      }
     })
   }, [])
-
-  const summaryView = (suggestion.title && FUNCTIONS[suggestion.title].summaryView) ?? valueToString(result)
-
 
   return (
     <div
@@ -99,9 +99,8 @@ function SuggestionRow({ suggestion, scope, isFocused, onHover, onUnhover, onCli
         </p>
       ))}
 
-      {result &&
-        <p className="italic text-purple-600">{valueToString(result)}</p>
-      }
+      {/* <p className="italic text-purple-600">{result && FUNCTIONS[suggestion.title].summaryView(result)}</p> */}
+      <p className="italic text-purple-600">{result && valueToString(result)}</p>
     </div>
   )
 }

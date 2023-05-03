@@ -327,6 +327,10 @@ export function TextInput({
       evt.preventDefault()
 
     } else if (isBackspace(evt)) {
+      if (isMenuOpen) {
+        setActiveSlashIndex(-1)
+      }
+
       const ranges = currentEditorView.state.selection.ranges
 
       // join with previous if cursor is at beginning of text

@@ -1,5 +1,5 @@
 import { FunctionDefs } from "./function-def"
-import { valueOfAsync } from "../scopes"
+import { Scope, valueOfAsync } from "../scopes"
 
 export const CORE_FNS: FunctionDefs = {
   Get: {

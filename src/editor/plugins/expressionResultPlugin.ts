@@ -4,6 +4,7 @@ import { FUNCTIONS } from "../../language/functions"
 import classNames from "classnames"
 import { getGraphDocHandle, getNode } from "../../graph"
 import { Scope } from "../../language/scopes"
+import { FnNode } from "../../language/ast"
 
 //  listed here, so they will be included in the tailwind build
 const COLOR_CLASSES = [

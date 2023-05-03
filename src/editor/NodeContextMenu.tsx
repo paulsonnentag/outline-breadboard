@@ -2,9 +2,8 @@
 import { createRefNode, useGraph, ValueNode } from "../graph"
 import { Scope } from "../language/scopes"
 import { useId } from "react"
-import { FunctionSuggestion, getGroupedSuggestedFunctions } from "../language/function-suggestions"
+import { getGroupedSuggestedFunctions } from "../language/function-suggestions"
 import classNames from "classnames"
-import { Suggestion } from "./SuggestionMenu"
 import { suggestionToExprSource } from "./TextInput"
 
 export interface NodeContextMenuProps {

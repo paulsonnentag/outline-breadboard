@@ -420,7 +420,7 @@ interface TraverseOptions {
 // if value is not resolved yet undefined is returned
 export function valueOf(obj: any) {
   if (obj instanceof Scope) {
-    return obj.value()
+    return obj.valueOf()
   }
 
   return obj
@@ -428,7 +428,7 @@ export function valueOf(obj: any) {
 
 export async function valueOfAsync(obj: any) {
   if (obj instanceof Scope) {
-    return await obj.value()
+    return await obj.valueOfAsync()
   }
 
   return obj

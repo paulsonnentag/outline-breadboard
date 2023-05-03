@@ -367,7 +367,7 @@ export function TextInput({
     >
       <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
 
-      {isMenuOpen && <SuggestionMenu scope={scope} suggestions={suggestions} focusedIndex={selectedSuggestionIndex} selectSuggestion={onSelectSuggestion} />}
+      {isMenuOpen && <SuggestionMenu scope={scope} suggestions={suggestions} focusedIndex={selectedSuggestionIndex} selectSuggestion={onSelectSuggestion} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />}
     </div>
   )
 }

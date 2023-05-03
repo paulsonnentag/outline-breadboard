@@ -24,6 +24,8 @@ interface SuggestionMenuProps {
   suggestions: Suggestion[]
   focusedIndex: number
   selectSuggestion: (suggestion: Suggestion) => void
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
 export function SuggestionMenu(props: SuggestionMenuProps) {
@@ -40,6 +42,8 @@ export function SuggestionMenu(props: SuggestionMenuProps) {
           onHover={() => { setHoveredIndex(i) }} /* override keyboard focus for i */
           onUnhover={() => { hoveredIndex === i && setHoveredIndex(undefined) }} /* return to keyboard's focus if currently set to i */
           onClick={() => { props.selectSuggestion(s) }} /* should also trigger with return key */
+          isHoveringOverId={props.isHoveringOverId}
+          setIsHoveringOverId={props.setIsHoveringOverId}
         />
       )}
     </div>
@@ -53,9 +57,11 @@ interface SuggestionRowProps {
   onHover: () => void
   onUnhover: () => void
   onClick: () => void
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
-function SuggestionRow({ suggestion, scope, isFocused, onHover, onUnhover, onClick }: SuggestionRowProps) {
+function SuggestionRow({ suggestion, scope, isFocused, onHover, onUnhover, onClick, isHoveringOverId, setIsHoveringOverId }: SuggestionRowProps) {
   const [result, setResult] = useState<string | undefined>(undefined)
 
   useEffect(() => {
@@ -89,9 +95,7 @@ function SuggestionRow({ suggestion, scope, isFocused, onHover, onUnhover, onCli
       {suggestion.arguments?.map((a, i) => (a.value !== undefined &&
         <p key={i}>
           <span className="text-gray-500 inline-block mr-1">{a.label}</span>
-          <span className="font-medium text-blue-600">{
-            expressionToLabel(a.value)
-          }</span>
+          <ArgumentValue argument={a} isHoveringOverId={isHoveringOverId} setIsHoveringOverId={setIsHoveringOverId} />
         </p>
       ))}
 
@@ -100,6 +104,26 @@ function SuggestionRow({ suggestion, scope, isFocused, onHover, onUnhover, onCli
       }
     </div>
   )
+}
+
+interface ArgumentValueProps {
+  argument: SuggestionArgument
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
+}
+
+function ArgumentValue(props: ArgumentValueProps) {
+  const mentionId = props.argument.value?.match(/#\[(.*?)\]/)?.[1]
+
+  return (
+    <span
+      className={classNames("font-medium text-blue-500 px-1 rounded", {"bg-blue-200" : mentionId === props.isHoveringOverId})}
+      onMouseOver={e => mentionId && props.setIsHoveringOverId(mentionId)}
+      onMouseLeave={e => mentionId === props.isHoveringOverId && props.setIsHoveringOverId(undefined)}
+    >{
+      props.argument.value && expressionToLabel(props.argument.value)
+    }</span>
+  ) 
 }
 
 function expressionToLabel(expression: string) {

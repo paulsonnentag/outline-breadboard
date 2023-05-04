@@ -7,6 +7,7 @@ import { useState } from "react"
 import { FunctionDefs } from "./function-def"
 import { SUNSET_FN } from "./sunset"
 import { safeJsonStringify } from "../../utils"
+import { FLIGHT_STATUS_FN } from "./flightStatus"
 
 export const FUNCTIONS: FunctionDefs = {
   ...CORE_FNS,
@@ -14,6 +15,7 @@ export const FUNCTIONS: FunctionDefs = {
   ...ROUTE_FN,
   ...WEATHER_FN,
   ...SUNSET_FN,
+  ...FLIGHT_STATUS_FN,
 }
 
 interface ComputationsSummaryViewProps {

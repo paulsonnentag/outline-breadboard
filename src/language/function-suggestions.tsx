@@ -18,7 +18,7 @@ export interface Parameter {
 
 interface ParameterValue {
   expression: string
-  type: "date" | "location"
+  type: "date" | "location" | "flight"
 }
 
 export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {

@@ -2,7 +2,7 @@
 import { createRefNode, useGraph, ValueNode } from "../graph"
 import { Scope } from "../language/scopes"
 import { useId } from "react"
-import { getGroupedSuggestedFunctions } from "../language/function-suggestions"
+import { generalizeFormula, getGroupedSuggestedFunctions } from "../language/function-suggestions"
 import classNames from "classnames"
 import { suggestionToExprSource } from "./TextInput"
 
@@ -158,6 +158,18 @@ export function NodeContextMenu({
       >
         <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
           calendar_month
+        </span>
+      </button>
+
+      <button
+        className={classNames(
+          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+          isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+        )}
+        onMouseEnter={() => generalizeFormula(scope)}
+      >
+        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+          repeat
         </span>
       </button>
     </div>

@@ -1,5 +1,5 @@
 import { Scope } from "../scopes"
-import { FunctionSuggestion, Parameter } from "../function-suggestions"
+import { FunctionSuggestion, Parameter, ParameterType } from "../function-suggestions"
 
 interface NamedArgs {
   [name: string]: any
@@ -11,6 +11,7 @@ export interface FunctionDef {
   summaryView?: (value: any) => string
   suggestions?: (parameters: Parameter[]) => FunctionSuggestion[]
   icon?: string
+  parameters?: { [name: string]: ParameterType }
 }
 
 export interface FunctionDefs {

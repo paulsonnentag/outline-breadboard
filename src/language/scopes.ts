@@ -411,6 +411,29 @@ export class Scope {
 
     return tempScope
   }
+
+  prevSibling(): Scope | undefined {
+    if (!this.parentScope) {
+      return
+    }
+
+    const index = this.parentScope.childScopes.indexOf(this)
+
+    return this.parentScope.childScopes[index - 1]
+  }
+
+  nextSibling(): Scope | undefined {
+    if (!this.parentScope) {
+      return
+    }
+
+    const index = this.parentScope.childScopes.indexOf(this)
+    return this.parentScope.childScopes[index + 1]
+  }
+
+  transcludesId(id: string): boolean {
+    return this.transcludedScopes[id] !== undefined
+  }
 }
 
 interface TraverseOptions {

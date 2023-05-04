@@ -1,6 +1,7 @@
-import { Scope } from "./scopes"
+import { DataWithProvenance, Scope } from "./scopes"
 import { FUNCTIONS } from "./functions"
 import { sortBy } from "lodash"
+import { FnNode, IdRefNode, InlineExprNode } from "./ast"
 
 export interface FunctionSuggestion {
   name: string
@@ -16,9 +17,11 @@ export interface Parameter {
   scope: Scope
 }
 
+export type ParameterType = "date" | "location" | "flight"
+
 interface ParameterValue {
   expression: string
-  type: "date" | "location" | "flight"
+  type: ParameterType
 }
 
 export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
@@ -174,4 +177,45 @@ function _getParentParameters(scope: Scope, distance: number, parameters: Parame
   if (parentScope.parentScope) {
     _getParentParameters(parentScope, distance + 1, parameters)
   }
+}
+
+// todo: handle expressions with mixed in text
+
+export function generalizeFormula(scope: Scope) {
+  const parametersInScope = sortBy(getParameters(scope), (parameter) => parameter.distance)
+
+  console.log("generalize")
+
+  const inlineExpr = scope.bullet.value[0]
+  if (!(inlineExpr instanceof InlineExprNode) || !(inlineExpr.expr instanceof FnNode)) {
+    return
+  }
+
+  const fn = inlineExpr.expr
+
+  const fnParameters = FUNCTIONS[fn.name].parameters
+  if (!fnParameters) {
+    console.log("doesn't have params")
+    return
+  }
+
+  // todo: handle complex case where bullet consists of multiple formulas
+
+  // get the closest parameter it's related to
+
+  const parameterByArgument: { [name: string]: Parameter } = {}
+  for (const argument of fn.args) {
+    if (!(argument.exp instanceof IdRefNode) || !argument.name) {
+      continue
+    }
+
+    const argumentExpression = `#[${argument.exp.id}]`
+    const parameter = parametersInScope.find((par) => par.value.expression === argumentExpression)
+
+    if (parameter) {
+      parameterByArgument[argument.name] = parameter
+    }
+  }
+
+  console.log(parameterByArgument)
 }

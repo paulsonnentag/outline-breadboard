@@ -66,6 +66,10 @@ export const WEATHER_FN: FunctionDefs = {
         },
       ],
     },
+    parameters: {
+      in: "location",
+      on: "date",
+    },
     function: async ([node], namedArgs, scope) => {
       let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined
       let inLocation = namedArgs.in

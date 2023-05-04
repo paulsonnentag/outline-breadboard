@@ -24,6 +24,12 @@ export const ROUTE_FN: FunctionDefs = {
         },
       ],
     },
+
+    parameters: {
+      from: "location",
+      to: "location",
+    },
+
     suggestions: (parameters: Parameter[]) => {
       const locations = parameters.filter((p) => p.value.type === "location")
       const suggestions: FunctionSuggestion[] = []

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { useStaticCallback } from "../hooks"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { parseDate, parseLatLng } from "../properties"
+import { ParameterType } from "./function-suggestions"
 
 export interface ComputationResult {
   name: string
@@ -194,6 +195,17 @@ export class Scope {
     return ownProperty
       ? transcludedProperties.concat({ data: ownProperty, scope: this })
       : transcludedProperties
+  }
+
+  readAs(type: ParameterType): DataWithProvenance<any>[] {
+    switch (type) {
+      case "location":
+        return this.readAsLocation()
+      case "date":
+        return this.readAsDate()
+    }
+
+    return []
   }
 
   readAsDate(): DataWithProvenance<Date>[] {
@@ -433,6 +445,14 @@ export class Scope {
 
   transcludesId(id: string): boolean {
     return this.transcludedScopes[id] !== undefined
+  }
+
+  getRootScope(): Scope {
+    if (!this.parentScope) {
+      return this
+    }
+
+    return this.parentScope.getRootScope()
   }
 }
 

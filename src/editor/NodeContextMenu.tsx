@@ -1,5 +1,5 @@
 // todo: the view options should be filtered depending on the data of the node
-import { createRefNode, useGraph, ValueNode } from "../graph"
+import { createRefNode, getNode, useGraph, ValueNode } from "../graph"
 import { Scope } from "../language/scopes"
 import { useId } from "react"
 import { generalizeFormula, getGroupedSuggestedFunctions } from "../language/function-suggestions"
@@ -56,6 +56,21 @@ export function NodeContextMenu({
   }
 
   const suggestedFunctions = getGroupedSuggestedFunctions(scope)
+
+  const onDelete = () => {
+    changeGraph((graph) => {
+      const parentScope: Scope = scope.parentScope as Scope
+      const index = parentScope.childScopes.indexOf(scope)
+      const parentNode = getNode(graph, parentScope.id)
+      parentNode.children.splice(index, 1)
+    })
+  }
+
+  const onRepeat = () => {
+    changeGraph((graph) => {
+      generalizeFormula(graph, scope)
+    })
+  }
 
   return (
     <div className="flex w-fit gap-1">
@@ -166,12 +181,26 @@ export function NodeContextMenu({
           "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
           isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
         )}
-        onMouseEnter={() => generalizeFormula(scope)}
+        onClick={onRepeat}
       >
         <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
           repeat
         </span>
       </button>
+
+      {scope.parentScope && (
+        <button
+          className={classNames(
+            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+            isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+          )}
+          onClick={onDelete}
+        >
+          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+            close
+          </span>
+        </button>
+      )}
     </div>
   )
 }

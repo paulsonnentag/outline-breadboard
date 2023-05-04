@@ -1,7 +1,8 @@
 import { DataWithProvenance, Scope } from "./scopes"
 import { FUNCTIONS } from "./functions"
 import { sortBy } from "lodash"
-import { FnNode, IdRefNode, InlineExprNode } from "./ast"
+import { ArgumentNode, FnNode, IdRefNode, InlineExprNode } from "./ast"
+import { createValueNode, getNode, Graph } from "../graph"
 
 export interface FunctionSuggestion {
   name: string
@@ -181,12 +182,11 @@ function _getParentParameters(scope: Scope, distance: number, parameters: Parame
 
 // todo: handle expressions with mixed in text
 
-export function generalizeFormula(scope: Scope) {
-  const parametersInScope = sortBy(getParameters(scope), (parameter) => parameter.distance)
+// expects that graph is mutable
+export function generalizeFormula(graph: Graph, formulaScope: Scope) {
+  const parametersInScope = sortBy(getParameters(formulaScope), (parameter) => parameter.distance)
 
-  console.log("generalize")
-
-  const inlineExpr = scope.bullet.value[0]
+  const inlineExpr = formulaScope.bullet.value[0]
   if (!(inlineExpr instanceof InlineExprNode) || !(inlineExpr.expr instanceof FnNode)) {
     return
   }
@@ -199,9 +199,8 @@ export function generalizeFormula(scope: Scope) {
     return
   }
 
+  // match arguments to the closes parameter in the outline, some arguments might not occur in the outline
   // todo: handle complex case where bullet consists of multiple formulas
-
-  // get the closest parameter it's related to
 
   const parameterByArgument: { [name: string]: Parameter } = {}
   for (const argument of fn.args) {
@@ -216,6 +215,63 @@ export function generalizeFormula(scope: Scope) {
       parameterByArgument[argument.name] = parameter
     }
   }
+
+  // find argument that ...
+  //  1. maps to a parameter in the outline
+  //  2. the parameter is a parent scope of a formula we want to generalize
+  // todo: handle other relationships like siblings
+
+  let anchorArgument: ArgumentNode | undefined
+  for (const argument of fn.args) {
+    if (!argument.name) {
+      continue
+    }
+
+    const parameter = parameterByArgument[argument.name]
+    if (parameter && parameter.scope === formulaScope.parentScope) {
+      anchorArgument = argument
+      break
+    }
+  }
+
+  if (!anchorArgument) {
+    return
+  }
+
+  // go to root node and insert formula as a child node to any scope of matching type
+  const rootScope = formulaScope.getRootScope()
+
+  const requiredType = fnParameters[anchorArgument.name as string]
+
+  rootScope.traverseScope<undefined>(
+    (scope) => {
+      const value = scope.readAs(requiredType)[0]
+
+      console.log(scope.source, value, requiredType)
+
+      if (value !== undefined) {
+        const argsSource = fn.args.map((arg) => {
+          const value = arg === anchorArgument ? scope.source : `#[${(arg.exp as IdRefNode).id}]`
+          return `${arg.name}: ${value}`
+        })
+
+        const formula = `{${fn.name}(${argsSource.join(", ")})}`
+        const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
+          childScope.source.includes(formula)
+        )
+
+        if (!doesAlreadyContainFormula) {
+          const node = getNode(graph, scope.id)
+          const childNode = createValueNode(graph, { value: formula })
+          node.children.push(childNode.id)
+        }
+      }
+
+      return undefined
+    },
+    undefined,
+    { skipTranscludedScopes: true }
+  )
 
   console.log(parameterByArgument)
 }

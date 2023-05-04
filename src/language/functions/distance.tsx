@@ -42,7 +42,7 @@ export const DISTANCE_FN: FunctionDefs = {
 
       return suggestions
     },
-    summaryView: (value) => `${Math.round(value.value)} ${unitShortName(value.unit)}`,
+    summaryView: (value) => `📏 ${Math.round(value.value)} ${unitShortName(value.unit)}`,
     autocomplete: {
       icon: "straighten",
       name: "Distance",

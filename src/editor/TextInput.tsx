@@ -264,6 +264,11 @@ export function TextInput({
     }
 
     if (isSlash(evt)) {
+      // Do not open the suggestion menu for computations if the
+      // data autocomplete menu is already open
+      if (completionStatus(currentEditorView.state) !== null) {
+        return
+      }
       setActiveSlashIndex(currentEditorView.state.selection.main.head)
       setSelectedSuggestionIndex(0)
     } else if (isEscape(evt)) {

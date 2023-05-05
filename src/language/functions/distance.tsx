@@ -42,7 +42,7 @@ export const DISTANCE_FN: FunctionDefs = {
 
       return suggestions
     },
-    summaryView: (value) => `${Math.round(value.value)} ${unitShortName(value.unit)}`,
+    summaryView: (value) => `📏 ${Math.round(value.value)} ${unitShortName(value.unit)}`,
     autocomplete: {
       icon: "straighten",
       name: "Distance",
@@ -55,6 +55,12 @@ export const DISTANCE_FN: FunctionDefs = {
         },
       ],
     },
+
+    parameters: {
+      from: "location",
+      to: "location",
+    },
+
     function: async ([], { from, to, unit = "kilometers" }, scope) => {
       if (from && to) {
         const pos1 = parseLatLng(await (from as Scope).getPropertyAsync("position"))

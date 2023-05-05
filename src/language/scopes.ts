@@ -309,6 +309,14 @@ export class Scope {
     }
   }
 
+  findParent(predicate: (scope: Scope) => boolean): Scope | undefined {
+    if (!this.parentScope) {
+      return undefined
+    }
+
+    return predicate(this.parentScope) ? this.parentScope : this.parentScope.findParent(predicate)
+  }
+
   async traverseScopeAsync<T>(
     fn: (scope: Scope, context: T) => Promise<T>,
     context: T,

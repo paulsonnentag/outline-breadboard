@@ -1,10 +1,20 @@
 // todo: the view options should be filtered depending on the data of the node
 import { createRefNode, getNode, useGraph, ValueNode } from "../graph"
 import { Scope } from "../language/scopes"
-import { useId } from "react"
-import { generalizeFormula, getGroupedSuggestedFunctions } from "../language/function-suggestions"
+import { useEffect, useId, useRef, useState } from "react"
+import {
+  canFormulaBeRepeated,
+  getGroupedSuggestedFunctions,
+  Insertion,
+  repeatFormula,
+} from "../language/function-suggestions"
 import classNames from "classnames"
 import { suggestionToExprSource } from "./TextInput"
+import { parseExpression } from "../language"
+import { FnNode, IdRefNode } from "../language/ast"
+import { FUNCTIONS } from "../language/functions"
+import { valueToString } from "./plugins/expressionResultPlugin"
+import { createPortal } from "react-dom"
 
 export interface NodeContextMenuProps {
   node: ValueNode
@@ -27,6 +37,68 @@ export function NodeContextMenu({
   const isMap = node.view === "map"
   const isTable = node.view === "table"
   const isCalendar = node.view === "calendar"
+
+  const suggestedFunctions = getGroupedSuggestedFunctions(scope)
+
+  const [suggestedFunctionButtons, setSuggestedFunctionButtons] = useState<
+    { name: string; suggestion: string; result: string }[]
+  >([])
+
+  const repeatButtonRef = useRef<HTMLButtonElement>(null)
+  const [repeatButtonPosition, setRepeatButtonPosition] = useState<
+    { x: number; y: number } | undefined
+  >()
+  const [pendingInsertions, setPendingInsertions] = useState<Insertion[]>([])
+
+  // When the suggested functions change, recompute results for the suggestions
+  // to populate the buttons. (In an effect because computation is async)
+  useEffect(() => {
+    ;(async () => {
+      const newSuggestedFunctionButtons = []
+      for (const [name, suggestions] of Object.entries(suggestedFunctions)) {
+        const defaultSuggestion = suggestions[0]
+          ? `{${suggestionToExprSource(suggestions[0])}}`
+          : undefined
+
+        const hasDefaultSuggestionBeenAlreadyInserted =
+          scope.source === defaultSuggestion ||
+          scope.childScopes.some(
+            (scope) => scope.source === defaultSuggestion && scope.id !== suggestionNodeId
+          )
+
+        if (suggestions.length === 0 || hasDefaultSuggestionBeenAlreadyInserted) {
+          continue
+        }
+
+        if (!defaultSuggestion) {
+          continue
+        }
+        const ast = parseExpression(defaultSuggestion.slice(1, -1)) as FnNode
+        const parametersScopes: Scope[] = []
+        for (const arg of ast.args) {
+          if (arg.exp instanceof IdRefNode) {
+            const transcludedScope = new Scope(graph, arg.exp.id, scope)
+            transcludedScope.eval()
+            parametersScopes.push(transcludedScope)
+          }
+        }
+        const scopeWithParameters = scope.withTranscludedScopes(parametersScopes)
+        const result = await ast.eval(scopeWithParameters)
+        const fn = FUNCTIONS[name]
+        const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
+        newSuggestedFunctionButtons.push({
+          name,
+          suggestion: defaultSuggestion,
+          result: summaryView(result),
+        })
+      }
+
+      setSuggestedFunctionButtons(newSuggestedFunctionButtons)
+    })()
+    return () => {}
+    // bit of an ugly hack to compare suggestedFunctions by value rather than identity,
+    // but seems to work fine...
+  }, [JSON.stringify(suggestedFunctions)])
 
   const onToggleView = (view: string) => {
     changeGraph((graph) => {
@@ -51,11 +123,31 @@ export function NodeContextMenu({
     })
   }
 
-  if (!isFocused && !isMap && !isTable && !isCalendar) {
-    return null
+  useEffect(() => {
+    if (!isFocused) {
+      resetPendingInsertions()
+    }
+  }, [isFocused])
+
+  const resetPendingInsertions = () => {
+    setRepeatButtonPosition(undefined)
+
+    changeGraph((graph) => {
+      for (const { parentId, childId } of pendingInsertions) {
+        const parent = getNode(graph, parentId)
+        const index = parent.children.indexOf(childId)
+        if (index !== -1) {
+          parent.children.splice(index, 1)
+        }
+      }
+
+      setPendingInsertions([])
+    })
   }
 
-  const suggestedFunctions = getGroupedSuggestedFunctions(scope)
+  if ((!isFocused && !isMap && !isTable && !isCalendar) || node.isTemporary) {
+    return null
+  }
 
   const onDelete = () => {
     changeGraph((graph) => {
@@ -68,37 +160,48 @@ export function NodeContextMenu({
 
   const onRepeat = () => {
     changeGraph((graph) => {
-      generalizeFormula(graph, scope)
+      pendingInsertions.map((insertion) => {
+        const node = getNode(graph, insertion.childId)
+        node.isTemporary = false
+      })
     })
+
+    setPendingInsertions([])
+    setRepeatButtonPosition(undefined)
+  }
+
+  const onMouseEnterRepeat = () => {
+    if (!repeatButtonRef.current) {
+      return
+    }
+
+    setTimeout(() => {
+      changeGraph((graph) => {
+        setPendingInsertions(repeatFormula(graph, scope))
+      })
+    }, 200)
+
+    const { x, y } = repeatButtonRef.current?.getBoundingClientRect()
+    setRepeatButtonPosition({ x, y })
+  }
+
+  const onMouseLeaveRepeat = () => {
+    resetPendingInsertions()
   }
 
   return (
     <div className="flex w-fit gap-1">
       <>
-        {Object.entries(suggestedFunctions).map(([name, suggestions]) => {
-          const defaultSuggestion = suggestions[0]
-            ? `{${suggestionToExprSource(suggestions[0])}}`
-            : undefined
-
-          const hasDefaultSuggestionBeenAlreadyInserted =
-            scope.source === defaultSuggestion ||
-            scope.childScopes.some(
-              (scope) => scope.source === defaultSuggestion && scope.id !== suggestionNodeId
-            )
-
-          if (suggestions.length === 0 || hasDefaultSuggestionBeenAlreadyInserted) {
-            return null
-          }
-
+        {suggestedFunctionButtons.map(({ name, suggestion, result }) => {
           return (
             <button
               key={name}
               className="rounded text-sm flex items-center justify-center hover:bg-gray-500 hover:text-white px-1"
               onClick={() => {
-                if (!defaultSuggestion) {
+                if (!suggestion) {
                   return
                 }
-                scope.insertChildNode(defaultSuggestion)
+                scope.insertChildNode(suggestion)
               }}
               onMouseEnter={() => {
                 // todo: awful hack, create temporary node in graph that's not persisted in automerge
@@ -109,7 +212,7 @@ export function NodeContextMenu({
                   isSelected: false,
                   key: "",
                   paneWidth: 0,
-                  value: defaultSuggestion,
+                  value: suggestion,
                   view: "",
                   computations: [],
                   id: suggestionNodeId,
@@ -137,58 +240,95 @@ export function NodeContextMenu({
                 }
               }}
             >
-              + {name}
+              {result}
             </button>
           )
         })}
       </>
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          map
-        </span>
-      </button>
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          table_chart
-        </span>
-      </button>
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          calendar_month
-        </span>
-      </button>
 
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={onRepeat}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          repeat
-        </span>
-      </button>
+      {pendingInsertions?.length === 0 && (
+        <>
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+              isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            )}
+            onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              map
+            </span>
+          </button>
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+              isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            )}
+            onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              table_chart
+            </span>
+          </button>
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+              isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            )}
+            onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              calendar_month
+            </span>
+          </button>
+        </>
+      )}
 
-      {scope.parentScope && (
+      {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
+        <button
+          className={classNames(
+            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+            isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+          )}
+          ref={repeatButtonRef}
+          onClick={onRepeat}
+          onMouseEnter={onMouseEnterRepeat}
+        >
+          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+            repeat
+          </span>
+        </button>
+      )}
+
+      {repeatButtonPosition &&
+        createPortal(
+          <div
+            style={{
+              overflow: "hidden",
+              position: "absolute",
+              top: `${repeatButtonPosition.y}px`,
+              left: `${repeatButtonPosition.x}px`,
+            }}
+            onMouseEnter={(evt) => evt.stopPropagation()}
+            onClick={onRepeat}
+          >
+            <button
+              className={classNames(
+                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+              )}
+              onClick={onRepeat}
+              onMouseLeave={onMouseLeaveRepeat}
+            >
+              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                repeat
+              </span>
+            </button>
+          </div>,
+          document.body
+        )}
+
+      {scope.parentScope && pendingInsertions?.length === 0 && (
         <button
           className={classNames(
             "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",

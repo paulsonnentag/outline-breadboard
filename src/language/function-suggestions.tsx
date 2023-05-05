@@ -239,7 +239,7 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
 
       if (!doesAlreadyContainFormula) {
         const node = getNode(graph, scope.id)
-        const childNode = createValueNode(graph, { value: formula })
+        const childNode = createValueNode(graph, { value: formula, isTemporary: true })
         node.children.push(childNode.id)
 
         insertions.push({ parentId: node.id, childId: childNode.id })

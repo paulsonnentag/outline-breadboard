@@ -44,7 +44,7 @@ export function NodeContextMenu({
     { name: string; suggestion: string; result: string }[]
   >([])
 
-  const repeatButtonRef = useRef<HTMLElement>(null)
+  const repeatButtonRef = useRef<HTMLButtonElement>(null)
   const [repeatButtonPosition, setRepeatButtonPosition] = useState<
     { x: number; y: number } | undefined
   >()
@@ -123,7 +123,29 @@ export function NodeContextMenu({
     })
   }
 
-  if (!isFocused && !isMap && !isTable && !isCalendar) {
+  useEffect(() => {
+    if (!isFocused) {
+      resetPendingInsertions()
+    }
+  }, [isFocused])
+
+  const resetPendingInsertions = () => {
+    setRepeatButtonPosition(undefined)
+
+    changeGraph((graph) => {
+      for (const { parentId, childId } of pendingInsertions) {
+        const parent = getNode(graph, parentId)
+        const index = parent.children.indexOf(childId)
+        if (index !== -1) {
+          parent.children.splice(index, 1)
+        }
+      }
+
+      setPendingInsertions([])
+    })
+  }
+
+  if ((!isFocused && !isMap && !isTable && !isCalendar) || node.isTemporary) {
     return null
   }
 
@@ -137,6 +159,13 @@ export function NodeContextMenu({
   }
 
   const onRepeat = () => {
+    changeGraph((graph) => {
+      pendingInsertions.map((insertion) => {
+        const node = getNode(graph, insertion.childId)
+        node.isTemporary = false
+      })
+    })
+
     setPendingInsertions([])
     setRepeatButtonPosition(undefined)
   }
@@ -157,17 +186,7 @@ export function NodeContextMenu({
   }
 
   const onMouseLeaveRepeat = () => {
-    setRepeatButtonPosition(undefined)
-
-    changeGraph((graph) => {
-      for (const { parentId, childId } of pendingInsertions) {
-        const parent = getNode(graph, parentId)
-        const index = parent.children.indexOf(childId)
-        parent.children.splice(index, 1)
-      }
-
-      setPendingInsertions([])
-    })
+    resetPendingInsertions()
   }
 
   return (

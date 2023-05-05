@@ -182,14 +182,14 @@ function _getParentParameters(scope: Scope, distance: number, parameters: Parame
 
 // todo: handle expressions with mixed in text
 
-// expects that graph is mutable
+// repatFormula expects that graph is mutable
 export function repeatFormula(graph: Graph, formulaScope: Scope) {
   const pattern = getPattern(formulaScope)
 
   if (!pattern) {
     return
   }
-  const { fnParameters, anchorArgument, fn } = pattern
+  const { fnParameters, anchorArgument, fn, extractionFnForArgument } = pattern
 
   // go to root node and insert formula as a child node to any scope of matching type
   const rootScope = formulaScope.getRootScope()
@@ -200,24 +200,40 @@ export function repeatFormula(graph: Graph, formulaScope: Scope) {
     (scope) => {
       const value = scope.readAs(requiredType)[0]
 
-      console.log(scope.source, value, requiredType)
+      // abort if type of anchor scope doesn't match current scope
+      if (value === undefined) {
+        return
+      }
 
-      if (value !== undefined) {
-        const argsSource = fn.args.map((arg) => {
-          const value = arg === anchorArgument ? scope.source : `#[${(arg.exp as IdRefNode).id}]`
-          return `${arg.name}: ${value}`
-        })
-
-        const formula = `{${fn.name}(${argsSource.join(", ")})}`
-        const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
-          childScope.source.includes(formula)
-        )
-
-        if (!doesAlreadyContainFormula) {
-          const node = getNode(graph, scope.id)
-          const childNode = createValueNode(graph, { value: formula })
-          node.children.push(childNode.id)
+      const argsSource = fn.args.map((arg) => {
+        if (arg === anchorArgument) {
+          return `${arg.name}: ${scope.source}`
         }
+
+        const extractionFn = extractionFnForArgument[arg.name as string]
+        if (extractionFn) {
+          const value = extractionFn(scope)
+
+          return value ? `${arg.name}: ${value}` : undefined
+        }
+
+        return `${arg.name}: #[${(arg.exp as IdRefNode).id}]`
+      })
+
+      // abort if some arguments couldn't be matched at this position in the outline abort
+      if (argsSource.some((source) => source === undefined)) {
+        return
+      }
+
+      const formula = `{${fn.name}(${argsSource.join(", ")})}`
+      const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
+        childScope.source.includes(formula)
+      )
+
+      if (!doesAlreadyContainFormula) {
+        const node = getNode(graph, scope.id)
+        const childNode = createValueNode(graph, { value: formula })
+        node.children.push(childNode.id)
       }
 
       return undefined
@@ -227,10 +243,12 @@ export function repeatFormula(graph: Graph, formulaScope: Scope) {
   )
 }
 
-// I'm not sure what a good shape for a general pattern is, so now it's just a collection of values that are needed for the repeated application of the formula
+// I'm not sure yet what a good shape for a pattern is
+// for now it's just a collection of values that are needed for the repeated application of the formula
 interface Pattern {
   fn: FnNode
   anchorArgument: ArgumentNode
+  extractionFnForArgument: { [name: string]: (anchorScope: Scope) => string | undefined }
   fnParameters: { [name: string]: ParameterType }
 }
 
@@ -289,10 +307,35 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
     return
   }
 
+  const relativeArguments: { [name: string]: (anchorScope: Scope) => string | undefined } = {}
+
+  for (const argument of fn.args) {
+    if (argument === anchorArgument || !argument.name || !parameterByArgument[argument.name]) {
+      continue
+    }
+
+    const parameter = parameterByArgument[argument.name]
+
+    // todo: turn other relationship types into relativeArguments as well
+    if (parameter && parameter.relationship === "parent") {
+      // this is not necessary what the user always wants, by default we generalize the closest parent relationship
+      // of that data type and allow other values in between
+
+      relativeArguments[argument.name] = (scope) => {
+        const matchingParent = scope.findParent(
+          (parentScope) => parentScope.readAs(parameter.value.type)[0] !== undefined
+        )
+
+        return matchingParent ? matchingParent.source : undefined
+      }
+    }
+  }
+
   return {
     fn,
     fnParameters,
     anchorArgument,
+    extractionFnForArgument: relativeArguments,
   }
 }
 

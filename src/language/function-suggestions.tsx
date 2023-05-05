@@ -321,51 +321,67 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
           }
           break
         case "next":
-          // todo: check if there are parameters in between and abort then
+          // only make sequential parameter relative if in the example there are no other siblings of the same type in between
+          if (
+            !isSiblingScopeOfTypeInBetween(
+              parameter.scope,
+              anchorArgument.scope,
+              parameter.value.type
+            )
+          ) {
+            // generalize to find the first next sibling of matching type
+            relativeArguments[argument.name] = (scope) => {
+              const parentScope = scope.parentScope
 
-          relativeArguments[argument.name] = (scope) => {
-            const parentScope = scope.parentScope
-
-            if (!parentScope) {
-              return
-            }
-
-            for (
-              let index = parentScope.childScopes.indexOf(scope) + 1;
-              index < parentScope.childScopes.length;
-              index++
-            ) {
-              const prevScope = parentScope.childScopes[index]
-
-              if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
-                return prevScope.source
+              if (!parentScope) {
+                return
               }
-            }
 
-            return undefined
+              for (
+                let index = parentScope.childScopes.indexOf(scope) + 1;
+                index < parentScope.childScopes.length;
+                index++
+              ) {
+                const prevScope = parentScope.childScopes[index]
+
+                if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
+                  return prevScope.source
+                }
+              }
+
+              return undefined
+            }
           }
 
           break
 
         case "prev":
-          // todo: check if there are parameters in between and abort then
+          // only make sequential parameter relative if in the example there are no other siblings of the same type in between
+          if (
+            !isSiblingScopeOfTypeInBetween(
+              parameter.scope,
+              anchorArgument.scope,
+              parameter.value.type
+            )
+          ) {
+            // generalize to find the first prev sibling of matching type
+            relativeArguments[argument.name] = (scope) => {
+              const parentScope = scope.parentScope
 
-          relativeArguments[argument.name] = (scope) => {
-            const parentScope = scope.parentScope
-
-            if (!parentScope) {
-              return
-            }
-
-            for (let index = parentScope.childScopes.indexOf(scope) - 1; index >= 0; index--) {
-              const prevScope = parentScope.childScopes[index]
-
-              if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
-                return prevScope.source
+              if (!parentScope) {
+                return
               }
-            }
 
-            return undefined
+              for (let index = parentScope.childScopes.indexOf(scope) - 1; index >= 0; index--) {
+                const prevScope = parentScope.childScopes[index]
+
+                if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
+                  return prevScope.source
+                }
+              }
+
+              return undefined
+            }
           }
 
           break
@@ -379,6 +395,34 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
     anchorArgument,
     extractionFnForArgument: relativeArguments,
   }
+}
+
+function isSiblingScopeOfTypeInBetween(scopeA: Scope, scopeB: Scope, type: ParameterType): boolean {
+  if (
+    scopeA.parentScope !== scopeB.parentScope ||
+    scopeA.parentScope === undefined ||
+    scopeB.parentScope === undefined
+  ) {
+    return false
+  }
+
+  const indexA = scopeA.parentScope.childScopes.indexOf(scopeA)
+  const indexB = scopeA.parentScope.childScopes.indexOf(scopeB)
+
+  const startIndex = Math.min(indexA, indexB) + 1
+  const endIndex = Math.max(indexA, indexB)
+
+  if (startIndex > endIndex) {
+    return false
+  }
+
+  for (let i = startIndex; i < endIndex; i++) {
+    if (scopeA.parentScope.childScopes[i].readAs(type)[0] !== undefined) {
+      return true
+    }
+  }
+
+  return false
 }
 
 interface AnchorArgument {

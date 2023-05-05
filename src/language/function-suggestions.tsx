@@ -45,8 +45,6 @@ export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
     (suggestion: FunctionSuggestion) => suggestion.rank ?? Infinity
   )
 
-  console.log(result)
-
   return result
 }
 
@@ -213,7 +211,7 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
       }
 
       const argsSource = fn.args.map((arg) => {
-        if (arg === anchorArgument) {
+        if (arg.name === anchorArgument.name) {
           return `${arg.name}: ${scope.source}`
         }
 
@@ -258,14 +256,12 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
 // for now it's just a collection of values that are needed for the repeated application of the formula
 interface Pattern {
   fn: FnNode
-  anchorArgument: ArgumentNode
+  anchorArgument: AnchorArgument
   extractionFnForArgument: { [name: string]: (anchorScope: Scope) => string | undefined }
   fnParameters: { [name: string]: ParameterType }
 }
 
 function getPattern(formulaScope: Scope): Pattern | undefined {
-  const parametersInScope = sortBy(getParameters(formulaScope), (parameter) => parameter.distance)
-
   const inlineExpr = formulaScope.bullet.value[0]
   if (!(inlineExpr instanceof InlineExprNode) || !(inlineExpr.expr instanceof FnNode)) {
     return
@@ -275,25 +271,7 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
 
   const fnParameters = FUNCTIONS[fn.name].parameters
   if (!fnParameters) {
-    console.log("doesn't have params")
     return
-  }
-
-  // match arguments to the closes parameter in the outline, some arguments might not occur in the outline
-  // todo: handle complex case where bullet consists of multiple formulas
-
-  const parameterByArgument: { [name: string]: Parameter } = {}
-  for (const argument of fn.args) {
-    if (!(argument.exp instanceof IdRefNode) || !argument.name) {
-      continue
-    }
-
-    const argumentExpression = `#[${argument.exp.id}]`
-    const parameter = parametersInScope.find((par) => par.value.expression === argumentExpression)
-
-    if (parameter) {
-      parameterByArgument[argument.name] = parameter
-    }
   }
 
   // find argument that ...
@@ -301,43 +279,96 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
   //  2. the parameter is a parent scope of a formula we want to generalize
   // todo: handle other relationships like siblings
 
-  let anchorArgument: ArgumentNode | undefined
-  for (const argument of fn.args) {
-    if (!argument.name) {
-      continue
-    }
-
-    const parameter = parameterByArgument[argument.name]
-    if (parameter && parameter.scope === formulaScope.parentScope) {
-      anchorArgument = argument
-      break
-    }
-  }
+  let anchorArgument = getAnchorArgument(formulaScope)
 
   if (!anchorArgument) {
     return
   }
 
+  // map other arguments relative to this anchor argument
+  // todo: handle complex case where bullet consists of multiple formulas
+
+  const parametersInScope = sortBy(
+    getParameters(anchorArgument.scope),
+    (parameter) => parameter.distance
+  )
   const relativeArguments: { [name: string]: (anchorScope: Scope) => string | undefined } = {}
 
   for (const argument of fn.args) {
-    if (argument === anchorArgument || !argument.name || !parameterByArgument[argument.name]) {
+    if (
+      !(argument.exp instanceof IdRefNode) ||
+      !argument.name ||
+      argument.name === anchorArgument.name
+    ) {
       continue
     }
 
-    const parameter = parameterByArgument[argument.name]
+    const argumentExpression = `#[${argument.exp.id}]`
+    const parameter = parametersInScope.find((par) => par.value.expression === argumentExpression)
 
-    // todo: turn other relationship types into relativeArguments as well
-    if (parameter && parameter.relationship === "parent") {
-      // this is not necessary what the user always wants, by default we generalize the closest parent relationship
-      // of that data type and allow other values in between
+    // there are multiple ways to generalize patterns, right now we just have a single strategy for each relationship type
+    if (parameter) {
+      switch (parameter.relationship) {
+        case "parent":
+          // generalize to the closest parent relationship of that data type but allow other values in between
 
-      relativeArguments[argument.name] = (scope) => {
-        const matchingParent = scope.findParent(
-          (parentScope) => parentScope.readAs(parameter.value.type)[0] !== undefined
-        )
+          relativeArguments[argument.name] = (scope) => {
+            const matchingParent = scope.findParent(
+              (parentScope) => parentScope.readAs(parameter.value.type)[0] !== undefined
+            )
 
-        return matchingParent ? matchingParent.source : undefined
+            return matchingParent ? matchingParent.source : undefined
+          }
+          break
+        case "next":
+          // todo: check if there are parameters in between and abort then
+
+          relativeArguments[argument.name] = (scope) => {
+            const parentScope = scope.parentScope
+
+            if (!parentScope) {
+              return
+            }
+
+            for (
+              let index = parentScope.childScopes.indexOf(scope) + 1;
+              index < parentScope.childScopes.length;
+              index++
+            ) {
+              const prevScope = parentScope.childScopes[index]
+
+              if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
+                return prevScope.source
+              }
+            }
+
+            return undefined
+          }
+
+          break
+
+        case "prev":
+          // todo: check if there are parameters in between and abort then
+
+          relativeArguments[argument.name] = (scope) => {
+            const parentScope = scope.parentScope
+
+            if (!parentScope) {
+              return
+            }
+
+            for (let index = parentScope.childScopes.indexOf(scope) - 1; index >= 0; index--) {
+              const prevScope = parentScope.childScopes[index]
+
+              if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
+                return prevScope.source
+              }
+            }
+
+            return undefined
+          }
+
+          break
       }
     }
   }
@@ -347,6 +378,46 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
     fnParameters,
     anchorArgument,
     extractionFnForArgument: relativeArguments,
+  }
+}
+
+interface AnchorArgument {
+  type: ParameterType
+  scope: Scope
+  name: string
+}
+
+function getAnchorArgument(scope: Scope): AnchorArgument | undefined {
+  const inlineExpr = scope.bullet.value[0]
+  if (!(inlineExpr instanceof InlineExprNode) || !(inlineExpr.expr instanceof FnNode)) {
+    return
+  }
+
+  const fn = inlineExpr.expr
+
+  const fnParameters = FUNCTIONS[fn.name].parameters
+  if (!fnParameters) {
+    return
+  }
+
+  const parametersInScope = sortBy(getParameters(scope), (parameter) => parameter.distance)
+
+  for (const argument of fn.args) {
+    if (!(argument.exp instanceof IdRefNode) || !argument.name) {
+      continue
+    }
+
+    const argumentExpression = `#[${argument.exp.id}]`
+    const parameter = parametersInScope.find((par) => par.value.expression === argumentExpression)
+
+    // todo: handle other insertion position like siblings
+    if (parameter && parameter.scope === scope.parentScope) {
+      return {
+        name: argument.name,
+        scope: parameter.scope,
+        type: parameter.value.type,
+      }
+    }
   }
 }
 

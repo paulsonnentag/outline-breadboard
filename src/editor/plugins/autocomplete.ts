@@ -25,6 +25,7 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     const placesOptions = await getPlacesAutocompletion(search, graph, changeGraph)
     const flightsOptions = await getFlightsAutocompletion(search, graph, changeGraph)
 
+    const timeOptions = getTimesAutocompletion(search, graph, changeGraph)
     const dateOptions = getDatesAutocompletion(search, graph, changeGraph)
 
     const nodeOptions: Completion[] = Object.values(graph).flatMap((node: Node) => {
@@ -48,7 +49,7 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     return {
       from: reference.from,
       filter: false,
-      options: dateOptions.concat(nodeOptions).concat(flightsOptions).concat(placesOptions),
+      options: dateOptions.concat(timeOptions).concat(nodeOptions).concat(flightsOptions).concat(placesOptions),
     }
   }
 }
@@ -140,6 +141,54 @@ async function getFlightsAutocompletion(
       },
     } as Completion,
   ]
+}
+
+const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
+
+function getTimesAutocompletion(
+  search: string,
+  graph: Graph,
+  changeGraph: (fn: (graph: Graph) => void) => void
+): Completion[] {
+  const match = search.match(TIME_REGEX)
+
+  if (match) {
+    const timeString = search
+
+    // if date node already exists and search matches canonical form we don't need to add a suggestion
+    // because the default node search will already suggest the date node
+    if (graph[timeString]) {
+      return []
+    }
+
+    return [
+      {
+        label: timeString,
+        apply: (view, completion, from, to) => {
+          if (!graph[timeString]) {
+            changeGraph((graph) => {
+              const node = createValueNode(graph, { id: timeString, value: timeString })
+              const attribute = createValueNode(graph, { value: `time: ${timeString}` })
+              node.children.push(attribute.id)
+            })
+          }
+          setTimeout(() => {
+            view.dispatch(
+              view.state.update({
+                changes: {
+                  from: from,
+                  to: to,
+                  insert: `#[${timeString}]`,
+                },
+              })
+            )
+          })
+        },
+      },
+    ]
+  }
+
+  return []
 }
 
 const DATE_REGEX = /^([0-9]{1,2})\/([0-9]{1,2})(\/([0-9]{2}|[0-9]{4}))?$/

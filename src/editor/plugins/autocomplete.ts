@@ -188,6 +188,45 @@ function getTimesAutocompletion(
     ]
   }
 
+  // If you have typed one or two digits, suggest the :00 + quarters
+  const digitsRegex = /^\d{1,2}$/
+  const digitsMatch = search.match(digitsRegex)
+
+  if (digitsMatch) {
+    return [":00", ":15", ":30", ":45"].map(mins => {
+      const timeString = search.padStart(2, "0") + mins
+
+      if (graph[timeString]) {
+        return undefined
+      }
+
+      return {
+        label: timeString,
+        apply: (view: { dispatch: (arg0: any) => void; state: { update: (arg0: { changes: { from: any; to: any; insert: string } }) => any } }, completion: any, from: any, to: any) => {
+          if (!graph[timeString]) {
+            changeGraph((graph) => {
+              const node = createValueNode(graph, { id: timeString, value: timeString })
+              const attribute = createValueNode(graph, { value: `time: ${timeString}` })
+              node.children.push(attribute.id)
+            })
+          }
+          setTimeout(() => {
+            view.dispatch(
+              view.state.update({
+                changes: {
+                  from: from,
+                  to: to,
+                  insert: `#[${timeString}]`,
+                },
+              })
+            )
+          })
+        },
+      }
+    })
+    .filter(v => v !== undefined) as Completion[]
+  }
+
   return []
 }
 

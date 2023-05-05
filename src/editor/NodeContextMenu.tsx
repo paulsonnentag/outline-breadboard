@@ -2,7 +2,11 @@
 import { createRefNode, getNode, useGraph, ValueNode } from "../graph"
 import { Scope } from "../language/scopes"
 import { useEffect, useId, useState } from "react"
-import { generalizeFormula, getGroupedSuggestedFunctions } from "../language/function-suggestions"
+import {
+  canFormulaBeRepeated,
+  getGroupedSuggestedFunctions,
+  repeatFormula,
+} from "../language/function-suggestions"
 import classNames from "classnames"
 import { suggestionToExprSource } from "./TextInput"
 import { parseExpression } from "../language"
@@ -126,7 +130,7 @@ export function NodeContextMenu({
 
   const onRepeat = () => {
     changeGraph((graph) => {
-      generalizeFormula(graph, scope)
+      repeatFormula(graph, scope)
     })
   }
 
@@ -220,17 +224,19 @@ export function NodeContextMenu({
         </span>
       </button>
 
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={onRepeat}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          repeat
-        </span>
-      </button>
+      {canFormulaBeRepeated(scope) && (
+        <button
+          className={classNames(
+            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+            isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+          )}
+          onClick={onRepeat}
+        >
+          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+            repeat
+          </span>
+        </button>
+      )}
 
       {scope.parentScope && (
         <button

@@ -183,7 +183,58 @@ function _getParentParameters(scope: Scope, distance: number, parameters: Parame
 // todo: handle expressions with mixed in text
 
 // expects that graph is mutable
-export function generalizeFormula(graph: Graph, formulaScope: Scope) {
+export function repeatFormula(graph: Graph, formulaScope: Scope) {
+  const pattern = getPattern(formulaScope)
+
+  if (!pattern) {
+    return
+  }
+  const { fnParameters, anchorArgument, fn } = pattern
+
+  // go to root node and insert formula as a child node to any scope of matching type
+  const rootScope = formulaScope.getRootScope()
+
+  const requiredType = fnParameters[anchorArgument.name as string]
+
+  rootScope.traverseScope<undefined>(
+    (scope) => {
+      const value = scope.readAs(requiredType)[0]
+
+      console.log(scope.source, value, requiredType)
+
+      if (value !== undefined) {
+        const argsSource = fn.args.map((arg) => {
+          const value = arg === anchorArgument ? scope.source : `#[${(arg.exp as IdRefNode).id}]`
+          return `${arg.name}: ${value}`
+        })
+
+        const formula = `{${fn.name}(${argsSource.join(", ")})}`
+        const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
+          childScope.source.includes(formula)
+        )
+
+        if (!doesAlreadyContainFormula) {
+          const node = getNode(graph, scope.id)
+          const childNode = createValueNode(graph, { value: formula })
+          node.children.push(childNode.id)
+        }
+      }
+
+      return undefined
+    },
+    undefined,
+    { skipTranscludedScopes: true }
+  )
+}
+
+// I'm not sure what a good shape for a general pattern is, so now it's just a collection of values that are needed for the repeated application of the formula
+interface Pattern {
+  fn: FnNode
+  anchorArgument: ArgumentNode
+  fnParameters: { [name: string]: ParameterType }
+}
+
+function getPattern(formulaScope: Scope): Pattern | undefined {
   const parametersInScope = sortBy(getParameters(formulaScope), (parameter) => parameter.distance)
 
   const inlineExpr = formulaScope.bullet.value[0]
@@ -238,40 +289,13 @@ export function generalizeFormula(graph: Graph, formulaScope: Scope) {
     return
   }
 
-  // go to root node and insert formula as a child node to any scope of matching type
-  const rootScope = formulaScope.getRootScope()
+  return {
+    fn,
+    fnParameters,
+    anchorArgument,
+  }
+}
 
-  const requiredType = fnParameters[anchorArgument.name as string]
-
-  rootScope.traverseScope<undefined>(
-    (scope) => {
-      const value = scope.readAs(requiredType)[0]
-
-      console.log(scope.source, value, requiredType)
-
-      if (value !== undefined) {
-        const argsSource = fn.args.map((arg) => {
-          const value = arg === anchorArgument ? scope.source : `#[${(arg.exp as IdRefNode).id}]`
-          return `${arg.name}: ${value}`
-        })
-
-        const formula = `{${fn.name}(${argsSource.join(", ")})}`
-        const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
-          childScope.source.includes(formula)
-        )
-
-        if (!doesAlreadyContainFormula) {
-          const node = getNode(graph, scope.id)
-          const childNode = createValueNode(graph, { value: formula })
-          node.children.push(childNode.id)
-        }
-      }
-
-      return undefined
-    },
-    undefined,
-    { skipTranscludedScopes: true }
-  )
-
-  console.log(parameterByArgument)
+export function canFormulaBeRepeated(formulaScope: Scope): boolean {
+  return getPattern(formulaScope) !== undefined
 }

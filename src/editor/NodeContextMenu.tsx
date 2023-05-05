@@ -1,10 +1,11 @@
 // todo: the view options should be filtered depending on the data of the node
 import { createRefNode, getNode, useGraph, ValueNode } from "../graph"
 import { Scope } from "../language/scopes"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import {
   canFormulaBeRepeated,
   getGroupedSuggestedFunctions,
+  Insertion,
   repeatFormula,
 } from "../language/function-suggestions"
 import classNames from "classnames"
@@ -13,6 +14,7 @@ import { parseExpression } from "../language"
 import { FnNode, IdRefNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
+import { createPortal } from "react-dom"
 
 export interface NodeContextMenuProps {
   node: ValueNode
@@ -41,6 +43,12 @@ export function NodeContextMenu({
   const [suggestedFunctionButtons, setSuggestedFunctionButtons] = useState<
     { name: string; suggestion: string; result: string }[]
   >([])
+
+  const repeatButtonRef = useRef<HTMLElement>(null)
+  const [repeatButtonPosition, setRepeatButtonPosition] = useState<
+    { x: number; y: number } | undefined
+  >()
+  const [pendingInsertions, setPendingInsertions] = useState<Insertion[]>([])
 
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
@@ -129,8 +137,36 @@ export function NodeContextMenu({
   }
 
   const onRepeat = () => {
+    setPendingInsertions([])
+    setRepeatButtonPosition(undefined)
+  }
+
+  const onMouseEnterRepeat = () => {
+    if (!repeatButtonRef.current) {
+      return
+    }
+
+    setTimeout(() => {
+      changeGraph((graph) => {
+        setPendingInsertions(repeatFormula(graph, scope))
+      })
+    }, 200)
+
+    const { x, y } = repeatButtonRef.current?.getBoundingClientRect()
+    setRepeatButtonPosition({ x, y })
+  }
+
+  const onMouseLeaveRepeat = () => {
+    setRepeatButtonPosition(undefined)
+
     changeGraph((graph) => {
-      repeatFormula(graph, scope)
+      for (const { parentId, childId } of pendingInsertions) {
+        const parent = getNode(graph, parentId)
+        const index = parent.children.indexOf(childId)
+        parent.children.splice(index, 1)
+      }
+
+      setPendingInsertions([])
     })
   }
 
@@ -190,47 +226,54 @@ export function NodeContextMenu({
           )
         })}
       </>
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          map
-        </span>
-      </button>
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          table_chart
-        </span>
-      </button>
-      <button
-        className={classNames(
-          "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-          isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-        )}
-        onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
-      >
-        <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-          calendar_month
-        </span>
-      </button>
 
-      {canFormulaBeRepeated(scope) && (
+      {pendingInsertions?.length === 0 && (
+        <>
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+              isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            )}
+            onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              map
+            </span>
+          </button>
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+              isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            )}
+            onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              table_chart
+            </span>
+          </button>
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+              isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            )}
+            onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              calendar_month
+            </span>
+          </button>
+        </>
+      )}
+
+      {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
         <button
           className={classNames(
             "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
             isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
           )}
+          ref={repeatButtonRef}
           onClick={onRepeat}
+          onMouseEnter={onMouseEnterRepeat}
         >
           <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
             repeat
@@ -238,7 +281,35 @@ export function NodeContextMenu({
         </button>
       )}
 
-      {scope.parentScope && (
+      {repeatButtonPosition &&
+        createPortal(
+          <div
+            style={{
+              overflow: "hidden",
+              position: "absolute",
+              top: `${repeatButtonPosition.y}px`,
+              left: `${repeatButtonPosition.x}px`,
+            }}
+            onMouseEnter={(evt) => evt.stopPropagation()}
+            onClick={onRepeat}
+          >
+            <button
+              className={classNames(
+                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+              )}
+              onClick={onRepeat}
+              onMouseLeave={onMouseLeaveRepeat}
+            >
+              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                repeat
+              </span>
+            </button>
+          </div>,
+          document.body
+        )}
+
+      {scope.parentScope && pendingInsertions?.length === 0 && (
         <button
           className={classNames(
             "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",

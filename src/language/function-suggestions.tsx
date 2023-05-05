@@ -182,12 +182,17 @@ function _getParentParameters(scope: Scope, distance: number, parameters: Parame
 
 // todo: handle expressions with mixed in text
 
-// repatFormula expects that graph is mutable
-export function repeatFormula(graph: Graph, formulaScope: Scope) {
+export interface Insertion {
+  parentId: string
+  childId: string
+}
+
+// repeatFormula expects that graph is mutable
+export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
   const pattern = getPattern(formulaScope)
 
   if (!pattern) {
-    return
+    return []
   }
   const { fnParameters, anchorArgument, fn, extractionFnForArgument } = pattern
 
@@ -195,6 +200,8 @@ export function repeatFormula(graph: Graph, formulaScope: Scope) {
   const rootScope = formulaScope.getRootScope()
 
   const requiredType = fnParameters[anchorArgument.name as string]
+
+  const insertions: Insertion[] = []
 
   rootScope.traverseScope<undefined>(
     (scope) => {
@@ -234,6 +241,8 @@ export function repeatFormula(graph: Graph, formulaScope: Scope) {
         const node = getNode(graph, scope.id)
         const childNode = createValueNode(graph, { value: formula })
         node.children.push(childNode.id)
+
+        insertions.push({ parentId: node.id, childId: childNode.id })
       }
 
       return undefined
@@ -241,6 +250,8 @@ export function repeatFormula(graph: Graph, formulaScope: Scope) {
     undefined,
     { skipTranscludedScopes: true }
   )
+
+  return insertions
 }
 
 // I'm not sure yet what a good shape for a pattern is

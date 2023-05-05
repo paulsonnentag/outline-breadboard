@@ -69,6 +69,12 @@ export class Scope {
       return this.props[name]
     }
 
+    for (const scope of Object.values(this.transcludedScopes)) {
+      if (scope.props[name]) {
+        return scope.props[name]
+      }
+    }
+
     return this.parentScope?._lookup(name)
   }
 

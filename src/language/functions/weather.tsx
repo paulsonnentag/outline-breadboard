@@ -239,7 +239,7 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
       "https://api.open-meteo.com/v1/forecast",
       `?latitude=${location.lat}`,
       `&longitude=${location.lng}`,
-      "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,weathercode",
+      "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,weathercode&hourly=temperature_2m,windspeed_10m,windgusts_10m,precipitation_probability",
       "&forecast_days=16",
       `&timezone=${encodeURIComponent(currentTimezone)}`,
     ].join("")
@@ -250,6 +250,16 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
     max: rawForecast.daily.temperature_2m_max[index],
     mean: rawForecast.daily.temperature_2m_mean[index],
     weatherCode: rawForecast.daily.weathercode[index],
+    hourly: rawForecast.hourly.time.reduce((hourlyObj, hourlyTime, hourlyIndex) => {
+      const timePattern = /T(\d{2}:\d{2})/;
+      hourlyObj[hourlyTime.match(timePattern)?.[1] || hourlyTime] = {
+        temp: rawForecast.hourly.temperature_2m[hourlyIndex],
+        precip: rawForecast.hourly.precipitation_probability[hourlyIndex],
+        windspeed_10m: rawForecast.hourly.windspeed_10m[hourlyIndex],
+        windgusts_10m: rawForecast.hourly.windgusts_10m[hourlyIndex],
+      };
+      return hourlyObj;
+    }, {})
   }))
 
   FORECAST_CACHE[key] = forecast

@@ -323,7 +323,7 @@ export function WeatherInfoView({ value }: WeatherInfoViewProps) {
 export function getWeatherSummary(value: WeatherInformation): string {
   const result: string[] = []
 
-  const weatherIcon = value.weatherCode ? getWeatherIcon(value.weatherCode) : undefined
+  const weatherIcon = value.weatherCode ? getWeatherIcon(value.weatherCode) : "☀️"
   if (weatherIcon) {
     result.push(weatherIcon)
   }

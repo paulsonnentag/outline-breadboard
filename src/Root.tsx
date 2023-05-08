@@ -111,7 +111,7 @@ export function Root({ documentId, disableEval }: RootProps) {
           const selectedSubPath =
             selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
 
-          let width: number = doc.graph[rootId].paneWidth || 600
+          let width: number = doc.graph[rootId].paneWidth || 800
 
           return (
             <div key={index} className="flex-none flex gap-4">

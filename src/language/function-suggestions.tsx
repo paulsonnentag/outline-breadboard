@@ -2,7 +2,7 @@ import { DataWithProvenance, Scope } from "./scopes"
 import { FUNCTIONS } from "./functions"
 import { sortBy } from "lodash"
 import { ArgumentNode, FnNode, IdRefNode, InlineExprNode } from "./ast"
-import { createValueNode, getNode, Graph } from "../graph"
+import { createValueNode, getNode, Graph, ValueNode } from "../graph"
 
 export interface FunctionSuggestion {
   name: string
@@ -231,16 +231,42 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
       }
 
       const formula = `{${fn.name}(${argsSource.join(", ")})}`
-      const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
-        childScope.source.includes(formula)
-      )
 
-      if (!doesAlreadyContainFormula) {
-        const node = getNode(graph, scope.id)
-        const childNode = createValueNode(graph, { value: formula, isTemporary: true })
-        node.children.push(childNode.id)
+      switch (anchorArgument.outputPosition) {
+        case "above":
+        case "below": {
+          if (!scope.parentScope) {
+            return
+          }
 
-        insertions.push({ parentId: node.id, childId: childNode.id })
+          const doesAlreadyContainFormula = scope.parentScope.childScopes.some((childScope) =>
+            childScope.source.includes(formula)
+          )
+
+          if (!doesAlreadyContainFormula) {
+            const node = getNode(graph, scope.parentScope.id)
+            const insertionIndex =
+              node.children.indexOf(scope.id) + (anchorArgument.outputPosition === "below" ? 1 : 0)
+
+            const childNode = createValueNode(graph, { value: formula, isTemporary: true })
+            node.children.splice(insertionIndex, 0, childNode.id)
+            insertions.push({ parentId: node.id, childId: childNode.id })
+          }
+          break
+        }
+        case "child": {
+          const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
+            childScope.source.includes(formula)
+          )
+
+          if (!doesAlreadyContainFormula) {
+            const node = getNode(graph, scope.id)
+            const childNode = createValueNode(graph, { value: formula, isTemporary: true })
+            node.children.push(childNode.id)
+
+            insertions.push({ parentId: node.id, childId: childNode.id })
+          }
+        }
       }
 
       return undefined
@@ -407,7 +433,7 @@ function isSiblingScopeOfTypeInBetween(scopeA: Scope, scopeB: Scope, type: Param
   }
 
   const indexA = scopeA.parentScope.childScopes.indexOf(scopeA)
-  const indexB = scopeA.parentScope.childScopes.indexOf(scopeB)
+  const indexB = scopeB.parentScope.childScopes.indexOf(scopeB)
 
   const startIndex = Math.min(indexA, indexB) + 1
   const endIndex = Math.max(indexA, indexB)
@@ -425,10 +451,13 @@ function isSiblingScopeOfTypeInBetween(scopeA: Scope, scopeB: Scope, type: Param
   return false
 }
 
+type AnchorOutputPosition = "above" | "below" | "child"
+
 interface AnchorArgument {
   type: ParameterType
   scope: Scope
   name: string
+  outputPosition: AnchorOutputPosition
 }
 
 function getAnchorArgument(scope: Scope): AnchorArgument | undefined {
@@ -454,14 +483,48 @@ function getAnchorArgument(scope: Scope): AnchorArgument | undefined {
     const argumentExpression = `#[${argument.exp.id}]`
     const parameter = parametersInScope.find((par) => par.value.expression === argumentExpression)
 
-    // todo: handle other insertion position like siblings
-    if (parameter && parameter.scope === scope.parentScope) {
+    if (!parameter) {
+      continue
+    }
+
+    const outputPosition = getOutputPosition(parameter.scope, scope)
+
+    if (outputPosition) {
       return {
         name: argument.name,
         scope: parameter.scope,
         type: parameter.value.type,
+        outputPosition,
       }
     }
+  }
+}
+
+function getOutputPosition(
+  anchorScope: Scope,
+  outputScope: Scope
+): AnchorOutputPosition | undefined {
+  if (outputScope.parentScope === anchorScope) {
+    return "child"
+  }
+
+  if (
+    anchorScope.parentScope !== outputScope.parentScope ||
+    anchorScope.parentScope === undefined ||
+    outputScope.parentScope === undefined
+  ) {
+    return
+  }
+
+  const anchorIndex = anchorScope.parentScope.childScopes.indexOf(anchorScope)
+  const outputIndex = outputScope.parentScope.childScopes.indexOf(outputScope)
+
+  if (anchorIndex + 1 == outputIndex) {
+    return "below"
+  }
+
+  if (anchorIndex - 1 == outputIndex) {
+    return "above"
   }
 }
 

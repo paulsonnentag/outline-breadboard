@@ -443,9 +443,13 @@ export function OutlineEditor({
       ) : (
         <>
           <div
-            className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]", {
-              "opacity-50": node.isTemporary,
-            })}
+            className={classNames(
+              "flex items-start w-full",
+              isRoot ? "mt-[6px]" : "mt-[1px] ml-[-10px]",
+              {
+                "opacity-50": node.isTemporary,
+              }
+            )}
             onClick={() => {
               onChangeSelectedPath(path)
             }}

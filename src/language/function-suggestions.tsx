@@ -80,20 +80,19 @@ function getOwnParameters(scope: Scope): Parameter[] {
   }))
 }
 
-// todo: support multiple values
 function parseValuesInScope(scope: Scope): ParameterValue[] {
   const values: ParameterValue[] = []
 
-  const date = scope.readAsDate()[0]
-  if (date) {
+  const dates = scope.readAsDate()
+  for (const date of dates) {
     values.push({
       expression: `#[${date.scope.id}]`,
       type: "date",
     })
   }
 
-  const location = scope.readAsLocation()[0]
-  if (location) {
+  const locations = scope.readAsLocation()
+  for (const location of locations) {
     values.push({
       expression: `#[${location.scope.id}]`,
       type: "location",
@@ -212,7 +211,7 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
 
       const argsSource = fn.args.map((arg) => {
         if (arg.name === anchorArgument.name) {
-          return `${arg.name}: ${scope.source}`
+          return `${arg.name}: ${anchorArgument.expression}`
         }
 
         const extractionFn = extractionFnForArgument[arg.name as string]
@@ -300,13 +299,8 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
     return
   }
 
-  // find argument that ...
-  //  1. maps to a parameter in the outline
-  //  2. the parameter is a parent scope of a formula we want to generalize
-  // todo: handle other relationships like siblings
-
+  // find argument node that formula is attached to in outline and use that as an anchor
   let anchorArgument = getAnchorArgument(formulaScope)
-
   if (!anchorArgument) {
     return
   }
@@ -343,7 +337,12 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
               (parentScope) => parentScope.readAs(parameter.value.type)[0] !== undefined
             )
 
-            return matchingParent ? matchingParent.source : undefined
+            if (!matchingParent) {
+              return undefined
+            }
+
+            // todo: handle multiple matching values
+            return `#[${matchingParent.readAs(parameter.value.type)[0].scope.id}]`
           }
           break
         case "next":
@@ -368,10 +367,11 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
                 index < parentScope.childScopes.length;
                 index++
               ) {
-                const prevScope = parentScope.childScopes[index]
+                const nextScope = parentScope.childScopes[index]
+                const nextScopeValue = nextScope.readAs(parameter.value.type)[0]
 
-                if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
-                  return prevScope.source
+                if (nextScopeValue !== undefined) {
+                  return `#[${nextScopeValue.scope.id}]`
                 }
               }
 
@@ -401,8 +401,10 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
               for (let index = parentScope.childScopes.indexOf(scope) - 1; index >= 0; index--) {
                 const prevScope = parentScope.childScopes[index]
 
-                if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
-                  return prevScope.source
+                const prevScopeValue = prevScope.readAs(parameter.value.type)[0]
+
+                if (prevScopeValue !== undefined) {
+                  return `#[${prevScopeValue.scope.id}]`
                 }
               }
 
@@ -456,6 +458,7 @@ type AnchorOutputPosition = "above" | "below" | "child"
 interface AnchorArgument {
   type: ParameterType
   scope: Scope
+  expression: string
   name: string
   outputPosition: AnchorOutputPosition
 }
@@ -492,6 +495,7 @@ function getAnchorArgument(scope: Scope): AnchorArgument | undefined {
     if (outputPosition) {
       return {
         name: argument.name,
+        expression: argumentExpression,
         scope: parameter.scope,
         type: parameter.value.type,
         outputPosition,

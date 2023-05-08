@@ -231,12 +231,12 @@ export function WidthAdjust(props: WidthAdjustProps) {
 }
 
 type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope"> & {
-  disableEval: boolean
+  disableEval?: boolean
 }
 
 export function RootOutlineEditor(props: RootOutlineEditorProps) {
   const { nodeId } = props
-  const scope = useRootScope(nodeId, { disableEval: props.disableEval })
+  const scope = useRootScope(nodeId, { disableEval: props.disableEval === true })
 
   if (!scope) {
     return null

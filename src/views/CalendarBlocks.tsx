@@ -59,14 +59,16 @@ export default function CalendarBlocks({
             
             let results = [] 
 
-            if (data.windgusts_10m > 10) {
+            // These should be defined by the user...
+
+            if (data.windgusts_10m > 40) {
               results.push("High winds")
             }
-            else if (data.windspeed_10m > 8) {
+            else if (data.windspeed_10m > 20) {
               results.push("High winds")
             }
 
-            if (data.precipitation_probability > 0.25) {
+            if (data.precipitation_probability > 0.5) {
               results.push("Precipitation")
             }
 

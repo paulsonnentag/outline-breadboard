@@ -278,7 +278,7 @@ export function getWeatherSummary(value: WeatherInformation): string {
     result.push(description)
   }
 
-  result.push(`${value.min} • ${value.max}`)
+  result.push(`${Math.round(value.min)}° / ${Math.round(value.max)}°`)
 
   return result.join(" ")
 }

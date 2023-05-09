@@ -133,7 +133,10 @@ export function Root({ documentId, disableEval }: RootProps) {
         <Sidebar
           tabs={doc.tabs}
           selectedTabIndex={selectedTabIndex}
-          onChangeSelectedTabIndex={setSelectedTabIndex}
+          onChangeSelectedTabIndex={(tabIndex) => {
+            setIsSettingsOpen(false)
+            setSelectedTabIndex(tabIndex)
+          }}
           onAddNewDocument={onAddNewDocument}
           onOpenSettings={() => {
             setIsSettingsOpen(true)

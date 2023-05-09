@@ -30,6 +30,8 @@ export function Root({ documentId, disableEval }: RootProps) {
   const [isDraggedOverDelete, setIsDraggedOverDelete] = useState(false)
   const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
 
+  const isSettingsOpen = doc && doc.rootNodeIds.includes(doc.settingsNodeId)
+
   /*
   useEffect(() => {
     const onKeyPress = (evt: KeyboardEvent) => {
@@ -53,9 +55,10 @@ export function Root({ documentId, disableEval }: RootProps) {
     () =>
       doc
         ? {
-            graph: doc?.graph,
+            graph: doc.graph,
             changeGraph: (fn: (graph: Graph) => void) => changeDoc((doc) => fn(doc.graph)),
             setIsDragging,
+            settingsNodeId: doc.settingsNodeId,
           }
         : undefined,
     [doc?.graph, changeDoc]
@@ -75,6 +78,16 @@ export function Root({ documentId, disableEval }: RootProps) {
 
       doc.rootNodeIds.push(newRootNode.id)
       setSelectedPath([doc.rootNodeIds.length - 1])
+    })
+  }
+
+  const onOpenSettingsNode = () => {
+    if (isSettingsOpen) {
+      return
+    }
+
+    changeDoc((doc) => {
+      doc.rootNodeIds.push(doc.settingsNodeId)
     })
   }
 
@@ -106,7 +119,13 @@ export function Root({ documentId, disableEval }: RootProps) {
 
   return (
     <GraphContext.Provider value={graphContext}>
-      <div className="p-4 bg-gray-50 flex gap-4 w-screen h-screen items-middle relative">
+      <div className="p-4 bg-gray-50 flex w-full h-screen items-middle relative">
+        {!isSettingsOpen && (
+          <div className="w-[30px] absolute top-4 right-4">
+            <IconButton icon="settings" onClick={onOpenSettingsNode} />
+          </div>
+        )}
+
         {doc.rootNodeIds.map((rootId, index) => {
           const selectedSubPath =
             selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
@@ -114,7 +133,7 @@ export function Root({ documentId, disableEval }: RootProps) {
           let width: number = doc.graph[rootId].paneWidth || 800
 
           return (
-            <div key={index} className="flex-none flex gap-4">
+            <div key={index} className="flex">
               <div
                 className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none"
                 style={{ width: `${width}px` }}
@@ -142,19 +161,23 @@ export function Root({ documentId, disableEval }: RootProps) {
                   setIsHoveringOverId={setIsHoveringOverId}
                 />
               </div>
-              <WidthAdjust
-                startingWidth={width}
-                setNewWidth={(newWidth) => {
-                  graphContext.changeGraph((graph) => {
-                    graph[rootId].paneWidth = newWidth
-                  })
-                }}
-              />
+              <div className="flex flex-col justify-center items-center gap-2 w-[30px]">
+                {index + 1 === doc?.rootNodeIds.length && (
+                  <IconButton icon="add" onClick={onAddRootNode} />
+                )}
+
+                <WidthAdjust
+                  startingWidth={width}
+                  setNewWidth={(newWidth) => {
+                    graphContext.changeGraph((graph) => {
+                      graph[rootId].paneWidth = newWidth
+                    })
+                  }}
+                />
+              </div>
             </div>
           )
         })}
-
-        <IconButton icon="add" onClick={onAddRootNode} />
 
         {isDragging && (
           <div
@@ -221,12 +244,10 @@ export function WidthAdjust(props: WidthAdjustProps) {
   }
 
   return (
-    <div className="flex flex-col justify-center h-full">
-      <div
-        className="w-1 h-32 rounded-full bg-gray-300 hover:bg-gray-600 transition-all"
-        onMouseDown={handler}
-      ></div>
-    </div>
+    <div
+      className="w-1 h-32 rounded-full bg-gray-300 hover:bg-gray-600 transition-all"
+      onMouseDown={handler}
+    ></div>
   )
 }
 

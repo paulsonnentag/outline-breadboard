@@ -6,6 +6,7 @@ import { Change, useRepo } from "automerge-repo-react-hooks"
 
 export interface GraphDoc {
   rootNodeIds: string[]
+  settingsNodeId: string
   cache: { [key: string]: any }
   graph: Graph
 }
@@ -45,22 +46,20 @@ export function getGraphDocHandle() {
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
   handle.change((doc) => {
-    const rootNode: ValueNode = {
-      id: v4(),
-      type: "value",
-      value: "",
-      children: [],
-      computedProps: {},
-      isCollapsed: false,
-      isSelected: false,
-      expandedResultsByIndex: {},
-    }
-
     doc.cache = {}
+    doc.graph = {}
 
-    doc.graph = {
-      [rootNode.id]: rootNode,
-    }
+    const rootNode = createValueNode(doc.graph, { value: "" })
+
+    const settingsNode = createRecordNode(doc.graph, {
+      name: "Settings",
+      props: [
+        ["lengthUnit", "kilometers"],
+        ["temperatureUnit", "celsius"],
+      ],
+    })
+
+    doc.settingsNodeId = settingsNode.id
     doc.rootNodeIds = [rootNode.id]
   })
 
@@ -215,6 +214,7 @@ export function createNodeTree(graph: Graph, parentId: string, data: any): NodeD
 
 export interface GraphContextProps {
   graph: Graph
+  settingsNodeId: string
   changeGraph: (fn: (graph: Graph) => void) => void
   setIsDragging: (isDragging: boolean) => void
 }

@@ -65,7 +65,7 @@ export function CalendarNodeView({
     const time = bullet.data.data
     const timeKey = `${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padEnd(2, '0')}`
 
-    const dateStr = bullet.data.scope.lookupValue("date")
+    const dateStr = bullet.data.scope.lookupValue("date", true)
     const date = parseDate(dateStr)
 
     if (date) {

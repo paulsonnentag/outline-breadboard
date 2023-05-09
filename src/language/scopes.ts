@@ -64,28 +64,32 @@ export class Scope {
     }
   }
 
-  private _lookup(name: string): Scope | undefined {
+  private _lookup(name: string, includeTranscluded: boolean = false): Scope | undefined {
     if (this.props[name]) {
       return this.props[name]
     }
 
-    for (const scope of Object.values(this.transcludedScopes)) {
-      if (scope.props[name]) {
-        return scope.props[name]
+    
+
+    if (includeTranscluded) {
+      for (const scope of Object.values(this.transcludedScopes)) {
+        if (scope.props[name]) {
+          return scope.props[name]
+        }
       }
     }
 
-    return this.parentScope?._lookup(name)
+    return this.parentScope?._lookup(name, includeTranscluded)
   }
 
   // return closest node with matching name in ancestor nodes
-  lookup(name: string): Scope | undefined {
-    return this.parentScope?._lookup(name)
+  lookup(name: string, includeTranscluded: boolean = false): Scope | undefined {
+    return this.parentScope?._lookup(name, includeTranscluded)
   }
 
   // if value is not resolved yet undefined is returned
-  lookupValue(name: string): any {
-    return this.lookup(name)?.valueOf()
+  lookupValue(name: string, includeTranscluded: boolean = false): any {
+    return this.lookup(name, includeTranscluded)?.valueOf()
   }
 
   // returns first child node that has a matching name

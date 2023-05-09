@@ -35,13 +35,21 @@ export class Scope {
   private resolve: (x: any) => void = () => {}
   private isDisabled: boolean = false
 
-  constructor(graph: Graph, id: string, parentScope: Scope | undefined) {
+  private settingsScope: Scope | undefined
+
+  constructor(
+    graph: Graph,
+    id: string,
+    parentScope: Scope | undefined,
+    settingsScope: Scope | undefined
+  ) {
     this.id = id
     this.parentScope = parentScope
     const node = getNode(graph, id)
     this.expandedResultsByIndex = node.expandedResultsByIndex
     this.source = node.value
     this.bullet = parseBullet(node.value)
+    this.settingsScope = settingsScope
 
     const pendingValue = new Promise((resolve) => {
       this.resolve = resolve
@@ -55,12 +63,12 @@ export class Scope {
 
     // create scopes for child nodes
     for (const childId of node.children) {
-      this.childScopes.push(new Scope(graph, childId, this))
+      this.childScopes.push(new Scope(graph, childId, this, undefined))
     }
 
     // create scopes for transcluded nodes
     for (const referencedId of this.bullet.getReferencedIds()) {
-      this.transcludedScopes[referencedId] = new Scope(graph, referencedId, this)
+      this.transcludedScopes[referencedId] = new Scope(graph, referencedId, this, undefined)
     }
   }
 
@@ -69,17 +77,28 @@ export class Scope {
       return this.props[name]
     }
 
-    return this.parentScope?._lookup(name)
+    if (!this.parentScope) {
+      if (this.settingsScope) {
+        return this.settingsScope._lookup(name)
+      }
+      return undefined
+    }
+
+    return this.parentScope._lookup(name)
   }
 
   // return closest node with matching name in ancestor nodes
   lookup(name: string): Scope | undefined {
-    return this.parentScope?._lookup(name)
+    return (this.parentScope || this.settingsScope)?._lookup(name)
   }
 
   // if value is not resolved yet undefined is returned
   lookupValue(name: string): any {
     return this.lookup(name)?.valueOf()
+  }
+
+  lookupValueAsync(name: string): Promise<any> {
+    return Promise.resolve(this.lookup(name)?.valueOfAsync())
   }
 
   // returns first child node that has a matching name
@@ -485,12 +504,8 @@ export async function valueOfAsync(obj: any) {
   return obj
 }
 
-interface UseRootScopeOptions {
-  disableEval: boolean
-}
-
-export function useRootScope(rootId: string, options?: UseRootScopeOptions): Scope | undefined {
-  const { graph } = useGraph()
+export function useRootScope(rootId: string): Scope | undefined {
+  const { graph, settingsNodeId } = useGraph()
   const [scope, setScope] = useState<Scope | undefined>()
 
   useEffect(() => {
@@ -502,12 +517,12 @@ export function useRootScope(rootId: string, options?: UseRootScopeOptions): Sco
       scope.disable()
     }
 
-    const newScope = new Scope(graph, rootId, undefined)
+    const settingsScope = new Scope(graph, settingsNodeId, undefined, undefined)
+    const newScope = new Scope(graph, rootId, undefined, settingsScope)
     newScope.registerUpdateHandler(() => setScope(newScope))
 
-    if (!options || !options.disableEval) {
-      newScope.eval()
-    }
+    settingsScope.eval()
+    newScope.eval()
     setScope(newScope)
   }, [graph, rootId])
 

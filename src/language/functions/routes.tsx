@@ -1,10 +1,9 @@
 import { googleApi } from "../../google"
-import { round } from "../../utils"
+import { formatDistance, formatDuration } from "../../utils"
 import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
 import { DataWithProvenance, Scope } from "../scopes"
 import LatLngLiteral = google.maps.LatLngLiteral
-import humanizeDuration from "humanize-duration"
 import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
@@ -64,7 +63,11 @@ export const ROUTE_FN: FunctionDefs = {
 
       return suggestions
     },
-    function: async ([], { from, to }, scope) => {
+    function: async ([], { from, to, unit }, scope) => {
+      if (!unit) {
+        unit = (await scope.lookupValueAsync("lengthUnit")) ?? "kilometers"
+      }
+
       if (from && to) {
         const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
         const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))
@@ -73,7 +76,7 @@ export const ROUTE_FN: FunctionDefs = {
           return undefined
         }
 
-        return getRouteInformation(fromPos, toPos)
+        return getRouteInformation(fromPos, toPos, unit)
       }
 
       let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
@@ -147,7 +150,8 @@ export const ROUTE_FN: FunctionDefs = {
 
 async function getRouteInformation(
   from: LatLngLiteral,
-  to: LatLngLiteral
+  to: LatLngLiteral,
+  unit: string
 ): Promise<RouteInformation | undefined> {
   const graphDocHandle = getGraphDocHandle()
   const doc = await graphDocHandle.value()
@@ -158,7 +162,7 @@ async function getRouteInformation(
     : undefined
 
   if (cachedResult) {
-    return directionsResultToRoute(cachedResult)
+    return directionsResultToRoute(cachedResult, unit)
   }
 
   const directionsService = await directionsServiceApi
@@ -179,7 +183,7 @@ async function getRouteInformation(
           graphDoc.cache[key] = JSON.stringify(result) // store it as string, because otherwise it takes a long time to write it into automerge
         })
 
-        resolve(directionsResultToRoute(JSON.parse(JSON.stringify(result)))) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
+        resolve(directionsResultToRoute(JSON.parse(JSON.stringify(result)), unit)) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
       }
     )
   })
@@ -195,24 +199,9 @@ const directionsServiceApi = googleApi.then((google) => {
   return new google.maps.DirectionsService()
 })
 
-const shortEnglishHumanizer = humanizeDuration.humanizer({
-  language: "shortEn",
-  languages: {
-    shortEn: {
-      y: () => "y",
-      mo: () => "mo",
-      w: () => "w",
-      d: () => "d",
-      h: () => "h",
-      m: () => "m",
-      s: () => "s",
-      ms: () => "ms",
-    },
-  },
-})
-
 function directionsResultToRoute(
-  result: google.maps.DirectionsResult
+  result: google.maps.DirectionsResult,
+  distanceUnit: string
 ): RouteInformation | undefined {
   const route: google.maps.DirectionsRoute = result.routes[0] // todo: just pick the first route for now
 
@@ -220,13 +209,13 @@ function directionsResultToRoute(
     return undefined
   }
 
-  const duration = shortEnglishHumanizer(
-    route.legs.reduce((sum, leg) => (leg.duration?.value ?? 0) + sum, 0) * 1000,
-    { largest: 2 }
+  const duration = formatDuration(
+    route.legs.reduce((sum, leg) => (leg.duration?.value ?? 0) + sum, 0) * 1000
   )
-  const distance = `${round(
-    route.legs.reduce((sum, leg) => (leg.distance?.value ?? 0) + sum, 0) / 1000
-  )} km`
+  const distance = formatDistance(
+    route.legs.reduce((sum, leg) => (leg.distance?.value ?? 0) + sum, 0) / 1000,
+    distanceUnit
+  )
 
   return {
     distance,

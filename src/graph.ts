@@ -5,7 +5,7 @@ import { Doc } from "@automerge/automerge"
 import { Change, useRepo } from "automerge-repo-react-hooks"
 
 export interface GraphDoc {
-  rootNodeIds: string[]
+  tabs: string[][]
   settingsNodeId: string
   cache: { [key: string]: any }
   graph: Graph
@@ -60,7 +60,7 @@ export function createGraphDoc(repo: Repo) {
     })
 
     doc.settingsNodeId = settingsNode.id
-    doc.rootNodeIds = [rootNode.id]
+    doc.tabs = [[rootNode.id]]
   })
 
   return handle

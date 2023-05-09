@@ -491,12 +491,12 @@ export function OutlineEditor({
               />
             )}
             <div
-              className={classNames("pr-2 flex-1 rounded", {
+              className={classNames("pr-2 flex-1 rounded box-border border-l-2 border-white", {
                 // "pl-2": isFocused || node.value !== "" || node.key !== undefined,
-                "bg-slate-200 rounded":
+                "bg-blue-50 border-blue-400":
                   getIsHovering(graph, node.id, parentIds, isHoveringOverId) &&
                   !(isBeingDragged || isParentDragged),
-                "bg-slate-100 rounded": isSelected && !(isBeingDragged || isParentDragged),
+                "bg-blue-100 border-blue-400": isSelected && !(isBeingDragged || isParentDragged),
               })}
               onMouseEnter={() => setIsHoveringOverId(node.id)}
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}

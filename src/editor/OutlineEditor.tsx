@@ -55,7 +55,7 @@ export function OutlineEditor({
   setIsHoveringOverId,
   disableCustomViews = false,
 }: OutlineEditorProps) {
-  const { graph, changeGraph, setIsDragging } = useGraph()
+  const { graph, changeGraph } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -288,12 +288,10 @@ export function OutlineEditor({
     evt.dataTransfer.setDragImage(elem, -10, -10)
     evt.dataTransfer.setData("application/node", JSON.stringify({ id: nodeId, parentId, index }))
     setIsBeingDragged(true)
-    setIsDragging(true)
   }
 
   const onDragEnd = () => {
     setIsBeingDragged(false)
-    setIsDragging(false)
   }
 
   const onDragOver = (evt: DragEvent) => {

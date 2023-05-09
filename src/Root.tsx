@@ -29,8 +29,6 @@ export function Root({ documentId, disableEval }: RootProps) {
   const [doc, changeDoc] = useDocument<GraphDoc>(documentId)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isDraggedOverDelete, setIsDraggedOverDelete] = useState(false)
   const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
   const [selectedTabIndex, setSelectedTabIndex] = useState<number>(0)
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>()
@@ -60,7 +58,6 @@ export function Root({ documentId, disableEval }: RootProps) {
         ? {
             graph: doc.graph,
             changeGraph: (fn: (graph: Graph) => void) => changeDoc((doc) => fn(doc.graph)),
-            setIsDragging,
             settingsNodeId: doc.settingsNodeId,
           }
         : undefined,
@@ -105,12 +102,6 @@ export function Root({ documentId, disableEval }: RootProps) {
 
       doc.tabs.push([newRootNode.id])
       setSelectedTabIndex(doc.tabs.length - 1)
-    })
-  }
-
-  const onOpenSettingsNode = () => {
-    changeDoc((doc) => {
-      doc.tabs[selectedTabIndex].push(doc.settingsNodeId)
     })
   }
 

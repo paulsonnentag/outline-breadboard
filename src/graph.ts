@@ -216,7 +216,6 @@ export interface GraphContextProps {
   graph: Graph
   settingsNodeId: string
   changeGraph: (fn: (graph: Graph) => void) => void
-  setIsDragging: (isDragging: boolean) => void
 }
 
 export const GraphContext = createContext<GraphContextProps | undefined>(undefined)

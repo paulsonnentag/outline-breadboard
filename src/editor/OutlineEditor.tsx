@@ -591,7 +591,7 @@ export function OutlineEditor({
                   <OutlineEditor
                     scope={childScope}
                     isParentDragged={isBeingDragged}
-                    key={childScope.id}
+                    key={index}
                     nodeId={childScope.id}
                     index={index}
                     parentIds={parentIds.concat(node.id)}

@@ -19,15 +19,7 @@ const repo = new Repo({
   sharePolicy: (peerId) => peerId.includes("storage-server"),
 })
 
-const params = new URLSearchParams(window.location.search)
-
-/*
-let documentId = params.get("documentId") as DocumentId
-let disableEval = params.get("disableEval") === "true"
-let handle: DocHandle<GraphDoc> | undefined = undefined
-*/
-
-const profileDoc = getProfileDoc(repo)
+const profileDocHandle = getProfileDoc(repo)
 
 /*
 
@@ -60,7 +52,7 @@ const profileDoc = getProfileDoc(repo)
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   //<React.StrictMode>
   <RepoContext.Provider value={repo}>
-    <Root profileDocId={profileDoc.documentId} />
+    <Root profileDocId={profileDocHandle.documentId} />
   </RepoContext.Provider>
   // </React.StrictMode>
 )

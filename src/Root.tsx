@@ -31,6 +31,41 @@ export function Root({ profileDocId }: RootProps) {
   const [profile, changeProfile] = useDocument<ProfileDoc>(profileDocId)
   const [selectedGraphId, setSelectedGraphId] = useState<DocumentId | undefined>()
 
+  useEffect(() => {
+    const onChangeUrl = () => {
+      const params = new URLSearchParams(window.location.search)
+      const documentId = params.get("documentId")
+
+      if (!documentId) {
+        setSelectedGraphId(undefined)
+        return
+      }
+
+      // add unknown graphIds to profile
+      changeProfile((profile) => {
+        if (!profile.graphIds.includes(documentId as DocumentId)) {
+          profile.graphIds.push(documentId as DocumentId)
+        }
+      })
+
+      setSelectedGraphId(documentId as DocumentId)
+    }
+
+    onChangeUrl()
+
+    window.addEventListener("popstate", onChangeUrl)
+
+    return () => {
+      window.removeEventListener("popstate", onChangeUrl)
+    }
+  }, [])
+
+  const onChangeSelectedGraphId = (graphId: DocumentId) => {
+    const url = `${location.href.split("?")[0]}?documentId=${graphId}`
+    history.pushState({}, "", url)
+    window.dispatchEvent(new Event("popstate"))
+  }
+
   const onAddNewDocument = () => {
     changeProfile((doc) => {
       const graphDocHandle = createGraphDoc(repo)
@@ -51,18 +86,18 @@ export function Root({ profileDocId }: RootProps) {
       <Sidebar
         graphIds={profile.graphIds}
         selectedGraphId={selectedGraphId}
-        onChangeSelectedGraphId={(graphId) => {
-          setSelectedGraphId(graphId)
-        }}
+        onChangeSelectedGraphId={onChangeSelectedGraphId}
         onAddNewDocument={onAddNewDocument}
         onOpenSettings={() => {
-          setSelectedGraphId(profile?.settingsGraphId)
+          onChangeSelectedGraphId(profile?.settingsGraphId)
         }}
       />
 
-      {selectedGraphId && (
-        <PathViewer graphId={selectedGraphId} settingsGraphId={profile.settingsGraphId} />
-      )}
+      <div className="p-4 bg-gray-50 flex w-full h-screen items-middle relative overflow-auto">
+        {selectedGraphId && (
+          <PathViewer graphId={selectedGraphId} settingsGraphId={profile.settingsGraphId} />
+        )}
+      </div>
     </div>
   )
 }
@@ -247,60 +282,58 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
 
   return (
     <GraphContext.Provider value={graphContext}>
-      <div className="p-4 bg-gray-50 flex w-full h-screen items-middle relative overflow-auto">
-        {rootNodeIds.map((rootId, index) => {
-          const selectedSubPath =
-            selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
+      {rootNodeIds.map((rootId, index) => {
+        const selectedSubPath =
+          selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
 
-          let width: number = doc.graph[rootId].paneWidth || DEFAULT_WIDTH
+        let width: number = doc.graph[rootId].paneWidth || DEFAULT_WIDTH
 
-          return (
-            <div key={index} className="flex">
-              <div
-                className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md"
-                style={{ width: `${width}px` }}
-              >
-                {!isSettingsPath && (
-                  <div className="absolute top-1 right-1 z-50">
-                    <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
-                  </div>
-                )}
-                <RootOutlineEditor
-                  index={0}
-                  nodeId={rootId}
-                  path={[]}
-                  parentIds={[]}
-                  selectedPath={selectedSubPath}
-                  focusOffset={focusOffset}
-                  onChangeSelectedPath={(newSelectedSubPath, newFocusOffset = 0) => {
-                    const newPath = newSelectedSubPath
-                      ? [index].concat(newSelectedSubPath)
-                      : undefined
-                    setSelectedPath(newPath)
-                    setFocusOffset(newFocusOffset)
-                  }}
-                  onOpenNodeInNewPane={onOpenNodeInNewPane}
-                  isHoveringOverId={isHoveringOverId}
-                  setIsHoveringOverId={setIsHoveringOverId}
-                />
-              </div>
-              <div className="flex flex-col justify-center items-center gap-2 w-[30px]">
-                {!isSettingsPath && (
-                  <IconButton icon="add" onClick={() => onAddRootNodeAfter(index)} />
-                )}
-                <WidthAdjust
-                  startingWidth={width}
-                  setNewWidth={(newWidth) => {
-                    graphContext.changeGraph((graph) => {
-                      graph[rootId].paneWidth = newWidth
-                    })
-                  }}
-                />
-              </div>
+        return (
+          <div key={index} className="flex">
+            <div
+              className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md"
+              style={{ width: `${width}px` }}
+            >
+              {!isSettingsPath && (
+                <div className="absolute top-1 right-1 z-50">
+                  <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
+                </div>
+              )}
+              <RootOutlineEditor
+                index={0}
+                nodeId={rootId}
+                path={[]}
+                parentIds={[]}
+                selectedPath={selectedSubPath}
+                focusOffset={focusOffset}
+                onChangeSelectedPath={(newSelectedSubPath, newFocusOffset = 0) => {
+                  const newPath = newSelectedSubPath
+                    ? [index].concat(newSelectedSubPath)
+                    : undefined
+                  setSelectedPath(newPath)
+                  setFocusOffset(newFocusOffset)
+                }}
+                onOpenNodeInNewPane={onOpenNodeInNewPane}
+                isHoveringOverId={isHoveringOverId}
+                setIsHoveringOverId={setIsHoveringOverId}
+              />
             </div>
-          )
-        })}
-      </div>
+            <div className="flex flex-col justify-center items-center gap-2 w-[30px]">
+              {!isSettingsPath && (
+                <IconButton icon="add" onClick={() => onAddRootNodeAfter(index)} />
+              )}
+              <WidthAdjust
+                startingWidth={width}
+                setNewWidth={(newWidth) => {
+                  graphContext.changeGraph((graph) => {
+                    graph[rootId].paneWidth = newWidth
+                  })
+                }}
+              />
+            </div>
+          </div>
+        )
+      })}
     </GraphContext.Provider>
   )
 }

@@ -505,7 +505,7 @@ export async function valueOfAsync(obj: any) {
 }
 
 export function useRootScope(rootId: string): Scope | undefined {
-  const { graph, settingsNodeId } = useGraph()
+  const { graph, settingsGraph, settingsNodeId } = useGraph()
   const [scope, setScope] = useState<Scope | undefined>()
 
   useEffect(() => {
@@ -517,7 +517,7 @@ export function useRootScope(rootId: string): Scope | undefined {
       scope.disable()
     }
 
-    const settingsScope = new Scope(graph, settingsNodeId, undefined, undefined)
+    const settingsScope = new Scope(settingsGraph, settingsNodeId, undefined, undefined)
     const newScope = new Scope(graph, rootId, undefined, settingsScope)
     newScope.registerUpdateHandler(() => setScope(newScope))
 

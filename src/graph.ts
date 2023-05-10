@@ -5,8 +5,7 @@ import { Doc } from "@automerge/automerge"
 import { Change, useRepo } from "automerge-repo-react-hooks"
 
 export interface GraphDoc {
-  tabs: string[][]
-  settingsNodeId: string
+  rootNodeIds: string[]
   cache: { [key: string]: any }
   graph: Graph
 }
@@ -15,8 +14,8 @@ let GRAPH_DOC: GraphDoc
 let GRAPH_DOC_HANDLE: DocHandle<GraphDoc>
 
 export async function registerGraphHandle(handle: DocHandle<GraphDoc>) {
-  if (GRAPH_DOC) {
-    throw new Error("graph handle has already been registered")
+  if (GRAPH_DOC_HANDLE) {
+    GRAPH_DOC_HANDLE.off("change")
   }
 
   handle.on("change", () => {
@@ -51,16 +50,7 @@ export function createGraphDoc(repo: Repo) {
 
     const rootNode = createValueNode(doc.graph, { value: "" })
 
-    const settingsNode = createRecordNode(doc.graph, {
-      name: "Settings",
-      props: [
-        ["lengthUnit", "kilometers"],
-        ["temperatureUnit", "celsius"],
-      ],
-    })
-
-    doc.settingsNodeId = settingsNode.id
-    doc.tabs = [[rootNode.id]]
+    doc.rootNodeIds = [rootNode.id]
   })
 
   return handle
@@ -215,6 +205,7 @@ export function createNodeTree(graph: Graph, parentId: string, data: any): NodeD
 export interface GraphContextProps {
   graph: Graph
   settingsNodeId: string
+  settingsGraph: Graph
   changeGraph: (fn: (graph: Graph) => void) => void
 }
 
@@ -232,6 +223,10 @@ export function useGraph(): GraphContextProps {
 
 export function getNode(graph: Graph, nodeId: string): ValueNode {
   const node = graph[nodeId]
+  if (!node) {
+    debugger
+  }
+
   return node.type === "ref" ? getNode(graph, node.refId) : node
 }
 

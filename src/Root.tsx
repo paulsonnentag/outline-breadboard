@@ -1,13 +1,14 @@
 import { DocumentId } from "automerge-repo"
 import { MouseEventHandler, useEffect, useMemo, useState } from "react"
 import {
+  createGraphDoc,
   createValueNode,
   getNode,
   Graph,
   GraphContext,
   GraphContextProps,
   GraphDoc,
-  useGraph,
+  registerGraphHandle,
   ValueNode,
 } from "./graph"
 
@@ -16,103 +17,220 @@ import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { isString } from "./utils"
 import { useRootScope } from "./language/scopes"
-import { useDocument } from "automerge-repo-react-hooks"
+import { useDocument, useHandle, useRepo } from "automerge-repo-react-hooks"
+import { ProfileDoc } from "./profile"
 
 interface RootProps {
-  documentId: DocumentId
-  disableEval: boolean
+  profileDocId: DocumentId
 }
 
 const DEFAULT_WIDTH = 800
 
-export function Root({ documentId, disableEval }: RootProps) {
-  const [doc, changeDoc] = useDocument<GraphDoc>(documentId)
+export function Root({ profileDocId }: RootProps) {
+  const repo = useRepo()
+  const [profile, changeProfile] = useDocument<ProfileDoc>(profileDocId)
+  const [selectedGraphId, setSelectedGraphId] = useState<DocumentId | undefined>()
+
+  const onAddNewDocument = () => {
+    changeProfile((doc) => {
+      const graphDocHandle = createGraphDoc(repo)
+
+      changeProfile((profile) => {
+        profile.graphIds.push(graphDocHandle.documentId)
+        setSelectedGraphId(graphDocHandle.documentId)
+      })
+    })
+  }
+
+  if (!profile) {
+    return null
+  }
+
+  return (
+    <div className="flex h-screen">
+      <Sidebar
+        graphIds={profile.graphIds}
+        selectedGraphId={selectedGraphId}
+        onChangeSelectedGraphId={(graphId) => {
+          setSelectedGraphId(graphId)
+        }}
+        onAddNewDocument={onAddNewDocument}
+        onOpenSettings={() => {
+          setSelectedGraphId(profile?.settingsGraphId)
+        }}
+      />
+
+      {selectedGraphId && (
+        <PathViewer graphId={selectedGraphId} settingsGraphId={profile.settingsGraphId} />
+      )}
+    </div>
+  )
+}
+
+interface SidebarProps {
+  graphIds: DocumentId[]
+  selectedGraphId: DocumentId | undefined
+  onChangeSelectedGraphId: (graphId: DocumentId) => void
+  onOpenSettings: () => void
+  onAddNewDocument: () => void
+}
+
+function Sidebar({
+  graphIds,
+  onAddNewDocument,
+  selectedGraphId,
+  onChangeSelectedGraphId,
+  onOpenSettings,
+}: SidebarProps) {
+  return (
+    <div className="p-4 w-[300px] bg-gray-100 border-r border-r-gray-200 flex-shrink-0 flex flex-col gap-2">
+      <div className="flex justify-between">
+        <div className="text-xl">Breadboard</div>
+
+        <div className="w-[24px] h-[24px]">
+          <IconButton icon="settings" onClick={() => onOpenSettings()} />
+        </div>
+      </div>
+
+      <div className="flex-col gap-1">
+        {graphIds.map((graphId, index) => {
+          const isSelected = selectedGraphId === graphId
+
+          return (
+            <SidebarTab
+              key={index}
+              graphId={graphId}
+              isSelected={isSelected}
+              onSelect={() => {
+                onChangeSelectedGraphId(graphId)
+              }}
+            />
+          )
+        })}
+      </div>
+
+      <button
+        className="flex gap-1 text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-200 rounded-md items-center"
+        onClick={onAddNewDocument}
+      >
+        <div className="w-[24px] h-[24px]">
+          <span className="material-icons ">add</span>
+        </div>{" "}
+        New Document
+      </button>
+    </div>
+  )
+}
+
+interface SidebarTabProps {
+  graphId: DocumentId
+  isSelected: boolean
+  onSelect: () => void
+}
+
+function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
+  const [graphDoc] = useDocument<GraphDoc>(graphId)
+
+  if (!graphDoc || graphDoc.rootNodeIds.length === 0) {
+    return null
+  }
+
+  const { graph, rootNodeIds } = graphDoc
+
+  return (
+    <div
+      className={classNames("rounded-md p-1 flex gap-1 cursor-pointer", {
+        "bg-white shadow": isSelected,
+        "hover:bg-gray-200": !isSelected,
+      })}
+      onClick={() => onSelect()}
+    >
+      {rootNodeIds.map((rootNodeId, rootNodeIndex) => {
+        const node = getNode(graph, rootNodeId)
+        const label = node.value === "" ? "Untitled" : node.value
+
+        return (
+          <div
+            key={rootNodeIndex}
+            className={classNames(
+              "p-1 rounded-md w-fit whitespace-nowrap overflow-ellipsis overflow-hidden flex",
+              {
+                "bg-gray-100": rootNodeIds.length > 1 && isSelected,
+              }
+            )}
+          >
+            {label}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+interface PathViewerProps {
+  graphId: DocumentId
+  settingsGraphId: DocumentId
+}
+
+export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
+  const repo = useRepo()
+  const [doc, changeDoc] = useDocument<GraphDoc>(graphId)
+  const [settingsDoc] = useDocument<GraphDoc>(settingsGraphId)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
   const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
-  const [selectedTabIndex, setSelectedTabIndex] = useState<number>(0)
-  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>()
-
-  /*
-  useEffect(() => {
-    const onKeyPress = (evt: KeyboardEvent) => {
-      if (evt.key === "z" && (evt.ctrlKey || evt.metaKey)) {
-        if (evt.shiftKey) {
-          history.redo()
-        } else {
-          history.undo()
-        }
-      }
-    }
-
-    document.addEventListener("keydown", onKeyPress)
-
-    return () => {
-      document.removeEventListener("keydown", onKeyPress)
-    }
-  }, [history]) */
+  const [initializedGraphId, setInitializedGraphId] = useState<DocumentId | undefined>()
+  const isSettingsPath = settingsGraphId === graphId
 
   const graphContext: GraphContextProps | undefined = useMemo(
     () =>
-      doc
+      doc && settingsDoc
         ? {
             graph: doc.graph,
             changeGraph: (fn: (graph: Graph) => void) => changeDoc((doc) => fn(doc.graph)),
-            settingsNodeId: doc.settingsNodeId,
+            settingsNodeId: settingsDoc.rootNodeIds[0],
+            settingsGraph: settingsDoc.graph,
           }
         : undefined,
     [doc?.graph, changeDoc]
   )
 
-  const onCloseRootNode = (tabIndex: number, index: number) => {
+  useEffect(() => {
+    setInitializedGraphId(undefined)
+
+    const handle = repo.find<GraphDoc>(graphId)
+    registerGraphHandle(handle).then(() => {
+      setInitializedGraphId(handle.documentId)
+    })
+  }, [graphId])
+
+  useEffect(() => {}, [])
+
+  const onCloseRootNodeAt = (index: number) => {
     changeDoc((doc) => {
-      const tab = doc.tabs[tabIndex]
-
-      tab.splice(index, 1)
-
-      // delete tab if it's empty
-      if (tab.length === 0) {
-        doc.tabs.splice(tabIndex, 1)
-
-        if (tabIndex < selectedTabIndex) {
-          setSelectedTabIndex(selectedTabIndex - 1)
-        } else if (!tab[selectedTabIndex]) {
-          setSelectedTabIndex(doc.tabs.length - 1)
-        }
-      }
+      doc.rootNodeIds.splice(index, 1)
     })
   }
 
-  const onAddRootNode = () => {
+  const onAddRootNodeAfter = (index: number) => {
     changeDoc((doc) => {
       const newRootNode = createValueNode(doc.graph, {
         value: "",
       })
 
-      doc.tabs[selectedTabIndex].push(newRootNode.id)
-      setSelectedPath([doc.tabs[selectedTabIndex].length - 1])
-    })
-  }
-
-  const onAddNewDocument = () => {
-    changeDoc((doc) => {
-      const newRootNode = createValueNode(doc.graph, {
-        value: "",
-      })
-
-      doc.tabs.push([newRootNode.id])
-      setSelectedTabIndex(doc.tabs.length - 1)
+      doc.rootNodeIds.splice(index + 1, 0, newRootNode.id)
+      setSelectedPath([index + 1])
     })
   }
 
   const onOpenNodeInNewPane = (nodeId: string) => {
     changeDoc((doc) => {
-      doc.tabs[selectedTabIndex].push(nodeId)
-      setSelectedPath([doc.tabs[selectedTabIndex].length - 1])
+      doc.rootNodeIds.push(nodeId)
+      setSelectedPath([doc.rootNodeIds.length - 1])
     })
   }
 
-  const firstRootNodeId = selectedTabIndex !== -1 ? doc?.tabs[selectedTabIndex][0] : undefined
+  const firstRootNodeId = doc?.rootNodeIds[0]
   const firstRootNode: ValueNode | undefined =
     firstRootNodeId && graphContext ? getNode(graphContext.graph, firstRootNodeId) : undefined
 
@@ -121,116 +239,67 @@ export function Root({ documentId, disableEval }: RootProps) {
       firstRootNode?.value && isString(firstRootNode?.value) ? firstRootNode.value : "Breadboard"
   }, [firstRootNode?.value])
 
-  if (!graphContext || !doc) {
+  if (!graphContext || !doc || initializedGraphId !== graphId) {
     return null
   }
 
-  const activeRootIds = doc.tabs[selectedTabIndex]
+  const { rootNodeIds } = doc
 
   return (
     <GraphContext.Provider value={graphContext}>
-      <div className="flex">
-        <Sidebar
-          tabs={doc.tabs}
-          selectedTabIndex={selectedTabIndex}
-          onChangeSelectedTabIndex={(tabIndex) => {
-            setIsSettingsOpen(false)
-            setSelectedTabIndex(tabIndex)
-          }}
-          onAddNewDocument={onAddNewDocument}
-          onOpenSettings={() => {
-            setIsSettingsOpen(true)
-            setSelectedTabIndex(-1)
-          }}
-          onCloseRootNode={onCloseRootNode}
-        />
+      <div className="p-4 bg-gray-50 flex w-full h-screen items-middle relative overflow-auto">
+        {rootNodeIds.map((rootId, index) => {
+          const selectedSubPath =
+            selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
 
-        <div className="p-4 bg-gray-50 flex w-full h-screen items-middle relative overflow-auto">
-          {isSettingsOpen && (
-            <div
-              className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md"
-              style={{ width: `${DEFAULT_WIDTH}px` }}
-            >
-              <div className="absolute top-1 right-1 z-50">
-                <IconButton icon="close" onClick={() => setIsSettingsOpen(false)} />
+          let width: number = doc.graph[rootId].paneWidth || DEFAULT_WIDTH
+
+          return (
+            <div key={index} className="flex">
+              <div
+                className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md"
+                style={{ width: `${width}px` }}
+              >
+                {!isSettingsPath && (
+                  <div className="absolute top-1 right-1 z-50">
+                    <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
+                  </div>
+                )}
+                <RootOutlineEditor
+                  index={0}
+                  nodeId={rootId}
+                  path={[]}
+                  parentIds={[]}
+                  selectedPath={selectedSubPath}
+                  focusOffset={focusOffset}
+                  onChangeSelectedPath={(newSelectedSubPath, newFocusOffset = 0) => {
+                    const newPath = newSelectedSubPath
+                      ? [index].concat(newSelectedSubPath)
+                      : undefined
+                    setSelectedPath(newPath)
+                    setFocusOffset(newFocusOffset)
+                  }}
+                  onOpenNodeInNewPane={onOpenNodeInNewPane}
+                  isHoveringOverId={isHoveringOverId}
+                  setIsHoveringOverId={setIsHoveringOverId}
+                />
               </div>
-              <RootOutlineEditor
-                index={0}
-                nodeId={doc.settingsNodeId}
-                path={[]}
-                parentIds={[]}
-                selectedPath={selectedPath}
-                focusOffset={focusOffset}
-                onChangeSelectedPath={(newPath, newFocusOffset = 0) => {
-                  setSelectedPath(newPath)
-                  setFocusOffset(newFocusOffset)
-                }}
-                disableEval={disableEval}
-                onOpenNodeInNewPane={onOpenNodeInNewPane}
-                isHoveringOverId={isHoveringOverId}
-                setIsHoveringOverId={setIsHoveringOverId}
-              />
+              <div className="flex flex-col justify-center items-center gap-2 w-[30px]">
+                {!isSettingsPath && (
+                  <IconButton icon="add" onClick={() => onAddRootNodeAfter(index)} />
+                )}
+                <WidthAdjust
+                  startingWidth={width}
+                  setNewWidth={(newWidth) => {
+                    graphContext.changeGraph((graph) => {
+                      graph[rootId].paneWidth = newWidth
+                    })
+                  }}
+                />
+              </div>
             </div>
-          )}
-
-          {activeRootIds &&
-            !isSettingsOpen &&
-            activeRootIds.map((rootId, index) => {
-              const selectedSubPath =
-                selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
-
-              let width: number = doc.graph[rootId].paneWidth || DEFAULT_WIDTH
-
-              return (
-                <div key={index} className="flex">
-                  <div
-                    className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md"
-                    style={{ width: `${width}px` }}
-                  >
-                    <div className="absolute top-1 right-1 z-50">
-                      <IconButton
-                        icon="close"
-                        onClick={() => onCloseRootNode(selectedTabIndex, index)}
-                      />
-                    </div>
-                    <RootOutlineEditor
-                      index={0}
-                      nodeId={rootId}
-                      path={[]}
-                      parentIds={[]}
-                      selectedPath={selectedSubPath}
-                      focusOffset={focusOffset}
-                      onChangeSelectedPath={(newSelectedSubPath, newFocusOffset = 0) => {
-                        const newPath = newSelectedSubPath
-                          ? [index].concat(newSelectedSubPath)
-                          : undefined
-                        setSelectedPath(newPath)
-                        setFocusOffset(newFocusOffset)
-                      }}
-                      disableEval={disableEval}
-                      onOpenNodeInNewPane={onOpenNodeInNewPane}
-                      isHoveringOverId={isHoveringOverId}
-                      setIsHoveringOverId={setIsHoveringOverId}
-                    />
-                  </div>
-                  <div className="flex flex-col justify-center items-center gap-2 w-[30px]">
-                    {index + 1 === activeRootIds.length && (
-                      <IconButton icon="add" onClick={onAddRootNode} />
-                    )}
-
-                    <WidthAdjust
-                      startingWidth={width}
-                      setNewWidth={(newWidth) => {
-                        graphContext.changeGraph((graph) => {
-                          graph[rootId].paneWidth = newWidth
-                        })
-                      }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-        </div>
+          )
+        })}
       </div>
     </GraphContext.Provider>
   )
@@ -279,88 +348,4 @@ export function RootOutlineEditor(props: RootOutlineEditorProps) {
   }
 
   return <OutlineEditor scope={scope} {...props} />
-}
-
-interface SidebarProps {
-  tabs: string[][]
-  selectedTabIndex: number
-  onChangeSelectedTabIndex: (tab: number) => void
-  onOpenSettings: () => void
-  onAddNewDocument: () => void
-  onCloseRootNode: (tabIndex: number, rootNodeIndex: number) => void
-}
-
-function Sidebar({
-  tabs,
-  onAddNewDocument,
-  selectedTabIndex,
-  onChangeSelectedTabIndex,
-  onOpenSettings,
-  onCloseRootNode,
-}: SidebarProps) {
-  const { graph } = useGraph()
-
-  return (
-    <div className="p-4 w-[300px] bg-gray-100 border-r border-r-gray-200 flex-shrink-0 flex flex-col gap-2">
-      <div className="flex justify-between">
-        <div className="text-xl">Breadboard</div>
-
-        <div className="w-[24px] h-[24px]">
-          <IconButton icon="settings" onClick={() => onOpenSettings()} />
-        </div>
-      </div>
-
-      <div className="flex-col gap-1">
-        {tabs.map((rootNodeIds, tabIndex) => {
-          const isSelected = tabIndex === selectedTabIndex
-
-          return (
-            <div
-              className={classNames("rounded-md p-1 flex gap-1 cursor-pointer", {
-                "bg-white shadow": isSelected,
-                "hover:bg-gray-200": !isSelected,
-              })}
-              onClick={() => onChangeSelectedTabIndex(tabIndex)}
-              key={tabIndex}
-            >
-              {rootNodeIds.map((rootNodeId, rootNodeIndex) => {
-                const node = getNode(graph, rootNodeId)
-                const label = node.value === "" ? "Untitled" : node.value
-
-                return (
-                  <div
-                    key={rootNodeIndex}
-                    className={classNames(
-                      "p-1 rounded-md w-fit whitespace-nowrap overflow-ellipsis overflow-hidden flex",
-                      {
-                        "bg-gray-100": rootNodeIds.length > 1 && isSelected,
-                      }
-                    )}
-                  >
-                    {label}{" "}
-                    <div className="w-[24px] h-[24px]">
-                      <IconButton
-                        icon="close"
-                        onClick={() => onCloseRootNode(tabIndex, rootNodeIndex)}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })}
-      </div>
-
-      <button
-        className="flex gap-1 text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-200 rounded-md items-center"
-        onClick={onAddNewDocument}
-      >
-        <div className="w-[24px] h-[24px]">
-          <span className="material-icons ">add</span>
-        </div>{" "}
-        New Document
-      </button>
-    </div>
-  )
 }

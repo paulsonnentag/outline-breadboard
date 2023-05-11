@@ -166,7 +166,7 @@ interface SidebarTabProps {
 function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
   const [graphDoc] = useDocument<GraphDoc>(graphId)
 
-  if (!graphDoc || graphDoc.rootNodeIds.length === 0) {
+  if (!graphDoc || !graphDoc.rootNodeIds || graphDoc.rootNodeIds.length === 0) {
     return null
   }
 

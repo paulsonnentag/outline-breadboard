@@ -19,7 +19,9 @@ import { createPortal } from "react-dom"
 export interface NodeContextMenuProps {
   node: ValueNode
   scope: Scope
-  isFocused: boolean
+  isFocusedOnNode: boolean
+  isAnotherFocused: boolean
+  isHoveredOnNode: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
   onChangeIsComputationSuggestionHovered?: (hasSuggestion: boolean) => void
 }
@@ -27,12 +29,15 @@ export interface NodeContextMenuProps {
 export function NodeContextMenu({
   node,
   scope,
-  isFocused,
+  isFocusedOnNode,
+  isAnotherFocused,
+  isHoveredOnNode,
   onOpenNodeInNewPane,
   onChangeIsComputationSuggestionHovered,
 }: NodeContextMenuProps) {
   const suggestionNodeId = `TEMP_SUGGESTION_${useId()}`
   const { graph, changeGraph } = useGraph()
+  const [ isHovering, setIsHovering ] = useState(false)
   const nodeId = node.id
   const isMap = node.view === "map"
   const isTable = node.view === "table"
@@ -41,7 +46,7 @@ export function NodeContextMenu({
   const suggestedFunctions = getGroupedSuggestedFunctions(scope)
 
   const [suggestedFunctionButtons, setSuggestedFunctionButtons] = useState<
-    { name: string; suggestion: string; result: string }[]
+    { name: string; suggestion: string; result: string, icon: string }[]
   >([])
 
   const repeatButtonRef = useRef<HTMLButtonElement>(null)
@@ -86,10 +91,12 @@ export function NodeContextMenu({
         const result = await ast.eval(scopeWithParameters)
         const fn = FUNCTIONS[name]
         const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
+        const resultText = summaryView(result)
         newSuggestedFunctionButtons.push({
           name,
           suggestion: defaultSuggestion,
-          result: summaryView(result),
+          icon: [...resultText].slice(0, 1).join(""),
+          result: [...resultText].slice(1).join("").trim(),
         })
       }
 
@@ -124,10 +131,10 @@ export function NodeContextMenu({
   }
 
   useEffect(() => {
-    if (!isFocused) {
+    if (!isFocusedOnNode) {
       resetPendingInsertions()
     }
-  }, [isFocused])
+  }, [isFocusedOnNode])
 
   const resetPendingInsertions = () => {
     setRepeatButtonPosition(undefined)
@@ -145,7 +152,15 @@ export function NodeContextMenu({
     })
   }
 
-  if ((!isFocused && !isMap && !isTable && !isCalendar) || node.isTemporary) {
+  if (node.isTemporary) { 
+    return null 
+  }
+  
+  if (!isFocusedOnNode && !isHovering && !isMap && !isTable && !isCalendar) {
+    return null
+  }
+
+  if (isAnotherFocused) {
     return null
   }
 
@@ -190,64 +205,27 @@ export function NodeContextMenu({
   }
 
   return (
-    <div className="flex w-fit gap-1">
-      <>
-        {suggestedFunctionButtons.map(({ name, suggestion, result }) => {
-          return (
-            <button
-              key={name}
-              className="rounded text-sm flex items-center justify-center hover:bg-gray-500 hover:text-white px-1"
-              onClick={() => {
-                if (!suggestion) {
-                  return
-                }
-                scope.insertChildNode(suggestion)
-              }}
-              onMouseEnter={() => {
-                // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                graph[suggestionNodeId] = {
-                  children: [],
-                  computedProps: {},
-                  expandedResultsByIndex: {},
-                  isSelected: false,
-                  key: "",
-                  paneWidth: 0,
-                  value: suggestion,
-                  view: "",
-                  computations: [],
-                  id: suggestionNodeId,
-                  isCollapsed: false,
-                  type: "value",
-                  isTemporary: true,
-                }
-
-                if (onChangeIsComputationSuggestionHovered) {
-                  onChangeIsComputationSuggestionHovered(true)
-                }
-
-                const tempScope = new Scope(graph, suggestionNodeId, scope)
-                scope.childScopes.unshift(tempScope)
-                scope.eval()
-              }}
-              onMouseLeave={() => {
-                const index = scope.childScopes.findIndex((scope) => scope.id === suggestionNodeId)
-                if (index !== -1) {
-                  scope.childScopes.splice(index, 1)
-                }
-
-                if (onChangeIsComputationSuggestionHovered) {
-                  onChangeIsComputationSuggestionHovered(false)
-                }
-              }}
-            >
-              {result}
-            </button>
-          )
-        })}
-      </>
+    <div
+      className="absolute right-1 flex flex-col gap-1"
+      onMouseOver={e => setIsHovering(true)}
+      onMouseLeave={e => setIsHovering(false)}
+    >
+      {scope.parentScope && pendingInsertions?.length === 0 && (
+        <button
+          className={classNames(
+            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
+            {"opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering}
+          )}
+          onClick={onDelete}
+        >
+          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+            close
+          </span>
+        </button>
+      )}
 
       {pendingInsertions?.length === 0 && (
-        <>
+        <div className="flex flex-col rounded bg-gray-100">
           <button
             className={classNames(
               "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
@@ -281,10 +259,69 @@ export function NodeContextMenu({
               calendar_month
             </span>
           </button>
-        </>
+        </div>
       )}
 
-      {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
+      {(isFocusedOnNode || isHovering) && suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
+          return (
+            <div key={name} className="relative">
+              {isHovering && 
+                <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">{result}</div>
+              }
+              <button
+                className={classNames(
+                  "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1",
+                )}
+                onClick={() => {
+                  if (!suggestion) {
+                    return
+                  }
+                  scope.insertChildNode(suggestion)
+                }}
+                onMouseEnter={() => {
+                  // todo: awful hack, create temporary node in graph that's not persisted in automerge
+                  graph[suggestionNodeId] = {
+                    children: [],
+                    computedProps: {},
+                    expandedResultsByIndex: {},
+                    isSelected: false,
+                    key: "",
+                    paneWidth: 0,
+                    value: suggestion,
+                    view: "",
+                    computations: [],
+                    id: suggestionNodeId,
+                    isCollapsed: false,
+                    type: "value",
+                    isTemporary: true,
+                  }
+
+                  if (onChangeIsComputationSuggestionHovered) {
+                    onChangeIsComputationSuggestionHovered(true)
+                  }
+
+                  const tempScope = new Scope(graph, suggestionNodeId, scope)
+                  scope.childScopes.unshift(tempScope)
+                  scope.eval()
+                }}
+                onMouseLeave={() => {
+                  const index = scope.childScopes.findIndex((scope) => scope.id === suggestionNodeId)
+                  if (index !== -1) {
+                    scope.childScopes.splice(index, 1)
+                  }
+
+                  if (onChangeIsComputationSuggestionHovered) {
+                    onChangeIsComputationSuggestionHovered(false)
+                  }
+                }}
+              >
+                {icon}
+              </button>
+            </div>
+          )
+        })}
+
+      {(isFocusedOnNode || isHovering) && pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
         <button
           className={classNames(
             "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
@@ -300,7 +337,7 @@ export function NodeContextMenu({
         </button>
       )}
 
-      {repeatButtonPosition &&
+      {(isFocusedOnNode || isHovering) && repeatButtonPosition &&
         createPortal(
           <div
             style={{
@@ -327,20 +364,6 @@ export function NodeContextMenu({
           </div>,
           document.body
         )}
-
-      {scope.parentScope && pendingInsertions?.length === 0 && (
-        <button
-          className={classNames(
-            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-            isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-          )}
-          onClick={onDelete}
-        >
-          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-            close
-          </span>
-        </button>
-      )}
     </div>
   )
 }

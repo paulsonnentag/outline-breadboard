@@ -193,16 +193,16 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
     max: rawForecast.daily.temperature_2m_max[index],
     mean: rawForecast.daily.temperature_2m_mean[index],
     weatherCode: rawForecast.daily.weathercode[index],
-    hourly: rawForecast.hourly.time.reduce((hourlyObj, hourlyTime, hourlyIndex) => {
-      const timePattern = /T(\d{2}:\d{2})/;
+    hourly: rawForecast.hourly.time.reduce((hourlyObj: any, hourlyTime: any, hourlyIndex: any) => {
+      const timePattern = /T(\d{2}:\d{2})/
       hourlyObj[hourlyTime.match(timePattern)?.[1] || hourlyTime] = {
         temp: rawForecast.hourly.temperature_2m[hourlyIndex],
         precip: rawForecast.hourly.precipitation_probability[hourlyIndex],
         windspeed_10m: rawForecast.hourly.windspeed_10m[hourlyIndex],
         windgusts_10m: rawForecast.hourly.windgusts_10m[hourlyIndex],
-      };
-      return hourlyObj;
-    }, {})
+      }
+      return hourlyObj
+    }, {}),
   }))
 
   FORECAST_CACHE[key] = forecast

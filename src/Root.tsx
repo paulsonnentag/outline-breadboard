@@ -235,6 +235,7 @@ function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
   }
 
   const { graph, rootNodeIds } = graphDoc
+  const displayedRootNodeIds = rootNodeIds.filter((rootNodeId) => graph[rootNodeId].type !== "ref")
 
   return (
     <div
@@ -244,7 +245,12 @@ function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
       })}
       onClick={() => onSelect()}
     >
-      {rootNodeIds.map((rootNodeId, rootNodeIndex) => {
+      {displayedRootNodeIds.map((rootNodeId, rootNodeIndex) => {
+        // filter out ref nodes
+        if (graph[rootNodeId].type === "ref") {
+          return null
+        }
+
         const node = getNode(graph, rootNodeId)
         const label = node.value === "" ? "Untitled" : node.value
 
@@ -254,7 +260,7 @@ function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
             className={classNames(
               "p-1 rounded-md w-fit whitespace-nowrap overflow-ellipsis overflow-hidden flex",
               {
-                "bg-gray-100": rootNodeIds.length > 1 && isSelected,
+                "bg-gray-100": displayedRootNodeIds.length > 1 && isSelected,
               }
             )}
           >

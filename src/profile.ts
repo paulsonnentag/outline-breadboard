@@ -1,5 +1,5 @@
 import { DocHandle, DocumentId, Repo } from "automerge-repo"
-import { createGraphDoc, createRecordNode } from "./graph"
+import { createGraphDoc, createRecordNode, GraphDoc } from "./graph"
 
 export interface ProfileDoc {
   graphIds: DocumentId[]
@@ -39,4 +39,24 @@ export function getProfileDoc(repo: Repo): DocHandle<ProfileDoc> {
 
   localStorage.setItem(PROFILE_ID, handle.documentId)
   return handle
+}
+
+export function importGraph(repo: Repo, profileId: DocumentId, graphData: GraphDoc): DocumentId {
+  const profileHandle = repo.find<ProfileDoc>(profileId)
+
+  const graphDocHandle = repo.create<GraphDoc>()
+
+  graphDocHandle.change((doc) => {
+    doc.graph = graphData.graph
+    doc.cache = graphData.cache
+    doc.rootNodeIds = graphData.rootNodeIds
+
+    profileHandle.change((profileDoc) => {
+      if (!profileDoc.graphIds.includes(graphDocHandle.documentId)) {
+        profileDoc.graphIds.push(graphDocHandle.documentId)
+      }
+    })
+  })
+
+  return graphDocHandle.documentId
 }

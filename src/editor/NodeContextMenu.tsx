@@ -20,6 +20,7 @@ export interface NodeContextMenuProps {
   node: ValueNode
   scope: Scope
   isFocused: boolean
+  hideFunctionButtons: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
   onChangeIsComputationSuggestionHovered?: (hasSuggestion: boolean) => void
 }
@@ -28,6 +29,7 @@ export function NodeContextMenu({
   node,
   scope,
   isFocused,
+  hideFunctionButtons,
   onOpenNodeInNewPane,
   onChangeIsComputationSuggestionHovered,
 }: NodeContextMenuProps) {
@@ -53,6 +55,9 @@ export function NodeContextMenu({
   const doesBulletContainComputations = scope.bullet.value.some(
     (part) => part instanceof InlineExprNode
   )
+
+  const showFunctionButtons =
+    !doesBulletContainComputations && node.value !== "" && !hideFunctionButtons
 
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
@@ -196,7 +201,7 @@ export function NodeContextMenu({
   return (
     <div className="flex w-fit gap-1">
       <>
-        {!doesBulletContainComputations &&
+        {showFunctionButtons &&
           suggestedFunctionButtons.map(({ name, suggestion, result }) => {
             return (
               <button

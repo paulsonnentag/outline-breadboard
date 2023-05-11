@@ -38,8 +38,6 @@ export interface OutlineEditorProps {
   disableCustomViews?: boolean
 }
 
-const SHOW_PARAMETERS = false
-
 export function OutlineEditor({
   nodeId,
   path,
@@ -70,6 +68,7 @@ export function OutlineEditor({
   const isSelected = node.isSelected
   const isReferenceNode = node.id !== nodeId
   const isReferenceView = isReferenceNode && graph[nodeId].view !== undefined
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const onToggleIsCollapsed = useCallback(
     (evt: MouseEvent) => {
@@ -423,6 +422,7 @@ export function OutlineEditor({
       {isReferenceView ? (
         <>
           <NodeContextMenu
+            hideFunctionButtons={isMenuOpen}
             scope={scope}
             node={graph[nodeId] as ValueNode}
             isFocused={true} // should this just be "showControls"?
@@ -519,6 +519,7 @@ export function OutlineEditor({
                 onOutdent={onOutdent}
                 isHoveringOverId={isHoveringOverId}
                 setIsHoveringOverId={setIsHoveringOverId}
+                onChangeIsMenuOpen={setIsMenuOpen}
               />
               <ComputationResultsSummaryView scope={scope} />
 
@@ -549,6 +550,7 @@ export function OutlineEditor({
             </div>
             {!disableCustomViews && (
               <NodeContextMenu
+                hideFunctionButtons={isMenuOpen}
                 onChangeIsComputationSuggestionHovered={setIsComputationSuggestionHovered}
                 node={node}
                 scope={scope}

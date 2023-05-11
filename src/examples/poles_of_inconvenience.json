@@ -1,0 +1,2476 @@
+{
+  "cache": {},
+  "graph": {
+    "79a13361-0940-4d5c-84eb-353b077a8086": {
+      "type": "value",
+      "id": "79a13361-0940-4d5c-84eb-353b077a8086",
+      "value": "Poles of Inconvenience",
+      "children": [
+        "c6ece8b3-7c5c-427b-a9b9-84cac1869c3a",
+        "3174910d-1b5e-488f-9eac-903b39604c0e",
+        "9e6dd427-e185-4355-a9b1-4b40310c7c22",
+        "b7c236f6-b44d-4b93-9953-ae7de02708a1"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "paneWidth": 474
+    },
+    "c6ece8b3-7c5c-427b-a9b9-84cac1869c3a": {
+      "type": "value",
+      "id": "c6ece8b3-7c5c-427b-a9b9-84cac1869c3a",
+      "value": "The Eastern Cluster",
+      "children": [
+        "bb3c5724-e3e6-43a6-be56-5f98c466b55f",
+        "4b9b2820-3b76-49b8-828b-ede17c377a72",
+        "a0dc5a3b-1c31-448d-87ea-af616230571e",
+        "01b7d9c4-f6a1-45b6-9c93-d8d01853ed7b",
+        "ba995c61-623c-41b8-8038-b382cde25291",
+        "5f6cc2d1-ab91-4730-b93e-c707b7e2ae9d",
+        "fb710c1d-0632-415a-bb76-ec3c8b7fbc25",
+        "c94afac6-5aea-42d3-aec1-6133b9fea223",
+        "66b1f3d2-08cb-43c3-aa56-e00d160e22b0",
+        "f82306e4-4c95-4827-a489-584c0464bf16",
+        "11f0762f-ca18-495d-a7ac-e1ab22b4932b",
+        "27821b68-c047-48a8-aecc-8fe9fd8b0514",
+        "8e6c24ad-0116-4c15-a8b0-cefd9c3a5938",
+        "0af24c12-fc29-4544-b529-dab2e840d091",
+        "7250522f-750a-416b-ac58-ad7f64485565",
+        "0d967904-c3cb-4ea9-a38f-fa2c3268fe54",
+        "56c1e142-0979-4b03-9f62-06d02417fd44"
+      ],
+      "computedProps": {},
+      "isCollapsed": true,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "bb3c5724-e3e6-43a6-be56-5f98c466b55f": {
+      "type": "value",
+      "id": "bb3c5724-e3e6-43a6-be56-5f98c466b55f",
+      "value": "POI 8",
+      "children": [
+        "f82a6a7d-893a-4761-a722-ad0e76975376",
+        "c73a3c93-2c75-4e05-bfca-f372d99c7620"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "f82a6a7d-893a-4761-a722-ad0e76975376": {
+      "type": "value",
+      "id": "f82a6a7d-893a-4761-a722-ad0e76975376",
+      "value": "This handy Pole of Inconvenience is at the top of a dirt track mountain pass. Why not add it to your collection?",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "c73a3c93-2c75-4e05-bfca-f372d99c7620": {
+      "type": "value",
+      "id": "c73a3c93-2c75-4e05-bfca-f372d99c7620",
+      "value": "position: 43.361951, 18.531053",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "4b9b2820-3b76-49b8-828b-ede17c377a72": {
+      "type": "value",
+      "id": "4b9b2820-3b76-49b8-828b-ede17c377a72",
+      "value": "POI 9",
+      "children": [
+        "71a1a720-8e24-4c5c-98a2-2b2b52913f77",
+        "82fbd164-35cf-4309-8c6b-69b9cbfdd715"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "71a1a720-8e24-4c5c-98a2-2b2b52913f77": {
+      "type": "value",
+      "id": "71a1a720-8e24-4c5c-98a2-2b2b52913f77",
+      "value": "Nestled amongst the mountains of Kosovo is this wonderful little unassuming pole, suggested by Mr Aaron - a 2022 participant. It was quickly verified by us after we saw the video evidence of how stupid it is. <br><br>It's a real beauty. Bring your sturdy underwear.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "82fbd164-35cf-4309-8c6b-69b9cbfdd715": {
+      "type": "value",
+      "id": "82fbd164-35cf-4309-8c6b-69b9cbfdd715",
+      "value": "position: 42.6768518074065, 20.2074926645069",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "a0dc5a3b-1c31-448d-87ea-af616230571e": {
+      "type": "value",
+      "id": "a0dc5a3b-1c31-448d-87ea-af616230571e",
+      "value": "POI 10",
+      "children": [
+        "0f044202-21c5-44cc-bbb9-56d53eea1afe",
+        "9b22dffe-c679-4b20-bbb0-9221fec9245c"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "0f044202-21c5-44cc-bbb9-56d53eea1afe": {
+      "type": "value",
+      "id": "0f044202-21c5-44cc-bbb9-56d53eea1afe",
+      "value": "There's two ways to get here. We know one might be possible. The other way? What a wonderful slab of inconvenience.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "9b22dffe-c679-4b20-bbb0-9221fec9245c": {
+      "type": "value",
+      "id": "9b22dffe-c679-4b20-bbb0-9221fec9245c",
+      "value": "position: 40.866934, 20.415459",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "01b7d9c4-f6a1-45b6-9c93-d8d01853ed7b": {
+      "type": "value",
+      "id": "01b7d9c4-f6a1-45b6-9c93-d8d01853ed7b",
+      "value": "POI 11",
+      "children": [
+        "190f3bc2-7cde-4aa1-9f43-6e4138c3a81b",
+        "76c21dbe-01ca-4c0d-b80e-de19f70126d6"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "190f3bc2-7cde-4aa1-9f43-6e4138c3a81b": {
+      "type": "value",
+      "id": "190f3bc2-7cde-4aa1-9f43-6e4138c3a81b",
+      "value": "High up, twisty, and not particularly close to anything else that you may merit convenient. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "76c21dbe-01ca-4c0d-b80e-de19f70126d6": {
+      "type": "value",
+      "id": "76c21dbe-01ca-4c0d-b80e-de19f70126d6",
+      "value": "position: 42.88476, 22.680144",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "ba995c61-623c-41b8-8038-b382cde25291": {
+      "type": "value",
+      "id": "ba995c61-623c-41b8-8038-b382cde25291",
+      "value": "POI 12",
+      "children": [
+        "6c5bd204-02ae-469a-af23-163cd0cc0856",
+        "72571e26-1f40-4862-9032-6aa936d48463"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "6c5bd204-02ae-469a-af23-163cd0cc0856": {
+      "type": "value",
+      "id": "6c5bd204-02ae-469a-af23-163cd0cc0856",
+      "value": "Romania has some quite resplendent dirt tracks to get your machine stuck in. And here is just such a track.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "72571e26-1f40-4862-9032-6aa936d48463": {
+      "type": "value",
+      "id": "72571e26-1f40-4862-9032-6aa936d48463",
+      "value": "position: 45.182027, 22.721642",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "5f6cc2d1-ab91-4730-b93e-c707b7e2ae9d": {
+      "type": "value",
+      "id": "5f6cc2d1-ab91-4730-b93e-c707b7e2ae9d",
+      "value": "POI 13",
+      "children": [
+        "9c94b99c-7a72-4241-b4c2-d63ac1269a5a",
+        "279f0047-33c9-4513-b2d1-c6c4be7a996a"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "9c94b99c-7a72-4241-b4c2-d63ac1269a5a": {
+      "type": "value",
+      "id": "9c94b99c-7a72-4241-b4c2-d63ac1269a5a",
+      "value": "What used to be a typical and collector’s edition ceramic plate beautiful Romanian village is now still a beautiful Romanian village, but buried under 90 metres of industrial waste. It’s a vast toxic lake, flooded with an acidic sludge that’s laced with copper, lead, zinc and arsenic. Don’t forget to pack your swimming costume.<br><br>The aptly named ‘Team Toxic Waste’ went there on a little reconnaissance mission on the Pioneers Monkey Run Romania<br>We asked them for a quote - \"It was horrific\" – Rich Sawtell. Well that's succinct.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "279f0047-33c9-4513-b2d1-c6c4be7a996a": {
+      "type": "value",
+      "id": "279f0047-33c9-4513-b2d1-c6c4be7a996a",
+      "value": "position: 46.327378, 23.206226",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "fb710c1d-0632-415a-bb76-ec3c8b7fbc25": {
+      "type": "value",
+      "id": "fb710c1d-0632-415a-bb76-ec3c8b7fbc25",
+      "value": "POI 14",
+      "children": [
+        "b785cd29-852f-43f5-be5a-e63e0191f176",
+        "9809d91d-c5ad-4e5b-9ef5-b4aa68e0870c"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "b785cd29-852f-43f5-be5a-e63e0191f176": {
+      "type": "value",
+      "id": "b785cd29-852f-43f5-be5a-e63e0191f176",
+      "value": "Ah, the end of the tarmac. What better place to slap a Pole than the middle of a Romanian forest on a slab of mud.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "9809d91d-c5ad-4e5b-9ef5-b4aa68e0870c": {
+      "type": "value",
+      "id": "9809d91d-c5ad-4e5b-9ef5-b4aa68e0870c",
+      "value": "position: 46.948809, 25.916424",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "c94afac6-5aea-42d3-aec1-6133b9fea223": {
+      "type": "value",
+      "id": "c94afac6-5aea-42d3-aec1-6133b9fea223",
+      "value": "POI 15",
+      "children": [
+        "23aac737-4732-49c0-92d8-bb61bf4c0f20",
+        "03dc29c4-5fdc-4e07-bc6c-4b3a84b16a4d"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "23aac737-4732-49c0-92d8-bb61bf4c0f20": {
+      "type": "value",
+      "id": "23aac737-4732-49c0-92d8-bb61bf4c0f20",
+      "value": "Formerly known as the \"Eagle's Nest,\" because it’s rather high. It’s a massive ruined ancient city awaiting your trembling legs on a remote mountaintop.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "03dc29c4-5fdc-4e07-bc6c-4b3a84b16a4d": {
+      "type": "value",
+      "id": "03dc29c4-5fdc-4e07-bc6c-4b3a84b16a4d",
+      "value": "position: 36.9825, 30.4646",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "66b1f3d2-08cb-43c3-aa56-e00d160e22b0": {
+      "type": "value",
+      "id": "66b1f3d2-08cb-43c3-aa56-e00d160e22b0",
+      "value": "POI 16",
+      "children": [
+        "ae6d8fbf-4f21-4aa6-90e1-08a8bcf1f8f0",
+        "55a99694-9d9d-4c7e-bd0b-027d42afaafe"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ae6d8fbf-4f21-4aa6-90e1-08a8bcf1f8f0": {
+      "type": "value",
+      "id": "ae6d8fbf-4f21-4aa6-90e1-08a8bcf1f8f0",
+      "value": "Some random flames that have been burning on a mountainside for thousands of years. Great place to toast a teacake.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "55a99694-9d9d-4c7e-bd0b-027d42afaafe": {
+      "type": "value",
+      "id": "55a99694-9d9d-4c7e-bd0b-027d42afaafe",
+      "value": "position: 36.4314, 30.4561",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "f82306e4-4c95-4827-a489-584c0464bf16": {
+      "type": "value",
+      "id": "f82306e4-4c95-4827-a489-584c0464bf16",
+      "value": "POI 17",
+      "children": [
+        "bb9fb47e-0ad6-4c66-beec-8ad855cbe69b",
+        "142121e5-80f3-4c12-b4b6-4457a2a0c595"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "bb9fb47e-0ad6-4c66-beec-8ad855cbe69b": {
+      "type": "value",
+      "id": "bb9fb47e-0ad6-4c66-beec-8ad855cbe69b",
+      "value": "End of the road in the middle of the mountains. Nice view, if you can make it.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "142121e5-80f3-4c12-b4b6-4457a2a0c595": {
+      "type": "value",
+      "id": "142121e5-80f3-4c12-b4b6-4457a2a0c595",
+      "value": "position: 37.776287, 35.085242",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "11f0762f-ca18-495d-a7ac-e1ab22b4932b": {
+      "type": "value",
+      "id": "11f0762f-ca18-495d-a7ac-e1ab22b4932b",
+      "value": "POI 18",
+      "children": [
+        "cd484740-4e2b-4496-bb44-ff090c07dde2",
+        "c90716f1-6fc8-4e55-8e89-3a0eb6706164"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "cd484740-4e2b-4496-bb44-ff090c07dde2": {
+      "type": "value",
+      "id": "cd484740-4e2b-4496-bb44-ff090c07dde2",
+      "value": "As roads go this one is grade 1 corker. Steep as shit, winding through the mountains with big old drop offs of doom. This is really one of the best Poles of Inconvenience out there. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "c90716f1-6fc8-4e55-8e89-3a0eb6706164": {
+      "type": "value",
+      "id": "c90716f1-6fc8-4e55-8e89-3a0eb6706164",
+      "value": "position: 40.634162, 40.178195",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "27821b68-c047-48a8-aecc-8fe9fd8b0514": {
+      "type": "value",
+      "id": "27821b68-c047-48a8-aecc-8fe9fd8b0514",
+      "value": "POI 19",
+      "children": [
+        "8ad99eef-407c-4fca-a642-a752e87250a5",
+        "7bad7e8d-e52d-476f-868d-f77e2644100d"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "8ad99eef-407c-4fca-a642-a752e87250a5": {
+      "type": "value",
+      "id": "8ad99eef-407c-4fca-a642-a752e87250a5",
+      "value": "An abused and forgotten metropolis, abandoned for centuries. Lovely spot for a nice Earl Grey.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "7bad7e8d-e52d-476f-868d-f77e2644100d": {
+      "type": "value",
+      "id": "7bad7e8d-e52d-476f-868d-f77e2644100d",
+      "value": "position: 40.5075, 43.5728",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "8e6c24ad-0116-4c15-a8b0-cefd9c3a5938": {
+      "type": "value",
+      "id": "8e6c24ad-0116-4c15-a8b0-cefd9c3a5938",
+      "value": "POI 20",
+      "children": [
+        "b52e32b9-5208-46cf-a7da-cb2b33d7867f",
+        "f041243b-948f-4fa2-9b54-71a9d0410f13"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "b52e32b9-5208-46cf-a7da-cb2b33d7867f": {
+      "type": "value",
+      "id": "b52e32b9-5208-46cf-a7da-cb2b33d7867f",
+      "value": "One of the favourite Poles from the 2022 edition, for bloody good reason. It's tough, high as a politician on a weekend in Bogota and a possible car-breaker.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "f041243b-948f-4fa2-9b54-71a9d0410f13": {
+      "type": "value",
+      "id": "f041243b-948f-4fa2-9b54-71a9d0410f13",
+      "value": "position: 42.915285, 43.09907",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "0af24c12-fc29-4544-b529-dab2e840d091": {
+      "type": "value",
+      "id": "0af24c12-fc29-4544-b529-dab2e840d091",
+      "value": "POI 21",
+      "children": [
+        "0899c744-27c3-4428-835e-bea2befcb4bb",
+        "dcbd1dd9-b464-4eca-9e30-0d3df7955448"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "0899c744-27c3-4428-835e-bea2befcb4bb": {
+      "type": "value",
+      "id": "0899c744-27c3-4428-835e-bea2befcb4bb",
+      "value": "We couldn’t beat this description by a local guide on Google Maps:<br><br>“Mediaeval communal tombs with human bones still visible, sit on a promontory above the gorge: in times of plague, infected villagers would voluntarily enter these tombs and wait for death.”<br><br>Sounds perfect. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "dcbd1dd9-b464-4eca-9e30-0d3df7955448": {
+      "type": "value",
+      "id": "dcbd1dd9-b464-4eca-9e30-0d3df7955448",
+      "value": "position: 42.67114667, 45.17999912",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "7250522f-750a-416b-ac58-ad7f64485565": {
+      "type": "value",
+      "id": "7250522f-750a-416b-ac58-ad7f64485565",
+      "value": "POI 22",
+      "children": [
+        "ca3534d4-d824-48ca-94f2-64b744e37ed9",
+        "a595b699-7414-4b8c-ad0c-242f28cf3132"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ca3534d4-d824-48ca-94f2-64b744e37ed9": {
+      "type": "value",
+      "id": "ca3534d4-d824-48ca-94f2-64b744e37ed9",
+      "value": "You'll need prayers to get here, and prayers to get away again. Rather fitting, really. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "a595b699-7414-4b8c-ad0c-242f28cf3132": {
+      "type": "value",
+      "id": "a595b699-7414-4b8c-ad0c-242f28cf3132",
+      "value": "position: 42.278332, 45.508637",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "0d967904-c3cb-4ea9-a38f-fa2c3268fe54": {
+      "type": "value",
+      "id": "0d967904-c3cb-4ea9-a38f-fa2c3268fe54",
+      "value": "POI 62",
+      "children": [
+        "12e981bb-709e-4173-b033-aa469f85a99a",
+        "136b5545-93e6-4bc8-8b17-234518b4c05a"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "12e981bb-709e-4173-b033-aa469f85a99a": {
+      "type": "value",
+      "id": "12e981bb-709e-4173-b033-aa469f85a99a",
+      "value": "Massive ruined communist monument atop a ruddy great hill. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "136b5545-93e6-4bc8-8b17-234518b4c05a": {
+      "type": "value",
+      "id": "136b5545-93e6-4bc8-8b17-234518b4c05a",
+      "value": "position: 42.7359385377505, 25.394898682042",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "56c1e142-0979-4b03-9f62-06d02417fd44": {
+      "type": "value",
+      "id": "56c1e142-0979-4b03-9f62-06d02417fd44",
+      "value": "POI 63",
+      "children": [
+        "cc7f2e2c-14df-4e9d-a4c7-444980187201",
+        "90aaa345-c91a-4b0d-aa9f-36e9f8f6100e"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "cc7f2e2c-14df-4e9d-a4c7-444980187201": {
+      "type": "value",
+      "id": "cc7f2e2c-14df-4e9d-a4c7-444980187201",
+      "value": "To get here, you have to take the highest paved road in the Balkans. The badly-maintained road is potholed, narrow and steep. There are 28 hairpins and no barriers protecting you from the sheer drops. It sounds idyllic.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "90aaa345-c91a-4b0d-aa9f-36e9f8f6100e": {
+      "type": "value",
+      "id": "90aaa345-c91a-4b0d-aa9f-36e9f8f6100e",
+      "value": "position: 42.1863992733513, 23.2572833115803",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "3174910d-1b5e-488f-9eac-903b39604c0e": {
+      "type": "value",
+      "id": "3174910d-1b5e-488f-9eac-903b39604c0e",
+      "value": "Southern Cluster",
+      "children": [
+        "99144b32-34a9-4015-85b1-32881a1fc145",
+        "d65f1c7d-d558-452d-92d6-68c7a7fb4e43",
+        "8e49ebb5-d547-417a-9ecc-f18d20abc171",
+        "ed86e922-7abe-4641-a257-f1045bbeedf5",
+        "86aaaa03-b022-45ea-a03c-e07b3114a711",
+        "3a6c22cb-6eff-4e0b-a65e-f4577e8ad6a5",
+        "233e28e1-ab65-42bc-adf2-aba200f6ee67",
+        "0ae6a135-af7f-43c8-a297-579292414eec",
+        "03d822fd-a525-47f8-9466-eb861e924945",
+        "8ccd444d-a2bb-4f9c-bc25-c7b2c01a4be0",
+        "587452fb-ee23-41b1-addc-ada53c644dcb",
+        "f37c208a-2919-41f6-80b2-06d30547591e",
+        "59f4ccca-9df8-4db1-b599-877abae633a8",
+        "b8e5bc12-ebba-4211-85d9-d73a1dc27541",
+        "4d529fbe-e49c-499b-a8d3-791379b1d5b5",
+        "cd9fc467-7bc1-41c3-92d1-c3d41a49af6b",
+        "b5150bdd-b043-4114-89c5-e225388e3e7d",
+        "bc44b0f6-c211-40ca-9c05-37d8b5c8ca10",
+        "7431d4a0-d99e-4d19-b23c-d0aa6e1546a4",
+        "7eac5269-e61d-47ba-bf4e-50a4e1827a57",
+        "e4371b38-3720-48e8-b691-f495c3140b7e",
+        "03ef244a-70af-4d99-8402-f08b7ccbae3b"
+      ],
+      "computedProps": {},
+      "isCollapsed": true,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "99144b32-34a9-4015-85b1-32881a1fc145": {
+      "type": "value",
+      "id": "99144b32-34a9-4015-85b1-32881a1fc145",
+      "value": "POI 23",
+      "children": [
+        "a64afbe2-5410-4582-a7c6-9979ff84c707",
+        "4ad3a75a-6d89-4139-a573-0e4aaf33fe81"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "a64afbe2-5410-4582-a7c6-9979ff84c707": {
+      "type": "value",
+      "id": "a64afbe2-5410-4582-a7c6-9979ff84c707",
+      "value": "High in the southern Alps, this rather inaccessible point is the perfect place to reach if it's a massive detour.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "4ad3a75a-6d89-4139-a573-0e4aaf33fe81": {
+      "type": "value",
+      "id": "4ad3a75a-6d89-4139-a573-0e4aaf33fe81",
+      "value": "position: 44.491202, 6.643852",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "d65f1c7d-d558-452d-92d6-68c7a7fb4e43": {
+      "type": "value",
+      "id": "d65f1c7d-d558-452d-92d6-68c7a7fb4e43",
+      "value": "POI 24",
+      "children": [
+        "77207c9b-3243-415e-8495-29e91f630277",
+        "a15711b6-cf85-42b5-8613-e99ea232ced6"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "77207c9b-3243-415e-8495-29e91f630277": {
+      "type": "value",
+      "id": "77207c9b-3243-415e-8495-29e91f630277",
+      "value": "The best place we find for inconvenience is either at a dead end or the middle of a dirt track. This handy little number is the latter.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "a15711b6-cf85-42b5-8613-e99ea232ced6": {
+      "type": "value",
+      "id": "a15711b6-cf85-42b5-8613-e99ea232ced6",
+      "value": "position: 40.043752, -1.112348",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "8e49ebb5-d547-417a-9ecc-f18d20abc171": {
+      "type": "value",
+      "id": "8e49ebb5-d547-417a-9ecc-f18d20abc171",
+      "value": "POI 25",
+      "children": [
+        "3962cf46-ef08-46d4-a60b-cb9f81378704",
+        "aa4800ae-3526-4348-b169-4256396cf6cd"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "3962cf46-ef08-46d4-a60b-cb9f81378704": {
+      "type": "value",
+      "id": "3962cf46-ef08-46d4-a60b-cb9f81378704",
+      "value": "Further mountainous track joy to bend your tires.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "aa4800ae-3526-4348-b169-4256396cf6cd": {
+      "type": "value",
+      "id": "aa4800ae-3526-4348-b169-4256396cf6cd",
+      "value": "position: 36.662084, -4.940149",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "ed86e922-7abe-4641-a257-f1045bbeedf5": {
+      "type": "value",
+      "id": "ed86e922-7abe-4641-a257-f1045bbeedf5",
+      "value": "POI 26",
+      "children": [
+        "1e0d671e-71d6-4f3f-a56c-f8ec988bf5c1",
+        "32284653-a54a-490c-99d4-2c702e9d16bb"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "1e0d671e-71d6-4f3f-a56c-f8ec988bf5c1": {
+      "type": "value",
+      "id": "1e0d671e-71d6-4f3f-a56c-f8ec988bf5c1",
+      "value": "A super high dirt track pass into the high Atlas. Good luck!",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "32284653-a54a-490c-99d4-2c702e9d16bb": {
+      "type": "value",
+      "id": "32284653-a54a-490c-99d4-2c702e9d16bb",
+      "value": "position: 31.710438, -5.950435",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "86aaaa03-b022-45ea-a03c-e07b3114a711": {
+      "type": "value",
+      "id": "86aaaa03-b022-45ea-a03c-e07b3114a711",
+      "value": "POI 27",
+      "children": [
+        "997a2dee-bfd3-449c-8b35-c08d6cd0e2e5",
+        "65e1e4f9-e555-41f2-a6b2-b55d159a0afc"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "997a2dee-bfd3-449c-8b35-c08d6cd0e2e5": {
+      "type": "value",
+      "id": "997a2dee-bfd3-449c-8b35-c08d6cd0e2e5",
+      "value": "A gigantic sandpit for adult children. AKA the Sahara. We've positioned this pole as close to the middle as it might be possible to get.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "65e1e4f9-e555-41f2-a6b2-b55d159a0afc": {
+      "type": "value",
+      "id": "65e1e4f9-e555-41f2-a6b2-b55d159a0afc",
+      "value": "position: 29.8371363, -6.3098303",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "3a6c22cb-6eff-4e0b-a65e-f4577e8ad6a5": {
+      "type": "value",
+      "id": "3a6c22cb-6eff-4e0b-a65e-f4577e8ad6a5",
+      "value": "POI 28",
+      "children": [
+        "e4c60cba-dfc6-46bc-a9e0-c7fbb64a4458",
+        "8909e529-a071-4ea7-9f04-4abb964509be"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "e4c60cba-dfc6-46bc-a9e0-c7fbb64a4458": {
+      "type": "value",
+      "id": "e4c60cba-dfc6-46bc-a9e0-c7fbb64a4458",
+      "value": "The start of the longest conveyor belt in the world. So big it can even be seen from space. Thankfully, you won't be in space, you'll be in. a tiny, boiling hot car, cursing us for sending you somewhere so pointless.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "8909e529-a071-4ea7-9f04-4abb964509be": {
+      "type": "value",
+      "id": "8909e529-a071-4ea7-9f04-4abb964509be",
+      "value": "position: 26.3228, -12.8497",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "233e28e1-ab65-42bc-adf2-aba200f6ee67": {
+      "type": "value",
+      "id": "233e28e1-ab65-42bc-adf2-aba200f6ee67",
+      "value": "POI 29",
+      "children": [
+        "bd02d9e3-d717-4671-ae02-3d651e76fa4a",
+        "c4ddde13-09c0-4718-b5db-7ed22a743aae"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "bd02d9e3-d717-4671-ae02-3d651e76fa4a": {
+      "type": "value",
+      "id": "bd02d9e3-d717-4671-ae02-3d651e76fa4a",
+      "value": "What better way to make a difficult journey harder than trying to get 30km off road to the wrong side of a salt flat. You will most likely need sand ladders.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "c4ddde13-09c0-4718-b5db-7ed22a743aae": {
+      "type": "value",
+      "id": "c4ddde13-09c0-4718-b5db-7ed22a743aae",
+      "value": "position: 26.0164435, -13.7940846",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "0ae6a135-af7f-43c8-a297-579292414eec": {
+      "type": "value",
+      "id": "0ae6a135-af7f-43c8-a297-579292414eec",
+      "value": "POI 30",
+      "children": [
+        "85db3643-731a-4cee-a792-8e08a41550ed",
+        "e6926543-f395-44fa-80c6-51e8944b18d2"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "85db3643-731a-4cee-a792-8e08a41550ed": {
+      "type": "value",
+      "id": "85db3643-731a-4cee-a792-8e08a41550ed",
+      "value": "Ever-so-slightly inconvenient this one, though that's kind of the point.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "e6926543-f395-44fa-80c6-51e8944b18d2": {
+      "type": "value",
+      "id": "e6926543-f395-44fa-80c6-51e8944b18d2",
+      "value": "position: 23.6271966730655, -15.9846541197188",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "03d822fd-a525-47f8-9466-eb861e924945": {
+      "type": "value",
+      "id": "03d822fd-a525-47f8-9466-eb861e924945",
+      "value": "POI 32",
+      "children": [
+        "51689190-601c-4fa0-887d-90a1137b0fe4",
+        "d491b596-e150-46fa-95f9-163a5efaaf66"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "51689190-601c-4fa0-887d-90a1137b0fe4": {
+      "type": "value",
+      "id": "51689190-601c-4fa0-887d-90a1137b0fe4",
+      "value": "Tamanrasset is an old stone hermitage on a remote pass in the Hoggar mountains. You might be forced to have a police escort to get here. Or maybe not.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "d491b596-e150-46fa-95f9-163a5efaaf66": {
+      "type": "value",
+      "id": "d491b596-e150-46fa-95f9-163a5efaaf66",
+      "value": "position: 23.2839, 5.6089",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "8ccd444d-a2bb-4f9c-bc25-c7b2c01a4be0": {
+      "type": "value",
+      "id": "8ccd444d-a2bb-4f9c-bc25-c7b2c01a4be0",
+      "value": "POI 34",
+      "children": [
+        "e08d00b0-d973-4cb7-a775-41e1af91b89e",
+        "deebada1-d689-4fe6-be07-694a219b4260"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "e08d00b0-d973-4cb7-a775-41e1af91b89e": {
+      "type": "value",
+      "id": "e08d00b0-d973-4cb7-a775-41e1af91b89e",
+      "value": "A huge salty flat thing in the Sahara that's also right next door to the Star Wars village. This pole in the centre is where we feel most inconvenience might be found..",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "deebada1-d689-4fe6-be07-694a219b4260": {
+      "type": "value",
+      "id": "deebada1-d689-4fe6-be07-694a219b4260",
+      "value": "position: 33.7285641, 8.3519996",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "587452fb-ee23-41b1-addc-ada53c644dcb": {
+      "type": "value",
+      "id": "587452fb-ee23-41b1-addc-ada53c644dcb",
+      "value": "POI 46",
+      "children": [
+        "ca6ce8ed-0a6a-4cc2-ab6d-d43a68fcec46",
+        "f831b8fd-94a0-4f0d-baaf-9f146f1ae733"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ca6ce8ed-0a6a-4cc2-ab6d-d43a68fcec46": {
+      "type": "value",
+      "id": "ca6ce8ed-0a6a-4cc2-ab6d-d43a68fcec46",
+      "value": "This won't be the toughest POI to hit, but if you want to snag one that includes a phone box that was once owned by Queen Elizabeth II, then this is probably your best bet.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "f831b8fd-94a0-4f0d-baaf-9f146f1ae733": {
+      "type": "value",
+      "id": "f831b8fd-94a0-4f0d-baaf-9f146f1ae733",
+      "value": "position: 48.255453, 11.651865",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "f37c208a-2919-41f6-80b2-06d30547591e": {
+      "type": "value",
+      "id": "f37c208a-2919-41f6-80b2-06d30547591e",
+      "value": "POI 47",
+      "children": [
+        "f883f0cc-293f-49d6-a206-0d843e9c1b00",
+        "39fb3ded-ce05-45a7-affe-22e348ac3f50"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "f883f0cc-293f-49d6-a206-0d843e9c1b00": {
+      "type": "value",
+      "id": "f883f0cc-293f-49d6-a206-0d843e9c1b00",
+      "value": "Ever wanted to drive right through a pylon? Of course you have. Well, now thanks to us, you can. You lucky buggers.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "39fb3ded-ce05-45a7-affe-22e348ac3f50": {
+      "type": "value",
+      "id": "39fb3ded-ce05-45a7-affe-22e348ac3f50",
+      "value": "position: 49.631, 9.8076",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "59f4ccca-9df8-4db1-b599-877abae633a8": {
+      "type": "value",
+      "id": "59f4ccca-9df8-4db1-b599-877abae633a8",
+      "value": "POI 51",
+      "children": [
+        "13ee11bd-4563-4dc5-afd3-a00ed80d4978",
+        "0c034cd9-428a-400b-aa58-38a99f6a254f"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "13ee11bd-4563-4dc5-afd3-a00ed80d4978": {
+      "type": "value",
+      "id": "13ee11bd-4563-4dc5-afd3-a00ed80d4978",
+      "value": "Once the highest suspension bridge on the planet, this cheeky little lofty pole is a nice, easy introduction to Algeria. We spoil you sometimes.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "0c034cd9-428a-400b-aa58-38a99f6a254f": {
+      "type": "value",
+      "id": "0c034cd9-428a-400b-aa58-38a99f6a254f",
+      "value": "position: 36.372599, 6.614564",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "b8e5bc12-ebba-4211-85d9-d73a1dc27541": {
+      "type": "value",
+      "id": "b8e5bc12-ebba-4211-85d9-d73a1dc27541",
+      "value": "POI 52",
+      "children": [
+        "cd424bfb-0474-4a7e-b5e2-80bf46b79103",
+        "522143ca-792c-4205-84d8-8bf49e278bcb"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "cd424bfb-0474-4a7e-b5e2-80bf46b79103": {
+      "type": "value",
+      "id": "cd424bfb-0474-4a7e-b5e2-80bf46b79103",
+      "value": "Seeing as we love monkey bikes, we thought this would be right up your alley. If you're doing the POI on a monkey bike then you should absolutely do everything in your power to make it here.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "522143ca-792c-4205-84d8-8bf49e278bcb": {
+      "type": "value",
+      "id": "522143ca-792c-4205-84d8-8bf49e278bcb",
+      "value": "position: 36.7693420367111, 5.09615206634622",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "4d529fbe-e49c-499b-a8d3-791379b1d5b5": {
+      "type": "value",
+      "id": "4d529fbe-e49c-499b-a8d3-791379b1d5b5",
+      "value": "POI 53",
+      "children": [
+        "712310ed-9f1d-4f04-a799-d3f0f0b77a4a",
+        "6d45e64f-7e6c-4db7-98ee-72d180a6542a"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "712310ed-9f1d-4f04-a799-d3f0f0b77a4a": {
+      "type": "value",
+      "id": "712310ed-9f1d-4f04-a799-d3f0f0b77a4a",
+      "value": "We must be going soft as this POI is located in the middle of a swimming pool. Well sort of, it's a kind of pond. But seeing as you would have driven to the middle of the world's largest sandbox for it, it's probably going to feel pretty bloody good snagging this one.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "6d45e64f-7e6c-4db7-98ee-72d180a6542a": {
+      "type": "value",
+      "id": "6d45e64f-7e6c-4db7-98ee-72d180a6542a",
+      "value": "position: 27.201024, 2.435113",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "cd9fc467-7bc1-41c3-92d1-c3d41a49af6b": {
+      "type": "value",
+      "id": "cd9fc467-7bc1-41c3-92d1-c3d41a49af6b",
+      "value": "POI 54",
+      "children": [
+        "0d1afdde-fd91-4119-b945-d956af133689",
+        "b9550c49-3192-4f7e-9ece-d88a8825c3fb"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "0d1afdde-fd91-4119-b945-d956af133689": {
+      "type": "value",
+      "id": "0d1afdde-fd91-4119-b945-d956af133689",
+      "value": "This spot looks like a great place to whip out the stove and make a nice cup of tea. Apparently, the road up to it is \"is in dreadful condition and requires strong nerves to negotiate it.\"<br><br>Sounds like you'll need that cuppa.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "b9550c49-3192-4f7e-9ece-d88a8825c3fb": {
+      "type": "value",
+      "id": "b9550c49-3192-4f7e-9ece-d88a8825c3fb",
+      "value": "position: 36.4892831439243, 4.38903712402358",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "b5150bdd-b043-4114-89c5-e225388e3e7d": {
+      "type": "value",
+      "id": "b5150bdd-b043-4114-89c5-e225388e3e7d",
+      "value": "POI 55",
+      "children": [
+        "b529d805-4581-48c6-af8e-de1e4f99abe7",
+        "18538bf1-970c-44dd-a6de-ba3078550d88"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "b529d805-4581-48c6-af8e-de1e4f99abe7": {
+      "type": "value",
+      "id": "b529d805-4581-48c6-af8e-de1e4f99abe7",
+      "value": "We've never pretended to be sophisticated, and we're not going to start now. This pole is where it is for one, simple, immature reason. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "18538bf1-970c-44dd-a6de-ba3078550d88": {
+      "type": "value",
+      "id": "18538bf1-970c-44dd-a6de-ba3078550d88",
+      "value": "position: 42.86501, 12.567452",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "bc44b0f6-c211-40ca-9c05-37d8b5c8ca10": {
+      "type": "value",
+      "id": "bc44b0f6-c211-40ca-9c05-37d8b5c8ca10",
+      "value": "POI 56",
+      "children": [
+        "95cb3267-5c10-4f24-87fd-e339d8583d20",
+        "e152369a-46d8-43d9-a575-3ffa6990b5a3"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "95cb3267-5c10-4f24-87fd-e339d8583d20": {
+      "type": "value",
+      "id": "95cb3267-5c10-4f24-87fd-e339d8583d20",
+      "value": "Apparently, the gravel track to get up here is brutal, narrow and steep. It sounds lovely to us.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "e152369a-46d8-43d9-a575-3ffa6990b5a3": {
+      "type": "value",
+      "id": "e152369a-46d8-43d9-a575-3ffa6990b5a3",
+      "value": "position: 38.1150821689496, 13.2651047748538",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "7431d4a0-d99e-4d19-b23c-d0aa6e1546a4": {
+      "type": "value",
+      "id": "7431d4a0-d99e-4d19-b23c-d0aa6e1546a4",
+      "value": "POI 57",
+      "children": [
+        "ee1d8d29-d68e-4261-8252-5b8b4aed2e8d",
+        "a3706042-43d2-41f2-89ce-68f0e82e496e"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ee1d8d29-d68e-4261-8252-5b8b4aed2e8d": {
+      "type": "value",
+      "id": "ee1d8d29-d68e-4261-8252-5b8b4aed2e8d",
+      "value": "By all accounts, this is the steepest road in all of Italy, with some bits of it reaching a rather engine-warming 30% gradient. Splendid. No prizes for going down it, you have to go up.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "a3706042-43d2-41f2-89ce-68f0e82e496e": {
+      "type": "value",
+      "id": "a3706042-43d2-41f2-89ce-68f0e82e496e",
+      "value": "position: 42.189562128289, 14.225827351129",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "7eac5269-e61d-47ba-bf4e-50a4e1827a57": {
+      "type": "value",
+      "id": "7eac5269-e61d-47ba-bf4e-50a4e1827a57",
+      "value": "POI 58",
+      "children": [
+        "63ad7fab-dca3-4b4c-8583-cbff1b21c23f",
+        "934c79eb-d0bd-4efa-857e-ff80e8bbb993"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "63ad7fab-dca3-4b4c-8583-cbff1b21c23f": {
+      "type": "value",
+      "id": "63ad7fab-dca3-4b4c-8583-cbff1b21c23f",
+      "value": "Sadly, the road here is all tarmac but, thankfully, a mere 48 hairpin bends lay between you and this pole. Bring your sick bag.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "934c79eb-d0bd-4efa-857e-ff80e8bbb993": {
+      "type": "value",
+      "id": "934c79eb-d0bd-4efa-857e-ff80e8bbb993",
+      "value": "position: 46.531818059007, 10.4565562254117",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "e4371b38-3720-48e8-b691-f495c3140b7e": {
+      "type": "value",
+      "id": "e4371b38-3720-48e8-b691-f495c3140b7e",
+      "value": "POI 59",
+      "children": [
+        "5b384b11-f8f2-47dc-8d5d-6e3c94258c78",
+        "ce1f4afe-9654-4b77-8eee-677093152684"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "5b384b11-f8f2-47dc-8d5d-6e3c94258c78": {
+      "type": "value",
+      "id": "5b384b11-f8f2-47dc-8d5d-6e3c94258c78",
+      "value": "The narrowest street on the planet. Now that's a tad inconvenient.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ce1f4afe-9654-4b77-8eee-677093152684": {
+      "type": "value",
+      "id": "ce1f4afe-9654-4b77-8eee-677093152684",
+      "value": "position: 48.4907251, 9.2157316",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "03ef244a-70af-4d99-8402-f08b7ccbae3b": {
+      "type": "value",
+      "id": "03ef244a-70af-4d99-8402-f08b7ccbae3b",
+      "value": "POI 64",
+      "children": [
+        "48eb0365-b3cc-4542-916d-6ed91e3e823a",
+        "fbfbea1f-8e41-4266-8dd5-6c2d27c7403e"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "48eb0365-b3cc-4542-916d-6ed91e3e823a": {
+      "type": "value",
+      "id": "48eb0365-b3cc-4542-916d-6ed91e3e823a",
+      "value": "The highest motorable road in Europe. Needless to say, it's a bit high, and a bit wiggly. Like Mr Tickle after a heavy dose of amphetamines. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "fbfbea1f-8e41-4266-8dd5-6c2d27c7403e": {
+      "type": "value",
+      "id": "fbfbea1f-8e41-4266-8dd5-6c2d27c7403e",
+      "value": "position: 44.3215687791048, 6.80687816673239",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "9e6dd427-e185-4355-a9b1-4b40310c7c22": {
+      "type": "value",
+      "id": "9e6dd427-e185-4355-a9b1-4b40310c7c22",
+      "value": "Northern Cluster",
+      "children": [
+        "7f0f8d1c-d9a4-4b78-bd3d-84e455df1fe8",
+        "51350eea-0304-4c2b-b2d1-e99afc142d14",
+        "08fac930-9241-4def-bda3-fd863a4f824e",
+        "ac0a0447-dac7-4f1e-b6a5-5187760cf4f7",
+        "383e629b-9aa1-4473-8973-f1f99882f68a",
+        "60c4bf5a-bbe8-40af-bb7b-8ac415cee9af",
+        "6fa09124-e24e-446a-b128-09f91a362286",
+        "6961a26a-9c84-4393-a75f-1dcb67e9725d",
+        "74883f00-87a2-4061-bf7f-c715078f3331",
+        "7d2ed376-bf74-4fdf-9fdf-3e1aaae9aa58",
+        "6c9ad4b6-6e0f-4d7d-9c61-21f792d97c32",
+        "3b20a5cd-a12d-4dc2-98b8-2f7ea12ca0df",
+        "7f4dd81d-a1aa-4730-b39a-389986e91d22",
+        "0b53e7e9-229f-493f-8e5c-b1df561aef75",
+        "f3beaef7-9fb6-43b0-ae5a-168bf99ab372",
+        "4a439129-a755-4aff-a8ae-1778943b5b45"
+      ],
+      "computedProps": {},
+      "isCollapsed": true,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "7f0f8d1c-d9a4-4b78-bd3d-84e455df1fe8": {
+      "type": "value",
+      "id": "7f0f8d1c-d9a4-4b78-bd3d-84e455df1fe8",
+      "value": "POI 35",
+      "children": [
+        "f1990600-e3bc-4af5-932c-2c177f072d01",
+        "a200cb3b-e6ae-4464-b380-a1381b2f3529"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "f1990600-e3bc-4af5-932c-2c177f072d01": {
+      "type": "value",
+      "id": "f1990600-e3bc-4af5-932c-2c177f072d01",
+      "value": "A mile out to sea, you'll have to park and walk here to nab this one. There's even an actual, rusty metal pole waiting for you. You lucky things.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "a200cb3b-e6ae-4464-b380-a1381b2f3529": {
+      "type": "value",
+      "id": "a200cb3b-e6ae-4464-b380-a1381b2f3529",
+      "value": "position: 56.5537519, 20.9712468",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "51350eea-0304-4c2b-b2d1-e99afc142d14": {
+      "type": "value",
+      "id": "51350eea-0304-4c2b-b2d1-e99afc142d14",
+      "value": "POI 36",
+      "children": [
+        "359cb9e1-e8e4-4980-b957-8a02d98ae461",
+        "dfb6c223-ffdf-466e-9cf2-eebe1b6dd0f4"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "359cb9e1-e8e4-4980-b957-8a02d98ae461": {
+      "type": "value",
+      "id": "359cb9e1-e8e4-4980-b957-8a02d98ae461",
+      "value": "The highest point in Latvia at a dizzying...um 312m above sea level. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "dfb6c223-ffdf-466e-9cf2-eebe1b6dd0f4": {
+      "type": "value",
+      "id": "dfb6c223-ffdf-466e-9cf2-eebe1b6dd0f4",
+      "value": "position: 56.8701949, 25.9593867",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "08fac930-9241-4def-bda3-fd863a4f824e": {
+      "type": "value",
+      "id": "08fac930-9241-4def-bda3-fd863a4f824e",
+      "value": "POI 37",
+      "children": [
+        "849341e8-e37c-48a0-ac25-93dde70b4081",
+        "fc76f70f-a8f8-479e-a4d1-dc9af949d456"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "849341e8-e37c-48a0-ac25-93dde70b4081": {
+      "type": "value",
+      "id": "849341e8-e37c-48a0-ac25-93dde70b4081",
+      "value": "Nothing here. Just a road. Miles away from anywhere.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "fc76f70f-a8f8-479e-a4d1-dc9af949d456": {
+      "type": "value",
+      "id": "fc76f70f-a8f8-479e-a4d1-dc9af949d456",
+      "value": "position: 63.127253, 29.655807",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "ac0a0447-dac7-4f1e-b6a5-5187760cf4f7": {
+      "type": "value",
+      "id": "ac0a0447-dac7-4f1e-b6a5-5187760cf4f7",
+      "value": "POI 38",
+      "children": [
+        "5f7e370d-a9ae-43ae-886b-df696cb4934a",
+        "86158c39-db87-4f59-84a3-1310934282e9"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "5f7e370d-a9ae-43ae-886b-df696cb4934a": {
+      "type": "value",
+      "id": "5f7e370d-a9ae-43ae-886b-df696cb4934a",
+      "value": "Bugger all here. Really, bugger all.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "86158c39-db87-4f59-84a3-1310934282e9": {
+      "type": "value",
+      "id": "86158c39-db87-4f59-84a3-1310934282e9",
+      "value": "position: 67.9821445912114, 25.6514131301359",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "383e629b-9aa1-4473-8973-f1f99882f68a": {
+      "type": "value",
+      "id": "383e629b-9aa1-4473-8973-f1f99882f68a",
+      "value": "POI 39",
+      "children": [
+        "2081a0f5-da5d-4d1b-9a0c-fda3fc4211fb",
+        "bc81f0eb-2fbf-4e03-8de3-80e3d52b3a79"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "2081a0f5-da5d-4d1b-9a0c-fda3fc4211fb": {
+      "type": "value",
+      "id": "2081a0f5-da5d-4d1b-9a0c-fda3fc4211fb",
+      "value": "As far as you can possibly go in the wrong direction in Europe. And a rather splendid place to find yourself. Unless the weather is terrible. Which it will be.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "bc81f0eb-2fbf-4e03-8de3-80e3d52b3a79": {
+      "type": "value",
+      "id": "bc81f0eb-2fbf-4e03-8de3-80e3d52b3a79",
+      "value": "position: 69.790497, 30.793613",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "60c4bf5a-bbe8-40af-bb7b-8ac415cee9af": {
+      "type": "value",
+      "id": "60c4bf5a-bbe8-40af-bb7b-8ac415cee9af",
+      "value": "POI 40",
+      "children": [
+        "27fc8762-7c8e-4ac3-afcf-ad397282db7d",
+        "dddb26d9-2701-4e5d-8a76-7df60d6b6861"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "27fc8762-7c8e-4ac3-afcf-ad397282db7d": {
+      "type": "value",
+      "id": "27fc8762-7c8e-4ac3-afcf-ad397282db7d",
+      "value": "Europe's most northernly point. Make it here, and you're already 5 degrees into the Arctic Circle. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "dddb26d9-2701-4e5d-8a76-7df60d6b6861": {
+      "type": "value",
+      "id": "dddb26d9-2701-4e5d-8a76-7df60d6b6861",
+      "value": "position: 71.169493, 25.783164",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "6fa09124-e24e-446a-b128-09f91a362286": {
+      "type": "value",
+      "id": "6fa09124-e24e-446a-b128-09f91a362286",
+      "value": "POI 41",
+      "children": [
+        "c85b3edb-7d52-4890-8d54-3fddda377025",
+        "78d561c6-bf4f-45c1-965d-9943a17865b2"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "c85b3edb-7d52-4890-8d54-3fddda377025": {
+      "type": "value",
+      "id": "c85b3edb-7d52-4890-8d54-3fddda377025",
+      "value": "What better place to visit than one that has been abandoned by all humanity for decades. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "78d561c6-bf4f-45c1-965d-9943a17865b2": {
+      "type": "value",
+      "id": "78d561c6-bf4f-45c1-965d-9943a17865b2",
+      "value": "position: 65.7744, 20.2384",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "6961a26a-9c84-4393-a75f-1dcb67e9725d": {
+      "type": "value",
+      "id": "6961a26a-9c84-4393-a75f-1dcb67e9725d",
+      "value": "POI 42",
+      "children": [
+        "3c1dcfa7-d3fb-49dd-9d7f-f87fc8d04287",
+        "1dac343c-14a3-40e4-923a-9c9a4c62b463"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "3c1dcfa7-d3fb-49dd-9d7f-f87fc8d04287": {
+      "type": "value",
+      "id": "3c1dcfa7-d3fb-49dd-9d7f-f87fc8d04287",
+      "value": "This village is called 'A' and here's a sign to prove it. The road is annoyingly flat, but it's quite the trek to get here.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "1dac343c-14a3-40e4-923a-9c9a4c62b463": {
+      "type": "value",
+      "id": "1dac343c-14a3-40e4-923a-9c9a4c62b463",
+      "value": "position: 67.8841687, 12.9865057",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "74883f00-87a2-4061-bf7f-c715078f3331": {
+      "type": "value",
+      "id": "74883f00-87a2-4061-bf7f-c715078f3331",
+      "value": "POI 43",
+      "children": [
+        "ae05a0eb-8895-4815-bd25-e9c169c918ab",
+        "7a811989-caf7-42ff-bf9e-6441a6d12208"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ae05a0eb-8895-4815-bd25-e9c169c918ab": {
+      "type": "value",
+      "id": "ae05a0eb-8895-4815-bd25-e9c169c918ab",
+      "value": "This is the highest public motorable road in all of Sweden. It's also miles from anywhere. ",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "7a811989-caf7-42ff-bf9e-6441a6d12208": {
+      "type": "value",
+      "id": "7a811989-caf7-42ff-bf9e-6441a6d12208",
+      "value": "position: 62.7182731483052, 12.7137615677013",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "7d2ed376-bf74-4fdf-9fdf-3e1aaae9aa58": {
+      "type": "value",
+      "id": "7d2ed376-bf74-4fdf-9fdf-3e1aaae9aa58",
+      "value": "POI 44",
+      "children": [
+        "e423b8e1-d243-458c-b3db-b6d13d2a653f",
+        "0d3ad878-0f2c-4376-95c9-7df536f1d45d"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "e423b8e1-d243-458c-b3db-b6d13d2a653f": {
+      "type": "value",
+      "id": "e423b8e1-d243-458c-b3db-b6d13d2a653f",
+      "value": "Team Lightning YakQueen reports: \"Nice spot. But the what3words square is a little bit off the track. I’m not against danger but the 3x3 square is off the side of a road down a large cliff thing. The road is the goodun tho.\"<br><br>We've shifted the POI so it no longer requires abseiling gear.<br><br>This one is courtesy of Kit Monsen a Mongol Rally veteran and bone-fide Norwegian. \"Think Cabin in the Woods meets Norwegian Fjord.\" he said. Ok we said. We're coming.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "0d3ad878-0f2c-4376-95c9-7df536f1d45d": {
+      "type": "value",
+      "id": "0d3ad878-0f2c-4376-95c9-7df536f1d45d",
+      "value": "position: 62.540327, 7.590142",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "6c9ad4b6-6e0f-4d7d-9c61-21f792d97c32": {
+      "type": "value",
+      "id": "6c9ad4b6-6e0f-4d7d-9c61-21f792d97c32",
+      "value": "POI 45",
+      "children": [
+        "939ba82e-723a-49d4-b512-29e36dec7a59",
+        "14daad51-8217-4e9c-b165-2d5fbf6af981"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "939ba82e-723a-49d4-b512-29e36dec7a59": {
+      "type": "value",
+      "id": "939ba82e-723a-49d4-b512-29e36dec7a59",
+      "value": "Discovered in the first Poles of Inconvenience and found to be most excellent.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "14daad51-8217-4e9c-b165-2d5fbf6af981": {
+      "type": "value",
+      "id": "14daad51-8217-4e9c-b165-2d5fbf6af981",
+      "value": "position: 61.3850735, 9.1505029",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "3b20a5cd-a12d-4dc2-98b8-2f7ea12ca0df": {
+      "type": "value",
+      "id": "3b20a5cd-a12d-4dc2-98b8-2f7ea12ca0df",
+      "value": "POI 48",
+      "children": [
+        "ceb1cf8d-d360-4ded-ac3e-fac679b41610",
+        "a87e279f-284e-4f0b-81ef-24cdd351ab4c"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ceb1cf8d-d360-4ded-ac3e-fac679b41610": {
+      "type": "value",
+      "id": "ceb1cf8d-d360-4ded-ac3e-fac679b41610",
+      "value": "Here you'll find the geographical centre of Europe - verified by some clever French chaps back in 1989.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "a87e279f-284e-4f0b-81ef-24cdd351ab4c": {
+      "type": "value",
+      "id": "a87e279f-284e-4f0b-81ef-24cdd351ab4c",
+      "value": "position: 54.9066098022468, 25.3190608706811",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "7f4dd81d-a1aa-4730-b39a-389986e91d22": {
+      "type": "value",
+      "id": "7f4dd81d-a1aa-4730-b39a-389986e91d22",
+      "value": "POI 49",
+      "children": [
+        "7f0aa1e9-5d83-4636-a1b0-b5a2e45f5c8b",
+        "5b9df45e-b77d-4415-a7d0-05d9801dce15"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "7f0aa1e9-5d83-4636-a1b0-b5a2e45f5c8b": {
+      "type": "value",
+      "id": "7f0aa1e9-5d83-4636-a1b0-b5a2e45f5c8b",
+      "value": "The most Northernly point of Denmark. No reason whatsoever to go there, so go there you should.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "5b9df45e-b77d-4415-a7d0-05d9801dce15": {
+      "type": "value",
+      "id": "5b9df45e-b77d-4415-a7d0-05d9801dce15",
+      "value": "position: 57.7518560431029, 10.6046862944437",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "0b53e7e9-229f-493f-8e5c-b1df561aef75": {
+      "type": "value",
+      "id": "0b53e7e9-229f-493f-8e5c-b1df561aef75",
+      "value": "POI 50",
+      "children": [
+        "748170f2-c7da-481e-b63b-25df08706e8b",
+        "0b5cf3d8-eaea-4569-b105-cc2ba4669800"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "748170f2-c7da-481e-b63b-25df08706e8b": {
+      "type": "value",
+      "id": "748170f2-c7da-481e-b63b-25df08706e8b",
+      "value": "Conveniently, or not, to get to this one you have to drive across a tidal road that isn't there half the time. Super.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "0b5cf3d8-eaea-4569-b105-cc2ba4669800": {
+      "type": "value",
+      "id": "0b5cf3d8-eaea-4569-b105-cc2ba4669800",
+      "value": "position: 55.2677564311118, 8.5412212693724",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "f3beaef7-9fb6-43b0-ae5a-168bf99ab372": {
+      "type": "value",
+      "id": "f3beaef7-9fb6-43b0-ae5a-168bf99ab372",
+      "value": "POI 60",
+      "children": [
+        "79320663-3e2d-4d2f-bc57-9baf35bc8b87",
+        "ac554e5f-7b0d-4cd7-8b10-de44de24fc07"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "79320663-3e2d-4d2f-bc57-9baf35bc8b87": {
+      "type": "value",
+      "id": "79320663-3e2d-4d2f-bc57-9baf35bc8b87",
+      "value": "Behold. The world's largest cheese slicers. Bag this and your life shall be complete.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ac554e5f-7b0d-4cd7-8b10-de44de24fc07": {
+      "type": "value",
+      "id": "ac554e5f-7b0d-4cd7-8b10-de44de24fc07",
+      "value": "position: 64.2729163192259, 21.0480668753144",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "4a439129-a755-4aff-a8ae-1778943b5b45": {
+      "type": "value",
+      "id": "4a439129-a755-4aff-a8ae-1778943b5b45",
+      "value": "POI 61",
+      "children": [
+        "35403372-8d4b-4146-b921-b0aa62a76893",
+        "7cfc15e4-d3c5-466a-835c-f4ea938250d8"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "35403372-8d4b-4146-b921-b0aa62a76893": {
+      "type": "value",
+      "id": "35403372-8d4b-4146-b921-b0aa62a76893",
+      "value": "From our highly advanced satellite system (well, zooming in a bit on google maps), it looks like you might be able to get your vehicle here. Maybe.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "7cfc15e4-d3c5-466a-835c-f4ea938250d8": {
+      "type": "value",
+      "id": "7cfc15e4-d3c5-466a-835c-f4ea938250d8",
+      "value": "position: 58.8875381124944, 13.2162582048378",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "b7c236f6-b44d-4b93-9953-ae7de02708a1": {
+      "type": "value",
+      "id": "b7c236f6-b44d-4b93-9953-ae7de02708a1",
+      "value": "British Cluster",
+      "children": [
+        "90b1146e-d2e8-4c65-9ded-416058239825",
+        "16788f84-a125-4c4d-b09b-72f08be3b2a3",
+        "d205353f-2a75-45c2-83de-130a3820e04f",
+        "fa1c101e-0e68-4303-8247-1c77d99aa49b",
+        "e3c70ca7-cc69-45a0-9387-07595b877540",
+        "b984c024-e253-4c19-9463-4ce38cf904c4",
+        "1b450dee-4e3b-4d89-bfa1-37a6f87c7df4",
+        "911c84b6-bb0b-4c77-a1b1-6836e13f0555"
+      ],
+      "computedProps": {},
+      "isCollapsed": true,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "90b1146e-d2e8-4c65-9ded-416058239825": {
+      "type": "value",
+      "id": "90b1146e-d2e8-4c65-9ded-416058239825",
+      "value": "POI 1",
+      "children": [
+        "f883fe68-65c9-40bb-bb18-9ebad44ef752",
+        "09b7163b-c67b-452c-9327-b12bf57d47b8"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "f883fe68-65c9-40bb-bb18-9ebad44ef752": {
+      "type": "value",
+      "id": "f883fe68-65c9-40bb-bb18-9ebad44ef752",
+      "value": "About as far away from anywhere useful as you could possibly want to be.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "09b7163b-c67b-452c-9327-b12bf57d47b8": {
+      "type": "value",
+      "id": "09b7163b-c67b-452c-9327-b12bf57d47b8",
+      "value": "position: 58.6438525983932, -3.02614532088822",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "16788f84-a125-4c4d-b09b-72f08be3b2a3": {
+      "type": "value",
+      "id": "16788f84-a125-4c4d-b09b-72f08be3b2a3",
+      "value": "POI 2",
+      "children": [
+        "8c75a9b6-d71a-417c-94a1-c85f4b146690",
+        "5ecbe110-7542-47a2-84a8-063a013977a6"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "8c75a9b6-d71a-417c-94a1-c85f4b146690": {
+      "type": "value",
+      "id": "8c75a9b6-d71a-417c-94a1-c85f4b146690",
+      "value": "A high and winding mountain pass through the Scottish highland. Perfect for making yourself lost and, likely, wet.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "5ecbe110-7542-47a2-84a8-063a013977a6": {
+      "type": "value",
+      "id": "5ecbe110-7542-47a2-84a8-063a013977a6",
+      "value": "position: 57.419312, -5.708686",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "d205353f-2a75-45c2-83de-130a3820e04f": {
+      "type": "value",
+      "id": "d205353f-2a75-45c2-83de-130a3820e04f",
+      "value": "POI 3",
+      "children": [
+        "d11b2d26-a6bc-4cc1-ba03-4875e04557d2",
+        "ce7032e4-2a97-4647-8f5e-c89da3c94356"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "d11b2d26-a6bc-4cc1-ba03-4875e04557d2": {
+      "type": "value",
+      "id": "d11b2d26-a6bc-4cc1-ba03-4875e04557d2",
+      "value": "A handy slab of dirt track on the edge of the lake district.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "ce7032e4-2a97-4647-8f5e-c89da3c94356": {
+      "type": "value",
+      "id": "ce7032e4-2a97-4647-8f5e-c89da3c94356",
+      "value": "position: 54.433361, -2.670139",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "fa1c101e-0e68-4303-8247-1c77d99aa49b": {
+      "type": "value",
+      "id": "fa1c101e-0e68-4303-8247-1c77d99aa49b",
+      "value": "POI 4",
+      "children": [
+        "68d0b45b-92e7-4eae-a4f7-96bdba733f84",
+        "88663369-05f2-42f1-a469-5d21c2622fc4"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "68d0b45b-92e7-4eae-a4f7-96bdba733f84": {
+      "type": "value",
+      "id": "68d0b45b-92e7-4eae-a4f7-96bdba733f84",
+      "value": "Because you're probably heading north to south here's a handy pair of poles that will force you to travel East to West. High in the Yorkshire Dales. Hopefully it's raining and muddy as shit for you.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "88663369-05f2-42f1-a469-5d21c2622fc4": {
+      "type": "value",
+      "id": "88663369-05f2-42f1-a469-5d21c2622fc4",
+      "value": "position: 54.379056, -1.024417",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "e3c70ca7-cc69-45a0-9387-07595b877540": {
+      "type": "value",
+      "id": "e3c70ca7-cc69-45a0-9387-07595b877540",
+      "value": "POI 5",
+      "children": [
+        "8c1ad995-3fd4-4605-92cb-c1e627e4fbbf",
+        "6baaf69f-833d-40af-a594-02b94847fa01"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "8c1ad995-3fd4-4605-92cb-c1e627e4fbbf": {
+      "type": "value",
+      "id": "8c1ad995-3fd4-4605-92cb-c1e627e4fbbf",
+      "value": "One of the most daft tracks in the UK. Totally unsuitable for a small vehicle.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "6baaf69f-833d-40af-a594-02b94847fa01": {
+      "type": "value",
+      "id": "6baaf69f-833d-40af-a594-02b94847fa01",
+      "value": "position: 52.245972, -3.778",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "b984c024-e253-4c19-9463-4ce38cf904c4": {
+      "type": "value",
+      "id": "b984c024-e253-4c19-9463-4ce38cf904c4",
+      "value": "POI 6",
+      "children": [
+        "06cd1c78-b0f1-4dca-ba77-a739ab24a83a",
+        "af5d443e-334d-4c72-8919-3d2c3e78fcf0"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "06cd1c78-b0f1-4dca-ba77-a739ab24a83a": {
+      "type": "value",
+      "id": "06cd1c78-b0f1-4dca-ba77-a739ab24a83a",
+      "value": "This being a training ground for the UK military means that sometimes it's closed and being blown up. Try not to get shot by avoiding the red flags. Fun bit of off road though.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "af5d443e-334d-4c72-8919-3d2c3e78fcf0": {
+      "type": "value",
+      "id": "af5d443e-334d-4c72-8919-3d2c3e78fcf0",
+      "value": "position: 51.227194, -1.716194",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "1b450dee-4e3b-4d89-bfa1-37a6f87c7df4": {
+      "type": "value",
+      "id": "1b450dee-4e3b-4d89-bfa1-37a6f87c7df4",
+      "value": "POI 7",
+      "children": [
+        "1b1d6a4e-ca79-4c29-81cd-d9e5ed8ac397",
+        "0cb9003c-e853-463f-8707-07280578120f"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "1b1d6a4e-ca79-4c29-81cd-d9e5ed8ac397": {
+      "type": "value",
+      "id": "1b1d6a4e-ca79-4c29-81cd-d9e5ed8ac397",
+      "value": "A green lane of some magnificence that also has the advantage of being in Devon which is a stupid place to go to. Unless you live in Devon. In which case this one is far too sensible to count.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "0cb9003c-e853-463f-8707-07280578120f": {
+      "type": "value",
+      "id": "0cb9003c-e853-463f-8707-07280578120f",
+      "value": "position: 50.498444, -3.731806",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "911c84b6-bb0b-4c77-a1b1-6836e13f0555": {
+      "type": "value",
+      "id": "911c84b6-bb0b-4c77-a1b1-6836e13f0555",
+      "value": "POI 65",
+      "children": [
+        "1a686756-073f-4d78-b0d3-9a565acf7079",
+        "1c0c8156-750a-4bf4-8d03-1aa3b615ab07"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "1a686756-073f-4d78-b0d3-9a565acf7079": {
+      "type": "value",
+      "id": "1a686756-073f-4d78-b0d3-9a565acf7079",
+      "value": "We've said it before, and we'll say it again. We never pretended to be mature.",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "1c0c8156-750a-4bf4-8d03-1aa3b615ab07": {
+      "type": "value",
+      "id": "1c0c8156-750a-4bf4-8d03-1aa3b615ab07",
+      "value": "position: 53.383332, -0.204795",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false,
+      "key": "position"
+    },
+    "c31fe854-72d9-497c-ab8b-5003302a1cf8": {
+      "type": "ref",
+      "id": "c31fe854-72d9-497c-ab8b-5003302a1cf8",
+      "refId": "79a13361-0940-4d5c-84eb-353b077a8086",
+      "isCollapsed": false,
+      "view": "map",
+      "paneWidth": 928
+    }
+  },
+  "rootNodeIds": [
+    "79a13361-0940-4d5c-84eb-353b077a8086",
+    "c31fe854-72d9-497c-ab8b-5003302a1cf8"
+  ]
+}

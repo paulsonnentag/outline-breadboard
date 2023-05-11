@@ -1,5 +1,6 @@
 import { DocHandle, DocumentId, Repo } from "automerge-repo"
 import { createGraphDoc, createRecordNode, GraphDoc } from "./graph"
+import { EXAMPLES } from "./examples"
 
 export interface ProfileDoc {
   graphIds: DocumentId[]
@@ -18,7 +19,6 @@ export function getProfileDoc(repo: Repo): DocHandle<ProfileDoc> {
 
   const handle = repo.create<ProfileDoc>()
   handle.change((doc) => {
-    const emptyGraphHandle = createGraphDoc(repo)
     const settingsGraphHandle = createGraphDoc(repo)
 
     settingsGraphHandle.change((settingsGraphDoc) => {
@@ -33,8 +33,12 @@ export function getProfileDoc(repo: Repo): DocHandle<ProfileDoc> {
       settingsGraphDoc.rootNodeIds = [settingsNode.id]
     })
 
-    doc.graphIds = [emptyGraphHandle.documentId]
+    doc.graphIds = []
     doc.settingsGraphId = settingsGraphHandle.documentId
+
+    EXAMPLES.forEach((example) => {
+      importGraph(repo, handle.documentId, example)
+    })
   })
 
   localStorage.setItem(PROFILE_ID, handle.documentId)

@@ -20,8 +20,8 @@ export interface NodeContextMenuProps {
   node: ValueNode
   scope: Scope
   isFocusedOnNode: boolean
-  isAnotherFocused: boolean
   isHoveredOnNode: boolean
+  isAnotherHovered: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
   onChangeIsComputationSuggestionHovered?: (hasSuggestion: boolean) => void
 }
@@ -30,8 +30,8 @@ export function NodeContextMenu({
   node,
   scope,
   isFocusedOnNode,
-  isAnotherFocused,
   isHoveredOnNode,
+  isAnotherHovered,
   onOpenNodeInNewPane,
   onChangeIsComputationSuggestionHovered,
 }: NodeContextMenuProps) {
@@ -156,11 +156,11 @@ export function NodeContextMenu({
     return null 
   }
   
-  if (!isFocusedOnNode && !isHovering && !isMap && !isTable && !isCalendar) {
+  if (!isFocusedOnNode && !isHovering && !isHoveredOnNode) {
     return null
   }
 
-  if (isAnotherFocused) {
+  if (isAnotherHovered) {
     return null
   }
 
@@ -214,7 +214,6 @@ export function NodeContextMenu({
         <button
           className={classNames(
             "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
-            {"opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering}
           )}
           onClick={onDelete}
         >
@@ -262,7 +261,7 @@ export function NodeContextMenu({
         </div>
       )}
 
-      {(isFocusedOnNode || isHovering) && suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
+      {suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
           return (
             <div key={name} className="relative">
               {isHovering && 
@@ -321,7 +320,7 @@ export function NodeContextMenu({
           )
         })}
 
-      {(isFocusedOnNode || isHovering) && pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
+      {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
         <button
           className={classNames(
             "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
@@ -337,7 +336,7 @@ export function NodeContextMenu({
         </button>
       )}
 
-      {(isFocusedOnNode || isHovering) && repeatButtonPosition &&
+      {repeatButtonPosition &&
         createPortal(
           <div
             style={{

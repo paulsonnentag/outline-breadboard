@@ -428,8 +428,8 @@ export function OutlineEditor({
             scope={scope}
             node={graph[nodeId] as ValueNode}
             isFocusedOnNode={true} // should this just be "showControls"?
-            isAnotherFocused={false}
             isHoveredOnNode={false}
+            isAnotherHovered={false}
             onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
           />
           <NodeView
@@ -557,8 +557,8 @@ export function OutlineEditor({
                 node={node}
                 scope={scope}
                 isFocusedOnNode={isFocused}
-                isAnotherFocused={selectedPath !== undefined && !isFocused}
-                isHoveredOnNode={isHovered}
+                isHoveredOnNode={isHoveringOverId === nodeId} // isHovered?
+                isAnotherHovered={isHoveringOverId !== undefined && isHoveringOverId !== nodeId}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
               />
             )}

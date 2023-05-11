@@ -4,9 +4,7 @@ import wasm from "vite-plugin-wasm"
 import topLevelAwait from "vite-plugin-top-level-await"
 
 export default defineConfig(({ command, mode }) => {
-  const env = process.env.VITE_VERCEL_ENV ?? loadEnv(mode, process.cwd(), "")
-
-  console.log("BUILD", process.env.VITE_VERCEL_ENV)
+  const env = process.env ?? loadEnv(mode, process.cwd(), "")
 
   return {
     base: "/",
@@ -35,7 +33,7 @@ export default defineConfig(({ command, mode }) => {
     },
 
     define: {
-      __APP_ENV__: { foo: "bar" },
+      __APP_ENV__: env,
     },
 
     server: {

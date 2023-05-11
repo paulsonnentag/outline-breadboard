@@ -37,12 +37,7 @@ export class Scope {
 
   private settingsScope: Scope | undefined
 
-  constructor(
-    graph: Graph,
-    id: string,
-    parentScope: Scope | undefined,
-    settingsScope: Scope | undefined
-  ) {
+  constructor(graph: Graph, id: string, parentScope: Scope | undefined, settingsScope?: Scope) {
     this.id = id
     this.parentScope = parentScope
     const node = getNode(graph, id)

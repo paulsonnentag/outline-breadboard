@@ -11,7 +11,7 @@ import {
 import classNames from "classnames"
 import { suggestionToExprSource } from "./TextInput"
 import { parseExpression } from "../language"
-import { FnNode, IdRefNode } from "../language/ast"
+import { FnNode, IdRefNode, InlineExprNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
@@ -49,6 +49,10 @@ export function NodeContextMenu({
     { x: number; y: number } | undefined
   >()
   const [pendingInsertions, setPendingInsertions] = useState<Insertion[]>([])
+
+  const doesBulletContainComputations = scope.bullet.value.some(
+    (part) => part instanceof InlineExprNode
+  )
 
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
@@ -192,58 +196,61 @@ export function NodeContextMenu({
   return (
     <div className="flex w-fit gap-1">
       <>
-        {suggestedFunctionButtons.map(({ name, suggestion, result }) => {
-          return (
-            <button
-              key={name}
-              className="rounded text-sm flex items-center justify-center hover:bg-gray-500 hover:text-white px-1"
-              onClick={() => {
-                if (!suggestion) {
-                  return
-                }
-                scope.insertChildNode(suggestion)
-              }}
-              onMouseEnter={() => {
-                // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                graph[suggestionNodeId] = {
-                  children: [],
-                  computedProps: {},
-                  expandedResultsByIndex: {},
-                  isSelected: false,
-                  key: "",
-                  paneWidth: 0,
-                  value: suggestion,
-                  view: "",
-                  computations: [],
-                  id: suggestionNodeId,
-                  isCollapsed: false,
-                  type: "value",
-                  isTemporary: true,
-                }
+        {!doesBulletContainComputations &&
+          suggestedFunctionButtons.map(({ name, suggestion, result }) => {
+            return (
+              <button
+                key={name}
+                className="rounded text-sm flex items-center justify-center hover:bg-gray-500 hover:text-white px-1"
+                onClick={() => {
+                  if (!suggestion) {
+                    return
+                  }
+                  scope.insertChildNode(suggestion)
+                }}
+                onMouseEnter={() => {
+                  // todo: awful hack, create temporary node in graph that's not persisted in automerge
+                  graph[suggestionNodeId] = {
+                    children: [],
+                    computedProps: {},
+                    expandedResultsByIndex: {},
+                    isSelected: false,
+                    key: "",
+                    paneWidth: 0,
+                    value: suggestion,
+                    view: "",
+                    computations: [],
+                    id: suggestionNodeId,
+                    isCollapsed: false,
+                    type: "value",
+                    isTemporary: true,
+                  }
 
-                if (onChangeIsComputationSuggestionHovered) {
-                  onChangeIsComputationSuggestionHovered(true)
-                }
+                  if (onChangeIsComputationSuggestionHovered) {
+                    onChangeIsComputationSuggestionHovered(true)
+                  }
 
-                const tempScope = new Scope(graph, suggestionNodeId, scope)
-                scope.childScopes.unshift(tempScope)
-                scope.eval()
-              }}
-              onMouseLeave={() => {
-                const index = scope.childScopes.findIndex((scope) => scope.id === suggestionNodeId)
-                if (index !== -1) {
-                  scope.childScopes.splice(index, 1)
-                }
+                  const tempScope = new Scope(graph, suggestionNodeId, scope)
+                  scope.childScopes.unshift(tempScope)
+                  scope.eval()
+                }}
+                onMouseLeave={() => {
+                  const index = scope.childScopes.findIndex(
+                    (scope) => scope.id === suggestionNodeId
+                  )
+                  if (index !== -1) {
+                    scope.childScopes.splice(index, 1)
+                  }
 
-                if (onChangeIsComputationSuggestionHovered) {
-                  onChangeIsComputationSuggestionHovered(false)
-                }
-              }}
-            >
-              {result}
-            </button>
-          )
-        })}
+                  if (onChangeIsComputationSuggestionHovered) {
+                    onChangeIsComputationSuggestionHovered(false)
+                  }
+                }}
+              >
+                {result}
+              </button>
+            )
+          })}
       </>
 
       {pendingInsertions?.length === 0 && (

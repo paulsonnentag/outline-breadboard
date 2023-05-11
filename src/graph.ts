@@ -14,8 +14,8 @@ let GRAPH_DOC: GraphDoc
 let GRAPH_DOC_HANDLE: DocHandle<GraphDoc>
 
 export async function registerGraphHandle(handle: DocHandle<GraphDoc>) {
-  if (GRAPH_DOC) {
-    throw new Error("graph handle has already been registered")
+  if (GRAPH_DOC_HANDLE) {
+    GRAPH_DOC_HANDLE.off("change")
   }
 
   handle.on("change", () => {
@@ -45,22 +45,11 @@ export function getGraphDocHandle() {
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
   handle.change((doc) => {
-    const rootNode: ValueNode = {
-      id: v4(),
-      type: "value",
-      value: "",
-      children: [],
-      computedProps: {},
-      isCollapsed: false,
-      isSelected: false,
-      expandedResultsByIndex: {},
-    }
-
     doc.cache = {}
+    doc.graph = {}
 
-    doc.graph = {
-      [rootNode.id]: rootNode,
-    }
+    const rootNode = createValueNode(doc.graph, { value: "" })
+
     doc.rootNodeIds = [rootNode.id]
   })
 
@@ -215,8 +204,9 @@ export function createNodeTree(graph: Graph, parentId: string, data: any): NodeD
 
 export interface GraphContextProps {
   graph: Graph
+  settingsNodeId: string
+  settingsGraph: Graph
   changeGraph: (fn: (graph: Graph) => void) => void
-  setIsDragging: (isDragging: boolean) => void
 }
 
 export const GraphContext = createContext<GraphContextProps | undefined>(undefined)
@@ -233,6 +223,10 @@ export function useGraph(): GraphContextProps {
 
 export function getNode(graph: Graph, nodeId: string): ValueNode {
   const node = graph[nodeId]
+  if (!node) {
+    debugger
+  }
+
   return node.type === "ref" ? getNode(graph, node.refId) : node
 }
 

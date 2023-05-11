@@ -2,7 +2,7 @@ import { DataWithProvenance, Scope } from "./scopes"
 import { FUNCTIONS } from "./functions"
 import { sortBy } from "lodash"
 import { ArgumentNode, FnNode, IdRefNode, InlineExprNode } from "./ast"
-import { createValueNode, getNode, Graph } from "../graph"
+import { createValueNode, getNode, Graph, ValueNode } from "../graph"
 
 export interface FunctionSuggestion {
   name: string
@@ -80,20 +80,19 @@ function getOwnParameters(scope: Scope): Parameter[] {
   }))
 }
 
-// todo: support multiple values
 function parseValuesInScope(scope: Scope): ParameterValue[] {
   const values: ParameterValue[] = []
 
-  const date = scope.readAsDate()[0]
-  if (date) {
+  const dates = scope.readAsDate()
+  for (const date of dates) {
     values.push({
       expression: `#[${date.scope.id}]`,
       type: "date",
     })
   }
 
-  const location = scope.readAsLocation()[0]
-  if (location) {
+  const locations = scope.readAsLocation()
+  for (const location of locations) {
     values.push({
       expression: `#[${location.scope.id}]`,
       type: "location",
@@ -212,7 +211,7 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
 
       const argsSource = fn.args.map((arg) => {
         if (arg.name === anchorArgument.name) {
-          return `${arg.name}: ${scope.source}`
+          return `${arg.name}: ${anchorArgument.expression}`
         }
 
         const extractionFn = extractionFnForArgument[arg.name as string]
@@ -231,16 +230,42 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
       }
 
       const formula = `{${fn.name}(${argsSource.join(", ")})}`
-      const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
-        childScope.source.includes(formula)
-      )
 
-      if (!doesAlreadyContainFormula) {
-        const node = getNode(graph, scope.id)
-        const childNode = createValueNode(graph, { value: formula, isTemporary: true })
-        node.children.push(childNode.id)
+      switch (anchorArgument.outputPosition) {
+        case "above":
+        case "below": {
+          if (!scope.parentScope) {
+            return
+          }
 
-        insertions.push({ parentId: node.id, childId: childNode.id })
+          const doesAlreadyContainFormula = scope.parentScope.childScopes.some((childScope) =>
+            childScope.source.includes(formula)
+          )
+
+          if (!doesAlreadyContainFormula) {
+            const node = getNode(graph, scope.parentScope.id)
+            const insertionIndex =
+              node.children.indexOf(scope.id) + (anchorArgument.outputPosition === "below" ? 1 : 0)
+
+            const childNode = createValueNode(graph, { value: formula, isTemporary: true })
+            node.children.splice(insertionIndex, 0, childNode.id)
+            insertions.push({ parentId: node.id, childId: childNode.id })
+          }
+          break
+        }
+        case "child": {
+          const doesAlreadyContainFormula = scope.childScopes.some((childScope) =>
+            childScope.source.includes(formula)
+          )
+
+          if (!doesAlreadyContainFormula) {
+            const node = getNode(graph, scope.id)
+            const childNode = createValueNode(graph, { value: formula, isTemporary: true })
+            node.children.push(childNode.id)
+
+            insertions.push({ parentId: node.id, childId: childNode.id })
+          }
+        }
       }
 
       return undefined
@@ -274,13 +299,8 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
     return
   }
 
-  // find argument that ...
-  //  1. maps to a parameter in the outline
-  //  2. the parameter is a parent scope of a formula we want to generalize
-  // todo: handle other relationships like siblings
-
+  // find argument node that formula is attached to in outline and use that as an anchor
   let anchorArgument = getAnchorArgument(formulaScope)
-
   if (!anchorArgument) {
     return
   }
@@ -317,7 +337,12 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
               (parentScope) => parentScope.readAs(parameter.value.type)[0] !== undefined
             )
 
-            return matchingParent ? matchingParent.source : undefined
+            if (!matchingParent) {
+              return undefined
+            }
+
+            // todo: handle multiple matching values
+            return `#[${matchingParent.readAs(parameter.value.type)[0].scope.id}]`
           }
           break
         case "next":
@@ -342,10 +367,11 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
                 index < parentScope.childScopes.length;
                 index++
               ) {
-                const prevScope = parentScope.childScopes[index]
+                const nextScope = parentScope.childScopes[index]
+                const nextScopeValue = nextScope.readAs(parameter.value.type)[0]
 
-                if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
-                  return prevScope.source
+                if (nextScopeValue !== undefined) {
+                  return `#[${nextScopeValue.scope.id}]`
                 }
               }
 
@@ -375,8 +401,10 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
               for (let index = parentScope.childScopes.indexOf(scope) - 1; index >= 0; index--) {
                 const prevScope = parentScope.childScopes[index]
 
-                if (prevScope.readAs(parameter.value.type)[0] !== undefined) {
-                  return prevScope.source
+                const prevScopeValue = prevScope.readAs(parameter.value.type)[0]
+
+                if (prevScopeValue !== undefined) {
+                  return `#[${prevScopeValue.scope.id}]`
                 }
               }
 
@@ -407,7 +435,7 @@ function isSiblingScopeOfTypeInBetween(scopeA: Scope, scopeB: Scope, type: Param
   }
 
   const indexA = scopeA.parentScope.childScopes.indexOf(scopeA)
-  const indexB = scopeA.parentScope.childScopes.indexOf(scopeB)
+  const indexB = scopeB.parentScope.childScopes.indexOf(scopeB)
 
   const startIndex = Math.min(indexA, indexB) + 1
   const endIndex = Math.max(indexA, indexB)
@@ -425,10 +453,14 @@ function isSiblingScopeOfTypeInBetween(scopeA: Scope, scopeB: Scope, type: Param
   return false
 }
 
+type AnchorOutputPosition = "above" | "below" | "child"
+
 interface AnchorArgument {
   type: ParameterType
   scope: Scope
+  expression: string
   name: string
+  outputPosition: AnchorOutputPosition
 }
 
 function getAnchorArgument(scope: Scope): AnchorArgument | undefined {
@@ -454,14 +486,49 @@ function getAnchorArgument(scope: Scope): AnchorArgument | undefined {
     const argumentExpression = `#[${argument.exp.id}]`
     const parameter = parametersInScope.find((par) => par.value.expression === argumentExpression)
 
-    // todo: handle other insertion position like siblings
-    if (parameter && parameter.scope === scope.parentScope) {
+    if (!parameter) {
+      continue
+    }
+
+    const outputPosition = getOutputPosition(parameter.scope, scope)
+
+    if (outputPosition) {
       return {
         name: argument.name,
+        expression: argumentExpression,
         scope: parameter.scope,
         type: parameter.value.type,
+        outputPosition,
       }
     }
+  }
+}
+
+function getOutputPosition(
+  anchorScope: Scope,
+  outputScope: Scope
+): AnchorOutputPosition | undefined {
+  if (outputScope.parentScope === anchorScope) {
+    return "child"
+  }
+
+  if (
+    anchorScope.parentScope !== outputScope.parentScope ||
+    anchorScope.parentScope === undefined ||
+    outputScope.parentScope === undefined
+  ) {
+    return
+  }
+
+  const anchorIndex = anchorScope.parentScope.childScopes.indexOf(anchorScope)
+  const outputIndex = outputScope.parentScope.childScopes.indexOf(outputScope)
+
+  if (anchorIndex + 1 == outputIndex) {
+    return "below"
+  }
+
+  if (anchorIndex - 1 == outputIndex) {
+    return "above"
   }
 }
 

@@ -5,13 +5,12 @@ import {
   format,
   isAfter,
   isBefore,
-  isEqual as isDateEqual,
   startOfDay,
   subDays,
   subYears,
 } from "date-fns"
 import { round } from "../../utils"
-import { FunctionDefs, HAS_MISSING_ARGUMENTS_VALUE } from "./function-def"
+import { FunctionDefs } from "./function-def"
 import { DataWithProvenance } from "../scopes"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
@@ -71,95 +70,18 @@ export const WEATHER_FN: FunctionDefs = {
       on: "date",
     },
     function: async ([node], namedArgs, scope) => {
+      const unit = namedArgs.unit
+        ? namedArgs.unit
+        : (await scope.lookupValueAsync("temperatureUnit")) ?? "celsius"
+
       let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined
       let inLocation = namedArgs.in
         ? parseLatLng(await namedArgs.in.getPropertyAsync("position"))
         : undefined
 
       if (namedArgs.on && namedArgs.in) {
-        return onDate && inLocation ? getWeatherInformation(onDate, inLocation) : undefined
+        return onDate && inLocation ? getWeatherInformation(onDate, inLocation, unit) : undefined
       }
-
-      const rootContext: WeatherContext = {
-        dates: onDate ? [{ scope: namedArgs.on, data: onDate }] : [],
-        locations: inLocation ? [{ scope: namedArgs.in, data: inLocation }] : [],
-      }
-
-      scope.traverseScopeAsync<WeatherContext>(
-        async (scope, context: WeatherContext) => {
-          // hack to prevent infinite loop, where computations are added on the inserted result output, should be solved more cleanly
-          if (scope.source.startsWith("weather:")) {
-            return context
-          }
-
-          const newLocations = await scope.getOwnPropertyAndPropertiesOfTransclusionAsync(
-            "position",
-            parseLatLng
-          )
-
-          const allLocations = [...context.locations]
-
-          for (const newLocation of newLocations) {
-            for (const date of context.dates) {
-              scope.setProperty(
-                "weather",
-                `{Weather(in: #[${newLocation.scope.id}] on: #[${date.scope.id}] )}`
-              )
-            }
-          }
-
-          for (const newLocation of newLocations) {
-            if (
-              allLocations.every(
-                ({ data }) => data.lat !== newLocation.data.lat && data.lng !== newLocation.data.lng
-              )
-            ) {
-              allLocations.push(newLocation)
-            }
-          }
-
-          // can't use getOwnPropertyAndPropertiesOfTransclusionAsync because parsing dates for own scope and transcluded scope works differently
-          const ownDate = parseDate((await scope.getPropertyAsync("date"))?.id)
-          const transcludedDates: DataWithProvenance<Date>[] = (
-            await Promise.all(
-              Object.values(scope.transcludedScopes).map(async (transcludedScope) => ({
-                scope: transcludedScope,
-                data: parseDate(transcludedScope.id),
-              }))
-            )
-          ).filter(({ data }) => data !== undefined) as DataWithProvenance<Date>[]
-
-          const newDates = ownDate
-            ? transcludedDates.concat({ data: ownDate, scope })
-            : transcludedDates
-
-          for (const newDate of newDates) {
-            for (const location of allLocations) {
-              scope.setProperty(
-                "weather",
-                `{Weather(in: #[${location.scope.id}] on: #[${newDate.scope.id}] )}`
-              )
-            }
-          }
-
-          const allDates = [...context.dates]
-          for (const newDate of newDates) {
-            if (allDates.every(({ data }) => !isDateEqual(data, newDate.data))) {
-              allDates.push(newDate)
-            }
-          }
-
-          return {
-            dates: allDates,
-            locations: allLocations,
-          }
-        },
-        rootContext,
-        { skipTranscludedScopes: true }
-      )
-
-      // return this value to indicate that the function has missing arguments and is using the tree traversal strategy
-      return HAS_MISSING_ARGUMENTS_VALUE
     },
   },
 }
@@ -173,7 +95,8 @@ export interface WeatherInformation {
 
 async function getWeatherInformation(
   date: Date,
-  location: google.maps.LatLngLiteral
+  location: google.maps.LatLngLiteral,
+  unit: string
 ): Promise<WeatherInformation | undefined> {
   const alignedDate = startOfDay(date)
   const currentDay = startOfDay(Date.now())
@@ -191,7 +114,7 @@ async function getWeatherInformation(
 
     // has historic data of that exact day
     if (dayGroup[year]) {
-      return dayGroup[year]
+      return convertToUnit(dayGroup[year], unit)
     }
 
     // otherwise compute normal of that day
@@ -208,18 +131,38 @@ async function getWeatherInformation(
       totalMean += measurement.mean
     }
 
-    return {
-      min: round(totalMin / measurements.length),
-      max: round(totalMax / measurements.length),
-      mean: round(totalMean / measurements.length),
-    }
+    return convertToUnit(
+      {
+        min: round(totalMin / measurements.length),
+        max: round(totalMax / measurements.length),
+        mean: round(totalMean / measurements.length),
+      },
+      unit
+    )
   }
 
   // ... otherwise use forecast
   const forecast = await fetchForecast(location)
   const offset = differenceInDays(alignedDate, currentDay)
 
-  return forecast[offset]
+  return convertToUnit(forecast[offset], unit)
+}
+
+function convertToUnit(information: WeatherInformation, unit: string): WeatherInformation {
+  console.log(unit)
+
+  if (unit.toLowerCase() === "fahrenheit") {
+    const { min, max, mean, weatherCode } = information
+
+    return {
+      weatherCode,
+      min: round((min * 9) / 5 + 32),
+      max: round((max * 9) / 5 + 32),
+      mean: round((mean * 9) / 5 + 32),
+    }
+  }
+
+  return information
 }
 
 const FORECAST_CACHE: { [location: string]: WeatherInformation[] } = {}
@@ -333,7 +276,7 @@ export function WeatherInfoView({ value }: WeatherInfoViewProps) {
 export function getWeatherSummary(value: WeatherInformation): string {
   const result: string[] = []
 
-  const weatherIcon = value.weatherCode ? getWeatherIcon(value.weatherCode) : undefined
+  const weatherIcon = value.weatherCode ? getWeatherIcon(value.weatherCode) : "☀️"
   if (weatherIcon) {
     result.push(weatherIcon)
   }
@@ -345,7 +288,7 @@ export function getWeatherSummary(value: WeatherInformation): string {
     result.push(description)
   }
 
-  result.push(`${value.min} • ${value.max}`)
+  result.push(`${Math.round(value.min)}° / ${Math.round(value.max)}°`)
 
   return result.join(" ")
 }

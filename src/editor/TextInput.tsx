@@ -187,18 +187,29 @@ export function TextInput({
     const currentEditorView = editorViewRef.current
 
     if (isFocused && currentEditorView && !currentEditorView.hasFocus) {
-      // this is bad, but
+      // this is bad, but ... ¯\_(ツ)_/¯
+
       const focus = () => {
         if (editorViewRef.current?.hasFocus) {
           return
         }
         editorViewRef.current?.focus()
 
+        // ... yes we need another timeout here
+        setTimeout(() => {
+          editorViewRef.current?.dispatch({
+            selection: {
+              anchor: focusOffset,
+              head: focusOffset,
+            },
+          })
+        })
+
         setTimeout(focus)
       }
       focus()
     }
-  }, [isFocused])
+  }, [isFocused, focusOffset])
 
   // update value
 

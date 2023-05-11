@@ -55,7 +55,7 @@ export function OutlineEditor({
   setIsHoveringOverId,
   disableCustomViews = false,
 }: OutlineEditorProps) {
-  const { graph, changeGraph, setIsDragging } = useGraph()
+  const { graph, changeGraph } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -288,12 +288,10 @@ export function OutlineEditor({
     evt.dataTransfer.setDragImage(elem, -10, -10)
     evt.dataTransfer.setData("application/node", JSON.stringify({ id: nodeId, parentId, index }))
     setIsBeingDragged(true)
-    setIsDragging(true)
   }
 
   const onDragEnd = () => {
     setIsBeingDragged(false)
-    setIsDragging(false)
   }
 
   const onDragOver = (evt: DragEvent) => {
@@ -443,9 +441,13 @@ export function OutlineEditor({
       ) : (
         <>
           <div
-            className={classNames("flex items-start w-full", isRoot ? "mt-[6px]" : "mt-[1px]", {
-              "opacity-50": node.isTemporary,
-            })}
+            className={classNames(
+              "flex items-start w-full",
+              isRoot ? "mt-[6px]" : "mt-[1px] ml-[-10px]",
+              {
+                "opacity-50": node.isTemporary,
+              }
+            )}
             onClick={() => {
               onChangeSelectedPath(path)
             }}
@@ -489,12 +491,12 @@ export function OutlineEditor({
               />
             )}
             <div
-              className={classNames("pr-2 flex-1 rounded", {
+              className={classNames("pr-2 flex-1 rounded box-border border-l-2 border-white", {
                 // "pl-2": isFocused || node.value !== "" || node.key !== undefined,
-                "bg-slate-200 rounded":
+                "bg-blue-50 border-blue-400":
                   getIsHovering(graph, node.id, parentIds, isHoveringOverId) &&
                   !(isBeingDragged || isParentDragged),
-                "bg-slate-100 rounded": isSelected && !(isBeingDragged || isParentDragged),
+                "bg-blue-100 border-blue-400": isSelected && !(isBeingDragged || isParentDragged),
               })}
               onMouseEnter={() => setIsHoveringOverId(node.id)}
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
@@ -589,7 +591,7 @@ export function OutlineEditor({
                   <OutlineEditor
                     scope={childScope}
                     isParentDragged={isBeingDragged}
-                    key={childScope.id}
+                    key={index}
                     nodeId={childScope.id}
                     index={index}
                     parentIds={parentIds.concat(node.id)}

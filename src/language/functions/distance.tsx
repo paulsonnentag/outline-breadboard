@@ -61,7 +61,11 @@ export const DISTANCE_FN: FunctionDefs = {
       to: "location",
     },
 
-    function: async ([], { from, to, unit = "kilometers" }, scope) => {
+    function: async ([], { from, to, unit }, scope) => {
+      if (!unit) {
+        unit = (await scope.lookupValueAsync("lengthUnit")) ?? "kilometers"
+      }
+
       if (from && to) {
         const pos1 = parseLatLng(await (from as Scope).getPropertyAsync("position"))
         const pos2 = parseLatLng(await (to as Scope).getPropertyAsync("position"))

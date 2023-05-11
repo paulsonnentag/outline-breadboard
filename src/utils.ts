@@ -69,3 +69,35 @@ export function safeJsonStringify(obj: any): string {
     return `[circular object]`
   }
 }
+
+export function formatDuration(durationInMs: number) {
+  const hours = Math.floor(durationInMs / (60 * 60 * 1000))
+  const minutes = Math.max(Math.round((durationInMs - hours * 60 * 60 * 1000) / (60 * 1000)), 1)
+
+  if (hours > 24) {
+    return `${Math.round(hours / 24)} d`
+  }
+
+  if (hours !== 0) {
+    return `${hours} h${minutes !== 0 ? ` ${minutes}` : ""}`
+  }
+
+  return `${minutes} m`
+}
+
+export function formatDistance(distanceInKm: number, distanceUnit: string) {
+  if (distanceUnit.toLowerCase() === "miles") {
+    const distanceInMiles = round(distanceInKm * 0.621371)
+    return `${distanceInMiles >= 10 ? Math.round(distanceInMiles) : distanceInMiles} mi`
+  }
+
+  if (Math.round(distanceInKm) >= 10) {
+    return `${Math.round(distanceInKm)} km`
+  }
+
+  if (distanceInKm < 1) {
+    return `${Math.round(distanceInKm / 10) * 10}m`
+  }
+
+  return `${round(distanceInKm)} km`
+}

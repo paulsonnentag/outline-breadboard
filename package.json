@@ -30,7 +30,6 @@
     "csv-parse": "^5.3.6",
     "date-fns": "^2.29.3",
     "debug": "^4.3.4",
-    "humanize-duration": "^3.28.0",
     "lodash": "^4.17.21",
     "material-icons": "^1.13.2",
     "mobx": "^6.9.0",

@@ -1,6 +1,14 @@
 # Installation
 
-To add your Google Maps API key copy `api-keys.example.js` to `api-keys.js` and replace the dummy key
+
+You have to create a `.env.local` file in the root of the project with the following API keys
+
+``
+GOOGLE_MAPS_API_KEY = "..."
+AIRLABS_API_KEY = "..."
+``
+
+Then run the following commands
 
 ```bash
 yarn install

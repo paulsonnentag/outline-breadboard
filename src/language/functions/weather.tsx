@@ -149,8 +149,6 @@ async function getWeatherInformation(
 }
 
 function convertToUnit(information: WeatherInformation, unit: string): WeatherInformation {
-  console.log(unit)
-
   if (unit.toLowerCase() === "fahrenheit") {
     const { min, max, mean, weatherCode } = information
 

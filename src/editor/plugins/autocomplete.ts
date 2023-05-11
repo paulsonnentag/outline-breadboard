@@ -7,7 +7,9 @@ import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
 import { REF_ID_REGEX } from "./refIdTokenPlugin"
 import { createFlightNode } from "../../flights"
-import { AIRLABS_API_KEY } from "../../api-keys"
+
+// @ts-ignore
+const AIRLABS_API_KEY = __APP_ENV__.AIRLABS_API_KEY
 
 export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {
@@ -49,7 +51,11 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     return {
       from: reference.from,
       filter: false,
-      options: dateOptions.concat(timeOptions).concat(nodeOptions).concat(flightsOptions).concat(placesOptions),
+      options: dateOptions
+        .concat(timeOptions)
+        .concat(nodeOptions)
+        .concat(flightsOptions)
+        .concat(placesOptions),
     }
   }
 }
@@ -193,38 +199,47 @@ function getTimesAutocompletion(
   const digitsMatch = search.match(digitsRegex)
 
   if (digitsMatch) {
-    return [":00", ":15", ":30", ":45"].map(mins => {
-      const timeString = search.padStart(2, "0") + mins
+    return [":00", ":15", ":30", ":45"]
+      .map((mins) => {
+        const timeString = search.padStart(2, "0") + mins
 
-      if (graph[timeString]) {
-        return undefined
-      }
+        if (graph[timeString]) {
+          return undefined
+        }
 
-      return {
-        label: timeString,
-        apply: (view: { dispatch: (arg0: any) => void; state: { update: (arg0: { changes: { from: any; to: any; insert: string } }) => any } }, completion: any, from: any, to: any) => {
-          if (!graph[timeString]) {
-            changeGraph((graph) => {
-              const node = createValueNode(graph, { id: timeString, value: timeString })
-              const attribute = createValueNode(graph, { value: `time: ${timeString}` })
-              node.children.push(attribute.id)
-            })
-          }
-          setTimeout(() => {
-            view.dispatch(
-              view.state.update({
-                changes: {
-                  from: from,
-                  to: to,
-                  insert: `#[${timeString}]`,
-                },
+        return {
+          label: timeString,
+          apply: (
+            view: {
+              dispatch: (arg0: any) => void
+              state: { update: (arg0: { changes: { from: any; to: any; insert: string } }) => any }
+            },
+            completion: any,
+            from: any,
+            to: any
+          ) => {
+            if (!graph[timeString]) {
+              changeGraph((graph) => {
+                const node = createValueNode(graph, { id: timeString, value: timeString })
+                const attribute = createValueNode(graph, { value: `time: ${timeString}` })
+                node.children.push(attribute.id)
               })
-            )
-          })
-        },
-      }
-    })
-    .filter(v => v !== undefined) as Completion[]
+            }
+            setTimeout(() => {
+              view.dispatch(
+                view.state.update({
+                  changes: {
+                    from: from,
+                    to: to,
+                    insert: `#[${timeString}]`,
+                  },
+                })
+              )
+            })
+          },
+        }
+      })
+      .filter((v) => v !== undefined) as Completion[]
   }
 
   return []

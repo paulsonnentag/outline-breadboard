@@ -6,6 +6,8 @@ import topLevelAwait from "vite-plugin-top-level-await"
 export default defineConfig(({ command, mode }) => {
   const env = process.env.VITE_VERCEL_ENV ?? loadEnv(mode, process.cwd(), "")
 
+  console.log("BUILD", process.env.VITE_VERCEL_ENV)
+
   return {
     base: "/",
     plugins: [wasm(), topLevelAwait(), react()],

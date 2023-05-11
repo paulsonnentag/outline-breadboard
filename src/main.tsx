@@ -14,7 +14,7 @@ const url = "ws://67.207.88.83" // cloud sync server on DigitalOcean
 
 const repo = new Repo({
   storage: new LocalForageStorageAdapter(),
-  network: [new BrowserWebSocketClientAdapter(url)],
+  network: [], //[new BrowserWebSocketClientAdapter(url)],
   sharePolicy: (peerId) => peerId.includes("storage-server"),
 })
 

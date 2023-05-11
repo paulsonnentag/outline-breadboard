@@ -69,6 +69,30 @@ export function parseDate(string: string | undefined): Date | undefined {
   return new Date(year, month - 1, day)
 }
 
+const TIME_REF_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
+
+export function parseTime(string: string | undefined): Time | undefined {
+  if (string === undefined) {
+    return undefined
+  }
+
+  const match = string.match(TIME_REF_REGEX)
+
+  if (!match) {
+    return undefined
+  }
+
+  return {
+    hour: Number(match[1]),
+    minute: Number(match[2])
+  }
+}
+
+export interface Time {
+  hour: number 
+  minute: number
+}
+
 export function readLatLng(graph: Graph, nodeId: string): LatLngLiteral | undefined {
   return readParsedProperty<LatLngLiteral>(graph, nodeId, "position", (value) => {
     if (value.lat && value.lng) {

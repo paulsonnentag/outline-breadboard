@@ -144,17 +144,24 @@ export const expressionResultsField = StateField.define<ExpressionResult[]>({
     return []
   },
   update(expressionResults, tr) {
-    for (let e of tr.effects) {
-      if (e.is(setExpressionResultsEffect)) {
-        return e.value
+    try {
+      for (let e of tr.effects) {
+        if (e.is(setExpressionResultsEffect)) {
+          return e.value
+        }
       }
+      return expressionResults.map((expressionResult) => {
+        return {
+          ...expressionResult,
+          positionInSource: tr.changes.mapPos(expressionResult.positionInSource),
+        }
+      })
+
+      // there is something not right, where sometimes the expressionResults are not reset when the text changes
+      // this leads to an out of range exception, in that case just return an empty result set for now
+    } catch (e) {
+      return []
     }
-    return expressionResults.map((expressionResult) => {
-      return {
-        ...expressionResult,
-        positionInSource: tr.changes.mapPos(expressionResult.positionInSource),
-      }
-    })
   },
 })
 

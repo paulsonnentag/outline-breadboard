@@ -199,7 +199,6 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
         .reduce((hourlyObj: any, hourlyTime: any, hourlyIndexWithoutOffset: any) => {
           const hourlyIndex = hourlyIndexWithoutOffset + hourlyOffset
           const timePattern = /T(\d{2}:\d{2})/
-          console.log("key", hourlyTime.match(timePattern)?.[1] || hourlyTime, hourlyTime)
 
           hourlyObj[hourlyTime.match(timePattern)?.[1] || hourlyTime] = {
             temp: rawForecast.hourly.temperature_2m[hourlyIndex],

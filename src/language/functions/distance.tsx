@@ -82,8 +82,6 @@ export const DISTANCE_FN: FunctionDefs = {
           }
         )
 
-        console.log(unit)
-
         return {
           value: distance,
           unit,

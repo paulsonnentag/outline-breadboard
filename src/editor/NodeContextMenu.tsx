@@ -40,6 +40,7 @@ export function NodeContextMenu({
   const suggestionNodeId = `TEMP_SUGGESTION_${useId()}`
   const { graph, changeGraph } = useGraph()
   const [isHovering, setIsHovering] = useState(false)
+  const [isHoveringOverButton, setIsHoveringOverButton] = useState<string | undefined>(undefined)
   const nodeId = node.id
   const isMap = node.view === "map"
   const isTable = node.view === "table"
@@ -235,39 +236,63 @@ export function NodeContextMenu({
 
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">
-          <button
-            className={classNames(
-              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-              isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-            )}
-            onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
-          >
-            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-              map
-            </span>
-          </button>
-          <button
-            className={classNames(
-              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-              isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-            )}
-            onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
-          >
-            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-              table_chart
-            </span>
-          </button>
-          <button
-            className={classNames(
-              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-              isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-            )}
-            onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
-          >
-            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-              calendar_month
-            </span>
-          </button>
+          <div className="relative">
+            {isHovering && 
+              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "map" ? "opacity-100" : "opacity-50")}>Map view</div>
+            }
+            <button
+              className={classNames(
+                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+              )}
+              onMouseOver={e => setIsHoveringOverButton("map")}
+              onMouseLeave={e => isHoveringOverButton === "map" && setIsHoveringOverButton(undefined)}
+              onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
+            >
+              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                map
+              </span>
+            </button>
+          </div>
+
+          <div className="relative">
+            {isHovering && 
+              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "table" ? "opacity-100" : "opacity-50")}>Table view</div>
+            }
+            <button
+              className={classNames(
+                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+              )}
+              onMouseOver={e => setIsHoveringOverButton("table")}
+              onMouseLeave={e => isHoveringOverButton === "table" && setIsHoveringOverButton(undefined)}
+              onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
+            >
+              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                table_chart
+              </span>
+            </button>
+          </div>
+
+          <div className="relative">
+            {isHovering && 
+              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "calendar" ? "opacity-100" : "opacity-50")}>Calendar view</div>
+            }
+            <button
+              className={classNames(
+                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+              )}
+
+              onMouseOver={e => setIsHoveringOverButton("calendar")}
+              onMouseLeave={e => isHoveringOverButton === "calendar" && setIsHoveringOverButton(undefined)}
+              onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
+            >
+              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                calendar_month
+              </span>
+            </button>
+          </div>
         </div>
       )}
 

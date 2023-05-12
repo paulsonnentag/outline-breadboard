@@ -10,7 +10,7 @@ import { FunctionSuggestion, Parameter } from "../function-suggestions"
 export const ROUTE_FN: FunctionDefs = {
   Route: {
     icon: "route",
-    summaryView: (value) => `🛣️ ${value.duration}, ${value.distance}`,
+    summaryView: (value) => (value ? `🛣️ ${value.duration}, ${value.distance}` : `🛣️`),
     autocomplete: {
       icon: "route",
       name: "Route",

@@ -150,10 +150,10 @@ async function getWeatherInformation(
 
 function convertToUnit(information: WeatherInformation, unit: string): WeatherInformation {
   if (unit.toLowerCase() === "fahrenheit") {
-    const { min, max, mean, weatherCode } = information
+    const { min, max, mean } = information
 
     return {
-      weatherCode,
+      ...information,
       min: round((min * 9) / 5 + 32),
       max: round((max * 9) / 5 + 32),
       mean: round((mean * 9) / 5 + 32),
@@ -186,22 +186,32 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
     ].join("")
   ).then((res) => res.json())
 
-  const forecast = rawForecast.daily.time.map((time: string, index: number) => ({
-    min: rawForecast.daily.temperature_2m_min[index],
-    max: rawForecast.daily.temperature_2m_max[index],
-    mean: rawForecast.daily.temperature_2m_mean[index],
-    weatherCode: rawForecast.daily.weathercode[index],
-    hourly: rawForecast.hourly.time.reduce((hourlyObj: any, hourlyTime: any, hourlyIndex: any) => {
-      const timePattern = /T(\d{2}:\d{2})/
-      hourlyObj[hourlyTime.match(timePattern)?.[1] || hourlyTime] = {
-        temp: rawForecast.hourly.temperature_2m[hourlyIndex],
-        precip: rawForecast.hourly.precipitation_probability[hourlyIndex],
-        windspeed_10m: rawForecast.hourly.windspeed_10m[hourlyIndex],
-        windgusts_10m: rawForecast.hourly.windgusts_10m[hourlyIndex],
-      }
-      return hourlyObj
-    }, {}),
-  }))
+  const forecast = rawForecast.daily.time.map((time: string, index: number) => {
+    const hourlyOffset = index * 24
+
+    return {
+      min: rawForecast.daily.temperature_2m_min[index],
+      max: rawForecast.daily.temperature_2m_max[index],
+      mean: rawForecast.daily.temperature_2m_mean[index],
+      weatherCode: rawForecast.daily.weathercode[index],
+      hourly: rawForecast.hourly.time
+        .slice(hourlyOffset, hourlyOffset + 42)
+        .reduce((hourlyObj: any, hourlyTime: any, hourlyIndexWithoutOffset: any) => {
+          const hourlyIndex = hourlyIndexWithoutOffset + hourlyOffset
+          const timePattern = /T(\d{2}:\d{2})/
+          console.log("key", hourlyTime.match(timePattern)?.[1] || hourlyTime, hourlyTime)
+
+          hourlyObj[hourlyTime.match(timePattern)?.[1] || hourlyTime] = {
+            temp: rawForecast.hourly.temperature_2m[hourlyIndex],
+            precipitation_probability: rawForecast.hourly.precipitation_probability[hourlyIndex],
+            windspeed_10m: rawForecast.hourly.windspeed_10m[hourlyIndex],
+            windgusts_10m: rawForecast.hourly.windgusts_10m[hourlyIndex],
+          }
+
+          return hourlyObj
+        }, {}),
+    }
+  })
 
   FORECAST_CACHE[key] = forecast
 

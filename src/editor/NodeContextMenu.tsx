@@ -102,11 +102,14 @@ export function NodeContextMenu({
         const fn = FUNCTIONS[name]
         const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
         const resultText = summaryView(result)
+        const spaceIndex = resultText.indexOf(" ")
+        const icon = resultText.slice(0, spaceIndex)
+        const _resultText = resultText.slice(spaceIndex + 1).trim()
         newSuggestedFunctionButtons.push({
           name,
           suggestion: defaultSuggestion,
-          icon: [...resultText].slice(0, 1).join(""),
-          result: [...resultText].slice(1).join("").trim(),
+          icon,
+          result: _resultText,
         })
       }
 
@@ -238,7 +241,7 @@ export function NodeContextMenu({
         <div className="flex flex-col rounded bg-gray-100">
           <div className="relative">
             {isHovering && 
-              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "map" ? "opacity-100" : "opacity-50")}>Map view</div>
+              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "map" ? "opacity-100" : "opacity-50")}>Map</div>
             }
             <button
               className={classNames(
@@ -257,7 +260,7 @@ export function NodeContextMenu({
 
           <div className="relative">
             {isHovering && 
-              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "table" ? "opacity-100" : "opacity-50")}>Table view</div>
+              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "table" ? "opacity-100" : "opacity-50")}>Table</div>
             }
             <button
               className={classNames(
@@ -276,7 +279,7 @@ export function NodeContextMenu({
 
           <div className="relative">
             {isHovering && 
-              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "calendar" ? "opacity-100" : "opacity-50")}>Calendar view</div>
+              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "calendar" ? "opacity-100" : "opacity-50")}>Calendar</div>
             }
             <button
               className={classNames(

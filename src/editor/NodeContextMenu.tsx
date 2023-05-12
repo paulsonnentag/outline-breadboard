@@ -102,11 +102,14 @@ export function NodeContextMenu({
         const fn = FUNCTIONS[name]
         const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
         const resultText = summaryView(result)
+        const spaceIndex = resultText.indexOf(" ")
+        const icon = resultText.slice(0, spaceIndex)
+        const _resultText = resultText.slice(spaceIndex + 1).trim()
         newSuggestedFunctionButtons.push({
           name,
           suggestion: defaultSuggestion,
-          icon: [...resultText].slice(0, 1).join(""),
-          result: [...resultText].slice(1).join("").trim(),
+          icon,
+          result: _resultText,
         })
       }
 

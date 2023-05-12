@@ -394,9 +394,12 @@ export function TextInput({
   )
 }
 
+const MAX_SUGGESTIONS = 15
+
 async function getSuggestions(scope: Scope, search: string): Promise<Suggestion[]> {
   return getSuggestedFunctions(scope)
     .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search.toLowerCase()))
+    .slice(0, MAX_SUGGESTIONS)
     .map((suggestion) => {
       //        const inlineExpr = `{${expression}}`
 

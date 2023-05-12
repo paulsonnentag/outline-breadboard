@@ -295,7 +295,7 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
 
   const fn = inlineExpr.expr
 
-  const fnParameters = FUNCTIONS[fn.name].parameters
+  const fnParameters = FUNCTIONS[fn.name]?.parameters
   if (!fnParameters) {
     return
   }

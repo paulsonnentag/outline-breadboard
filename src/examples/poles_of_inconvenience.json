@@ -5,10 +5,8 @@
       "id": "79a13361-0940-4d5c-84eb-353b077a8086",
       "value": "Poles of Inconvenience",
       "children": [
-        "c6ece8b3-7c5c-427b-a9b9-84cac1869c3a",
-        "3174910d-1b5e-488f-9eac-903b39604c0e",
-        "9e6dd427-e185-4355-a9b1-4b40310c7c22",
-        "b7c236f6-b44d-4b93-9953-ae7de02708a1"
+        "18a32f45-956c-4217-ac3b-8aa32bf6c628",
+        "23d45677-c17f-4e5e-b5cc-5072606b8cb7"
       ],
       "computedProps": {},
       "isCollapsed": false,
@@ -2508,6 +2506,55 @@
       "type": "value",
       "id": "d588a710-47e6-4a9c-a5bf-b7e4bc7d3384",
       "value": "color: yellow",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "b166a169-57ec-41db-b3e8-21c8cfee4c52": {
+      "type": "value",
+      "id": "b166a169-57ec-41db-b3e8-21c8cfee4c52",
+      "value": "",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "18a32f45-956c-4217-ac3b-8aa32bf6c628": {
+      "type": "value",
+      "id": "18a32f45-956c-4217-ac3b-8aa32bf6c628",
+      "value": "Poles",
+      "children": [
+        "c6ece8b3-7c5c-427b-a9b9-84cac1869c3a",
+        "3174910d-1b5e-488f-9eac-903b39604c0e",
+        "9e6dd427-e185-4355-a9b1-4b40310c7c22",
+        "b7c236f6-b44d-4b93-9953-ae7de02708a1"
+      ],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "07ec5792-cea0-451c-aa64-a78db890d479": {
+      "type": "value",
+      "id": "07ec5792-cea0-451c-aa64-a78db890d479",
+      "value": "",
+      "children": [],
+      "computedProps": {},
+      "isCollapsed": false,
+      "isSelected": false,
+      "expandedResultsByIndex": {},
+      "isTemporary": false
+    },
+    "23d45677-c17f-4e5e-b5cc-5072606b8cb7": {
+      "type": "value",
+      "id": "23d45677-c17f-4e5e-b5cc-5072606b8cb7",
+      "value": "",
       "children": [],
       "computedProps": {},
       "isCollapsed": false,

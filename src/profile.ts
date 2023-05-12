@@ -26,7 +26,10 @@ export function getProfileDoc(repo: Repo): DocHandle<ProfileDoc> {
         name: "Settings",
         props: [
           ["lengthUnit", "kilometers"],
+          ["options", "kilometers, miles"],
+          ["", ""],
           ["temperatureUnit", "celsius"],
+          ["options", "celsius, fahrenheit"],
         ],
       })
 

@@ -323,21 +323,22 @@ export function TextInput({
       // ignore up key if auto complete is active
       if (isMenuOpen) {
         setSelectedSuggestionIndex((index) => (index > 0 ? index - 1 : 0))
-      } else {
+        evt.preventDefault()
+      } else if (completionStatus(currentEditorView.state) === null) {
         onFocusUp()
+        evt.preventDefault()
       }
-
-      evt.preventDefault()
     } else if (isDown(evt)) {
       // ignore down key if auto complete is active
       if (isMenuOpen) {
         setSelectedSuggestionIndex((index) =>
           index < suggestions.length - 1 ? index + 1 : suggestions.length - 1
         )
-      } else {
+        evt.preventDefault()
+      } else if (completionStatus(currentEditorView.state) === null) {
         onFocusDown()
+        evt.preventDefault()
       }
-      evt.preventDefault()
     } else if (isBackspace(evt)) {
       if (isMenuOpen) {
         setActiveSlashIndex(-1)

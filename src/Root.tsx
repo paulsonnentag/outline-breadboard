@@ -44,7 +44,10 @@ export function Root({ profileDocId }: RootProps) {
 
       // add unknown graphIds to profile
       changeProfile((profile) => {
-        if (!profile.graphIds.includes(documentId as DocumentId)) {
+        if (
+          !profile.graphIds.includes(documentId as DocumentId) &&
+          (documentId as DocumentId) !== profile.settingsGraphId
+        ) {
           profile.graphIds.push(documentId as DocumentId)
         }
       })

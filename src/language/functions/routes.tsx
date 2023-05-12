@@ -7,12 +7,12 @@ import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 export const ROUTE_FN: FunctionDefs = {
-  Driving: {
+  Drive: {
     icon: "directions_car",
     summaryView: (value) => (value ? `🚗 ${value.duration}, ${value.distance}` : `🚗`),
     autocomplete: {
       icon: "directions_car",
-      name: "Driving",
+      name: "Drive",
       arguments: [
         {
           label: "from",
@@ -28,16 +28,16 @@ export const ROUTE_FN: FunctionDefs = {
       to: "location",
     },
 
-    suggestions: suggestionsFn("Driving", "directions_car"),
+    suggestions: suggestionsFn("Drive", "directions_car"),
 
-    function: functionFn("Driving", "driving", "DRIVING" as any),
+    function: functionFn("Drive", "drive", "DRIVING" as any),
   },
-  Biking: {
+  Bike: {
     icon: "directions_bike",
     summaryView: (value) => (value ? `🚴‍♀️ ${value.duration}, ${value.distance}` : `🚴‍♀️`),
     autocomplete: {
       icon: "directions_bike",
-      name: "Biking",
+      name: "Bike",
       arguments: [
         {
           label: "from",
@@ -53,16 +53,16 @@ export const ROUTE_FN: FunctionDefs = {
       to: "location",
     },
 
-    suggestions: suggestionsFn("Biking", "directions_bike"),
+    suggestions: suggestionsFn("Bike", "directions_bike"),
 
-    function: functionFn("Biking", "biking", "BICYCLING" as any),
+    function: functionFn("Bike", "bike", "BICYCLING" as any),
   },
-  Walking: {
+  Walk: {
     icon: "directions_walk",
     summaryView: (value) => (value ? `🚶‍♀️ ${value.duration}, ${value.distance}` : `🚶‍♀️`),
     autocomplete: {
       icon: "directions_walk",
-      name: "Walking",
+      name: "Walk",
       arguments: [
         {
           label: "from",
@@ -78,36 +78,9 @@ export const ROUTE_FN: FunctionDefs = {
       to: "location",
     },
 
-    suggestions: suggestionsFn("Walking", "directions_walk"),
+    suggestions: suggestionsFn("Walk", "directions_walk"),
 
-    function: functionFn("Walking", "walking", "WALKING" as any),
-  },
-
-  // Left in to avoid compat. issues; should remove once safe
-  Route: {
-    icon: "route",
-    summaryView: (value) => (value ? `🛣️ ${value.duration}, ${value.distance}` : `🛣️`),
-    autocomplete: {
-      icon: "route",
-      name: "Route",
-      arguments: [
-        {
-          label: "from",
-        },
-        {
-          label: "to",
-        },
-      ],
-    },
-
-    parameters: {
-      from: "location",
-      to: "location",
-    },
-
-    suggestions: suggestionsFn("Route", "route"),
-
-    function: functionFn("Route", "route", "DRIVING" as any),
+    function: functionFn("Walk", "walk", "WALKING" as any),
   },
 }
 

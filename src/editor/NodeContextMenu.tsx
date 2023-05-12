@@ -140,10 +140,10 @@ export function NodeContextMenu({
   }
 
   useEffect(() => {
-    if (!isFocusedOnNode) {
+    if (!isFocusedOnNode && !repeatButtonPosition) {
       resetPendingInsertions()
     }
-  }, [isFocusedOnNode])
+  }, [isFocusedOnNode, repeatButtonPosition])
 
   const resetPendingInsertions = () => {
     setRepeatButtonPosition(undefined)
@@ -271,8 +271,7 @@ export function NodeContextMenu({
         </div>
       )}
 
-      {(isFocusedOnNode || isHovering) &&
-        showFunctionButtons &&
+      {showFunctionButtons &&
         suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
           return (
             <div key={name} className="relative">
@@ -336,26 +335,23 @@ export function NodeContextMenu({
           )
         })}
 
-      {(isFocusedOnNode || isHovering) &&
-        pendingInsertions?.length === 0 &&
-        canFormulaBeRepeated(scope) && (
-          <button
-            className={classNames(
-              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-              isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-            )}
-            ref={repeatButtonRef}
-            onClick={onRepeat}
-            onMouseEnter={onMouseEnterRepeat}
-          >
-            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-              repeat
-            </span>
-          </button>
-        )}
+      {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
+        <button
+          className={classNames(
+            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+            isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+          )}
+          ref={repeatButtonRef}
+          onClick={onRepeat}
+          onMouseEnter={onMouseEnterRepeat}
+        >
+          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+            repeat
+          </span>
+        </button>
+      )}
 
-      {(isFocusedOnNode || isHovering) &&
-        repeatButtonPosition &&
+      {repeatButtonPosition &&
         createPortal(
           <div
             style={{

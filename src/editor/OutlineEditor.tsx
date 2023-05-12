@@ -401,7 +401,9 @@ export function OutlineEditor({
       onDragEnd={onDragEnd}
       className={classNames({
         "text-gray-300": isBeingDragged || isParentDragged,
-      })}
+      }, 
+        "mr-2" // room for the NodeContextMenu
+      )}
       style={
         accentColors
           ? ({
@@ -425,7 +427,9 @@ export function OutlineEditor({
             hideFunctionButtons={isMenuOpen}
             scope={scope}
             node={graph[nodeId] as ValueNode}
-            isFocused={true} // should this just be "showControls"?
+            isFocusedOnNode={true} // should this just be "showControls"?
+            isAnotherFocused={false}
+            isHoveredOnNode={false}
             onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
           />
           <NodeView
@@ -523,7 +527,7 @@ export function OutlineEditor({
               />
               <ComputationResultsSummaryView scope={scope} />
 
-              <div className="flex gap-1 mt-2 ml-[5px]">
+              <div className="flex ml-[5px]">
                 {Object.entries(scope.expandedResultsByIndex).map(([key, isExpanded]) => {
                   const index = parseInt(key)
                   if (!isExpanded) {
@@ -534,7 +538,7 @@ export function OutlineEditor({
 
                   return (
                     <pre
-                      className={`bg-${computationColor}-200 text-${computationColor}-600 rounded p-1`}
+                      className={`bg-${computationColor}-200 text-${computationColor}-600 mt-2 rounded p-1`}
                       onClick={() => {
                         changeGraph((graph) => {
                           const node = getNode(graph, nodeId)
@@ -554,7 +558,9 @@ export function OutlineEditor({
                 onChangeIsComputationSuggestionHovered={setIsComputationSuggestionHovered}
                 node={node}
                 scope={scope}
-                isFocused={isFocused || isHovered}
+                isFocusedOnNode={isFocused}
+                isAnotherFocused={selectedPath !== undefined && !isFocused}
+                isHoveredOnNode={isHovered}
                 onOpenNodeInNewPane={onOpenNodeInNewPane}
               />
             )}

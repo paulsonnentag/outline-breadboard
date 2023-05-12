@@ -4,7 +4,7 @@ import wasm from "vite-plugin-wasm"
 import topLevelAwait from "vite-plugin-top-level-await"
 
 export default defineConfig(({ command, mode }) => {
-  const env = process.env ?? loadEnv(mode, process.cwd(), "")
+  const env = process.env.VITE_VERCEL_ENV ? process.env : loadEnv(mode, process.cwd(), "")
 
   return {
     base: "/",

@@ -1,0 +1,2 @@
+export const GOOGLE_MAPS_API_KEY = "AIzaSyA2pHMY4jKYhH3FCgaBYVf8vGecudHR2GU"
+export const AIRLABS_API_KEY = "0105db50-00b9-43a9-8172-c24d3865b8dc"

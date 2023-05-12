@@ -397,7 +397,7 @@ export class Scope {
       // otherwise create new property
       const parentNode = getNode(graph, this.id)
       const childNode = createValueNode(graph, { value })
-      parentNode.children.unshift(childNode.id)
+      parentNode.children.push(childNode.id)
     })
   }
 

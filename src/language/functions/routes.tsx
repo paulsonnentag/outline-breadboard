@@ -8,6 +8,83 @@ import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 export const ROUTE_FN: FunctionDefs = {
+  Driving: {
+    icon: "directions_car",
+    summaryView: (value) => (value ? `🚗 ${value.duration}, ${value.distance}` : `🚗`),
+    autocomplete: {
+      icon: "directions_car",
+      name: "Driving",
+      arguments: [
+        {
+          label: "from",
+        },
+        {
+          label: "to",
+        },
+      ],
+    },
+
+    parameters: {
+      from: "location",
+      to: "location",
+    },
+
+    suggestions: suggestionsFn("Driving", "directions_car"),
+
+    function: functionFn("Driving", "driving", google.maps.TravelMode.DRIVING),
+  },
+  Biking: {
+    icon: "directions_bike",
+    summaryView: (value) => (value ? `🚴‍♀️ ${value.duration}, ${value.distance}` : `🚴‍♀️`),
+    autocomplete: {
+      icon: "directions_bike",
+      name: "Biking",
+      arguments: [
+        {
+          label: "from",
+        },
+        {
+          label: "to",
+        },
+      ],
+    },
+
+    parameters: {
+      from: "location",
+      to: "location",
+    },
+
+    suggestions: suggestionsFn("Biking", "directions_bike"),
+
+    function: functionFn("Biking", "biking", google.maps.TravelMode.BICYCLING),
+  },
+  Walking: {
+    icon: "directions_walk",
+    summaryView: (value) => (value ? `🚶‍♀️ ${value.duration}, ${value.distance}` : `🚶‍♀️`),
+    autocomplete: {
+      icon: "directions_walk",
+      name: "Walking",
+      arguments: [
+        {
+          label: "from",
+        },
+        {
+          label: "to",
+        },
+      ],
+    },
+
+    parameters: {
+      from: "location",
+      to: "location",
+    },
+
+    suggestions: suggestionsFn("Walking", "directions_walk"),
+
+    function: functionFn("Walking", "walking", google.maps.TravelMode.BICYCLING),
+  },
+
+  // Left in to avoid compat. issues; should remove once safe
   Route: {
     icon: "route",
     summaryView: (value) => (value ? `🛣️ ${value.duration}, ${value.distance}` : `🛣️`),
@@ -29,128 +106,138 @@ export const ROUTE_FN: FunctionDefs = {
       to: "location",
     },
 
-    suggestions: (parameters: Parameter[]) => {
-      const locations = parameters.filter((p) => p.value.type === "location")
-      const suggestions: FunctionSuggestion[] = []
+    suggestions: suggestionsFn("Route", "route"),
 
-      for (const locationA of locations) {
-        for (const locationB of locations) {
-          if (locationA !== locationB) {
-            let rank = locationA.distance + locationB.distance
+    function: functionFn("Route", "route", google.maps.TravelMode.DRIVING),
+  },
+}
 
-            if (locationA.scope.isPrecedingSiblingOf(locationB.scope)) {
-              rank -= 1
+function suggestionsFn(name: string, icon: string) {
+  return (parameters: Parameter[]) => {
+    const locations = parameters.filter((p) => p.value.type === "location")
+    const suggestions: FunctionSuggestion[] = []
+
+    for (const locationA of locations) {
+      for (const locationB of locations) {
+        if (locationA !== locationB) {
+          let rank = locationA.distance + locationB.distance
+
+          if (locationA.scope.isPrecedingSiblingOf(locationB.scope)) {
+            rank -= 1
+          }
+
+          suggestions.push({
+            icon: icon,
+            name: name,
+            arguments: [
+              {
+                label: "from",
+                value: locationA.value.expression,
+              },
+              {
+                label: "to",
+                value: locationB.value.expression,
+              },
+            ],
+            rank,
+          })
+        }
+      }
+    }
+
+    return suggestions
+  }
+}
+
+function functionFn(name: string, resultsLabel: string, mode: google.maps.TravelMode): (positionalArgs: any[], namedArgs: { [name: string]: any }, scope: Scope) => any {
+  return async ([], { from, to, unit }, scope) => {
+    if (!unit) {
+      unit = (await scope.lookupValueAsync("lengthUnit")) ?? "kilometers"
+    }
+
+    if (from && to) {
+      const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
+      const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))
+
+      if (!fromPos || !toPos) {
+        return undefined
+      }
+
+      return getRouteInformation(fromPos, toPos, mode, unit)
+    }
+
+    let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
+
+    const positions: DataWithProvenance<LatLngLiteral>[][] = []
+    const inBetweenLocations: DataWithProvenance<number>[] = []
+
+    for (const childScope of scope.childScopes) {
+      const currentPositions: DataWithProvenance<google.maps.LatLngLiteral>[] =
+        await childScope.getOwnPropertyAndPropertiesOfTransclusionAsync("position", parseLatLng)
+
+      for (const prevPosition of prevPositions) {
+        for (const currentPosition of currentPositions) {
+          childScope.setProperty(
+            resultsLabel,
+            `{${name}(from: #[${prevPosition.scope.id}], to: #[${currentPosition.scope.id}])}`
+          )
+        }
+      }
+
+      if (currentPositions.length === 0) {
+        const containedLocations = await childScope.extractDataInScopeAsync(
+          async (scope) => {
+            if (scope.source.startsWith(`${resultsLabel}:`)) {
+              return
             }
 
-            suggestions.push({
-              icon: "route",
-              name: "Route",
-              arguments: [
-                {
-                  label: "from",
-                  value: locationA.value.expression,
-                },
-                {
-                  label: "to",
-                  value: locationB.value.expression,
-                },
-              ],
-              rank,
-            })
-          }
-        }
-      }
-
-      return suggestions
-    },
-    function: async ([], { from, to, unit }, scope) => {
-      if (!unit) {
-        unit = (await scope.lookupValueAsync("lengthUnit")) ?? "kilometers"
-      }
-
-      if (from && to) {
-        const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
-        const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))
-
-        if (!fromPos || !toPos) {
-          return undefined
-        }
-
-        return getRouteInformation(fromPos, toPos, unit)
-      }
-
-      let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
-
-      const positions: DataWithProvenance<LatLngLiteral>[][] = []
-      const inBetweenLocations: DataWithProvenance<number>[] = []
-
-      for (const childScope of scope.childScopes) {
-        const currentPositions: DataWithProvenance<google.maps.LatLngLiteral>[] =
-          await childScope.getOwnPropertyAndPropertiesOfTransclusionAsync("position", parseLatLng)
-
-        for (const prevPosition of prevPositions) {
-          for (const currentPosition of currentPositions) {
-            childScope.setProperty(
-              "route",
-              `{Route(from: #[${prevPosition.scope.id}], to: #[${currentPosition.scope.id}])}`
+            const positions = await scope.getOwnPropertyAndPropertiesOfTransclusionAsync(
+              "position",
+              parseLatLng
             )
-          }
-        }
+            // console.log("inside", positions)
 
-        if (currentPositions.length === 0) {
-          const containedLocations = await childScope.extractDataInScopeAsync(
-            async (scope) => {
-              if (scope.source.startsWith("route:")) {
-                return
-              }
-
-              const positions = await scope.getOwnPropertyAndPropertiesOfTransclusionAsync(
-                "position",
-                parseLatLng
-              )
-              // console.log("inside", positions)
-
-              return positions
-            },
-            { skipTranscludedScopes: true }
-          )
-
-          for (const containedLocation of containedLocations) {
-            inBetweenLocations.push({
-              data: positions.length,
-              scope: containedLocation.scope,
-            })
-          }
-        } else {
-          prevPositions = currentPositions
-          positions.push(currentPositions)
-        }
-      }
-
-      for (const inBetweenLocation of inBetweenLocations) {
-        const prevPosition = positions[inBetweenLocation.data - 1][0]
-        const nextPosition = positions[inBetweenLocation.data][0]
-
-        if (!prevPosition || !nextPosition) {
-          continue
-        }
-
-        inBetweenLocation.scope.setProperty(
-          "route",
-
-          `{Route(from: #[${prevPosition.scope.id}], to:${inBetweenLocation.scope.source})} {Route(from: ${inBetweenLocation.scope.source}, to: #[${nextPosition.scope.id}])}`
-
-          // `${prevPosition.scope.source} -> ${curr}`
-          //`{Route(from: #[${prevPosition.scope.id}], to: #[${inBetweenLocation.scope.id}])} {Route(from: #[${inBetweenLocation.scope.id}], to: ${nextPosition.scope.id}])}`
+            return positions
+          },
+          { skipTranscludedScopes: true }
         )
+
+        for (const containedLocation of containedLocations) {
+          inBetweenLocations.push({
+            data: positions.length,
+            scope: containedLocation.scope,
+          })
+        }
+      } else {
+        prevPositions = currentPositions
+        positions.push(currentPositions)
       }
-    },
-  },
+    }
+
+    for (const inBetweenLocation of inBetweenLocations) {
+      const prevPosition = positions[inBetweenLocation.data - 1][0]
+      const nextPosition = positions[inBetweenLocation.data][0]
+
+      if (!prevPosition || !nextPosition) {
+        continue
+      }
+
+      inBetweenLocation.scope.setProperty(
+        resultsLabel,
+
+        `{${name}(from: #[${prevPosition.scope.id}], to:${inBetweenLocation.scope.source})} {${name}(from: ${inBetweenLocation.scope.source}, to: #[${nextPosition.scope.id}])}`
+
+        // `${prevPosition.scope.source} -> ${curr}`
+        //`{Route(from: #[${prevPosition.scope.id}], to: #[${inBetweenLocation.scope.id}])} {Route(from: #[${inBetweenLocation.scope.id}], to: ${nextPosition.scope.id}])}`
+      )
+    }
+  }
 }
 
 async function getRouteInformation(
   from: LatLngLiteral,
   to: LatLngLiteral,
+  mode: google.maps.TravelMode,
   unit: string
 ): Promise<RouteInformation | undefined> {
   const graphDocHandle = getGraphDocHandle()
@@ -174,7 +261,7 @@ async function getRouteInformation(
       {
         origin: from,
         destination: to,
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: mode,
       },
       (result: google.maps.DirectionsResult | null) => {
         result = result ?? { routes: [] }

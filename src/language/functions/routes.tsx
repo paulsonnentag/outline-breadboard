@@ -3,7 +3,6 @@ import { formatDistance, formatDuration } from "../../utils"
 import { parseLatLng } from "../../properties"
 import { getGraphDocHandle } from "../../graph"
 import { DataWithProvenance, Scope } from "../scopes"
-import LatLngLiteral = google.maps.LatLngLiteral
 import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
@@ -31,7 +30,7 @@ export const ROUTE_FN: FunctionDefs = {
 
     suggestions: suggestionsFn("Driving", "directions_car"),
 
-    function: functionFn("Driving", "driving", google.maps.TravelMode.DRIVING),
+    function: functionFn("Driving", "driving", "DRIVING" as any),
   },
   Biking: {
     icon: "directions_bike",
@@ -56,7 +55,7 @@ export const ROUTE_FN: FunctionDefs = {
 
     suggestions: suggestionsFn("Biking", "directions_bike"),
 
-    function: functionFn("Biking", "biking", google.maps.TravelMode.BICYCLING),
+    function: functionFn("Biking", "biking", "BICYCLING" as any),
   },
   Walking: {
     icon: "directions_walk",
@@ -81,7 +80,7 @@ export const ROUTE_FN: FunctionDefs = {
 
     suggestions: suggestionsFn("Walking", "directions_walk"),
 
-    function: functionFn("Walking", "walking", google.maps.TravelMode.BICYCLING),
+    function: functionFn("Walking", "walking", "WALKING" as any),
   },
 
   // Left in to avoid compat. issues; should remove once safe
@@ -108,7 +107,7 @@ export const ROUTE_FN: FunctionDefs = {
 
     suggestions: suggestionsFn("Route", "route"),
 
-    function: functionFn("Route", "route", google.maps.TravelMode.DRIVING),
+    function: functionFn("Route", "route", "DRIVING" as any),
   },
 }
 
@@ -149,7 +148,11 @@ function suggestionsFn(name: string, icon: string) {
   }
 }
 
-function functionFn(name: string, resultsLabel: string, mode: google.maps.TravelMode): (positionalArgs: any[], namedArgs: { [name: string]: any }, scope: Scope) => any {
+function functionFn(
+  name: string,
+  resultsLabel: string,
+  mode: google.maps.TravelMode
+): (positionalArgs: any[], namedArgs: { [name: string]: any }, scope: Scope) => any {
   return async ([], { from, to, unit }, scope) => {
     if (!unit) {
       unit = (await scope.lookupValueAsync("lengthUnit")) ?? "kilometers"
@@ -168,7 +171,7 @@ function functionFn(name: string, resultsLabel: string, mode: google.maps.Travel
 
     let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
 
-    const positions: DataWithProvenance<LatLngLiteral>[][] = []
+    const positions: DataWithProvenance<google.maps.LatLngLiteral>[][] = []
     const inBetweenLocations: DataWithProvenance<number>[] = []
 
     for (const childScope of scope.childScopes) {
@@ -235,8 +238,8 @@ function functionFn(name: string, resultsLabel: string, mode: google.maps.Travel
 }
 
 async function getRouteInformation(
-  from: LatLngLiteral,
-  to: LatLngLiteral,
+  from: google.maps.LatLngLiteral,
+  to: google.maps.LatLngLiteral,
   mode: google.maps.TravelMode,
   unit: string
 ): Promise<RouteInformation | undefined> {

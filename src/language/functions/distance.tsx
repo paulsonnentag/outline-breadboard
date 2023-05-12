@@ -75,12 +75,14 @@ export const DISTANCE_FN: FunctionDefs = {
         }
 
         const distance = turfDistance(
-          turfPoint([pos1.lat, pos1.lng]),
-          turfPoint([pos2.lat, pos2.lng]),
+          turfPoint([pos1.lng, pos1.lat]),
+          turfPoint([pos2.lng, pos2.lat]),
           {
             units: unit,
           }
         )
+
+        console.log(unit)
 
         return {
           value: distance,
@@ -95,25 +97,6 @@ export const DISTANCE_FN: FunctionDefs = {
               ],
             },
           },
-        }
-      }
-
-      let prevPositions: DataWithProvenance<google.maps.LatLngLiteral>[] = []
-      for (const childScope of scope.childScopes) {
-        const currentPositions: DataWithProvenance<google.maps.LatLngLiteral>[] =
-          await childScope.getOwnPropertyAndPropertiesOfTransclusionAsync("position", parseLatLng)
-
-        for (const prevPosition of prevPositions) {
-          for (const currentPosition of currentPositions) {
-            childScope.setProperty(
-              "distance",
-              `{Distance(from: #[${prevPosition.scope.id}], to: #[${currentPosition.scope.id}])}`
-            )
-          }
-        }
-
-        if (currentPositions.length !== 0) {
-          prevPositions = currentPositions
         }
       }
     },

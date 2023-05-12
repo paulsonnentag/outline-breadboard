@@ -15,10 +15,11 @@ import {
 import { OutlineEditor, OutlineEditorProps } from "./editor/OutlineEditor"
 import { IconButton } from "./IconButton"
 import classNames from "classnames"
-import { isString } from "./utils"
+import { download, isString } from "./utils"
 import { useRootScope } from "./language/scopes"
 import { useDocument, useHandle, useRepo } from "automerge-repo-react-hooks"
-import { ProfileDoc } from "./profile"
+import { importGraph, ProfileDoc } from "./profile"
+import fileDialog from "file-dialog"
 
 interface RootProps {
   profileDocId: DocumentId
@@ -77,6 +78,53 @@ export function Root({ profileDocId }: RootProps) {
     })
   }
 
+  const onExport = async () => {
+    if (!selectedGraphId) {
+      return
+    }
+
+    const doc = await repo.find<GraphDoc>(selectedGraphId).value()
+    const firstRootNodeId = doc.rootNodeIds[0]
+    const node = getNode(doc.graph, firstRootNodeId)
+    const filename = `${node.value.toLowerCase().replaceAll(" ", "_") ?? "untitled"}.json`
+
+    download(filename, JSON.stringify(doc, null, 2))
+  }
+
+  const onImport = async () => {
+    const files = await fileDialog()
+
+    const jsonObjects = await Promise.all(
+      Array.from(files).map(async (file) => {
+        const text = await file.text()
+
+        try {
+          return JSON.parse(text)
+        } catch (err) {
+          return undefined
+        }
+      })
+    )
+
+    let lastImportedDocId: DocumentId | undefined
+
+    for (const jsonObject of jsonObjects) {
+      // light validation
+      if (
+        jsonObject &&
+        Array.isArray(jsonObject.rootNodeIds) &&
+        typeof jsonObject.cache === "object" &&
+        typeof jsonObject.graph === "object"
+      ) {
+        lastImportedDocId = importGraph(repo, profileDocId, jsonObject)
+      }
+    }
+
+    if (lastImportedDocId) {
+      onChangeSelectedGraphId(lastImportedDocId)
+    }
+  }
+
   if (!profile) {
     return null
   }
@@ -91,6 +139,8 @@ export function Root({ profileDocId }: RootProps) {
         onOpenSettings={() => {
           onChangeSelectedGraphId(profile?.settingsGraphId)
         }}
+        onExport={onExport}
+        onImport={onImport}
       />
 
       <div className="p-4 bg-gray-50 flex w-full h-screen items-middle relative overflow-auto">
@@ -108,6 +158,8 @@ interface SidebarProps {
   onChangeSelectedGraphId: (graphId: DocumentId) => void
   onOpenSettings: () => void
   onAddNewDocument: () => void
+  onExport: () => void
+  onImport: () => void
 }
 
 function Sidebar({
@@ -116,18 +168,30 @@ function Sidebar({
   selectedGraphId,
   onChangeSelectedGraphId,
   onOpenSettings,
+  onExport,
+  onImport,
 }: SidebarProps) {
   return (
     <div className="p-4 w-[300px] bg-gray-100 border-r border-r-gray-200 flex-shrink-0 flex flex-col gap-2">
-      <div className="flex justify-between">
+      <div className="flex justify-between pb-4">
         <div className="text-xl">Breadboard</div>
 
-        <div className="w-[24px] h-[24px]">
-          <IconButton icon="settings" onClick={() => onOpenSettings()} />
+        <div className="flex gap-2">
+          {selectedGraphId && (
+            <div className="w-[24px] h-[24px]">
+              <IconButton icon="upload" onClick={() => onExport()} />
+            </div>
+          )}
+          <div className="w-[24px] h-[24px]">
+            <IconButton icon="download" onClick={() => onImport()} />
+          </div>
+          <div className="w-[24px] h-[24px]">
+            <IconButton icon="settings" onClick={() => onOpenSettings()} />
+          </div>
         </div>
       </div>
 
-      <div className="flex-col gap-1">
+      <div className="flex flex-col gap-1">
         {graphIds.map((graphId, index) => {
           const isSelected = selectedGraphId === graphId
 
@@ -142,17 +206,17 @@ function Sidebar({
             />
           )
         })}
-      </div>
 
-      <button
-        className="flex gap-1 text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-200 rounded-md items-center"
-        onClick={onAddNewDocument}
-      >
-        <div className="w-[24px] h-[24px]">
-          <span className="material-icons ">add</span>
-        </div>{" "}
-        New Document
-      </button>
+        <button
+          className="flex gap-1 text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-200 rounded-md items-center"
+          onClick={onAddNewDocument}
+        >
+          <div className="w-[24px] h-[24px]">
+            <span className="material-icons ">add</span>
+          </div>{" "}
+          New Document
+        </button>
+      </div>
     </div>
   )
 }
@@ -171,6 +235,7 @@ function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
   }
 
   const { graph, rootNodeIds } = graphDoc
+  const displayedRootNodeIds = rootNodeIds.filter((rootNodeId) => graph[rootNodeId].type !== "ref")
 
   return (
     <div
@@ -180,7 +245,12 @@ function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
       })}
       onClick={() => onSelect()}
     >
-      {rootNodeIds.map((rootNodeId, rootNodeIndex) => {
+      {displayedRootNodeIds.map((rootNodeId, rootNodeIndex) => {
+        // filter out ref nodes
+        if (graph[rootNodeId].type === "ref") {
+          return null
+        }
+
         const node = getNode(graph, rootNodeId)
         const label = node.value === "" ? "Untitled" : node.value
 
@@ -190,7 +260,7 @@ function SidebarTab({ graphId, isSelected, onSelect }: SidebarTabProps) {
             className={classNames(
               "p-1 rounded-md w-fit whitespace-nowrap overflow-ellipsis overflow-hidden flex",
               {
-                "bg-gray-100": rootNodeIds.length > 1 && isSelected,
+                "bg-gray-100": displayedRootNodeIds.length > 1 && isSelected,
               }
             )}
           >

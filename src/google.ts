@@ -1,9 +1,11 @@
 import { Loader } from "@googlemaps/js-api-loader"
-import { GOOGLE_MAPS_API_KEY } from "./api-keys"
 import { useEffect, useState } from "react"
 
+// @ts-ignore
+const API_KEY = __APP_ENV__.GOOGLE_MAPS_API_KEY
+
 const loader = new Loader({
-  apiKey: GOOGLE_MAPS_API_KEY,
+  apiKey: API_KEY,
   version: "beta",
   libraries: ["places", "marker"],
 })

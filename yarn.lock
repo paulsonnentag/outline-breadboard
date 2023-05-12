@@ -1341,6 +1341,11 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
+file-dialog@^0.0.8:
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/file-dialog/-/file-dialog-0.0.8.tgz#9137155ffe4abf4e1546aba3ed17e395fbf92aba"
+  integrity sha512-KnYitqNf/rANEhUxWzkINAaMVc7SshejwA5HEd5Wr8lEJQX1Js1LCndectS44SXTnXWK+jbHQYs4R6CaG+7Jkg==
+
 fill-range@^7.0.1:
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/fill-range/-/fill-range-7.0.1.tgz#1919a6a7c75fe38b2c7c77e5198535da9acdda40"
@@ -1403,11 +1408,6 @@ has@^1.0.3:
   integrity sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==
   dependencies:
     function-bind "^1.1.1"
-
-humanize-duration@^3.28.0:
-  version "3.28.0"
-  resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.28.0.tgz#f79770c0bec34d3bfd4899338cc40643bc04df72"
-  integrity sha512-jMAxraOOmHuPbffLVDKkEKi/NeG8dMqP8lGRd6Tbf7JgAeG33jjgPWDbXXU7ypCI0o+oNKJFgbSB9FKVdWNI2A==
 
 immediate@~3.0.5:
   version "3.0.6"

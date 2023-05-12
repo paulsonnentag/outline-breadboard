@@ -1,8 +1,8 @@
-import { FunctionDefs, HAS_MISSING_ARGUMENTS_VALUE } from "./function-def"
-
+import { FunctionDefs } from "./function-def"
 import { Parameter } from "../function-suggestions"
-import { Flight } from "../../flights"
-import { AIRLABS_API_KEY } from "../../api-keys"
+
+// @ts-ignore
+const AIRLABS_API_KEY = __APP_ENV__.AIRLABS_API_KEY
 
 type FlightStatus = {
   // TODO: show current airplane position on map.....?

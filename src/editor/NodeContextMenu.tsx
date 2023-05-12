@@ -11,7 +11,7 @@ import {
 import classNames from "classnames"
 import { suggestionToExprSource } from "./TextInput"
 import { parseExpression } from "../language"
-import { FnNode, IdRefNode } from "../language/ast"
+import { FnNode, IdRefNode, InlineExprNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
@@ -22,6 +22,7 @@ export interface NodeContextMenuProps {
   isFocusedOnNode: boolean
   isAnotherFocused: boolean
   isHoveredOnNode: boolean
+  hideFunctionButtons: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
   onChangeIsComputationSuggestionHovered?: (hasSuggestion: boolean) => void
 }
@@ -32,12 +33,13 @@ export function NodeContextMenu({
   isFocusedOnNode,
   isAnotherFocused,
   isHoveredOnNode,
+  hideFunctionButtons,
   onOpenNodeInNewPane,
   onChangeIsComputationSuggestionHovered,
 }: NodeContextMenuProps) {
   const suggestionNodeId = `TEMP_SUGGESTION_${useId()}`
   const { graph, changeGraph } = useGraph()
-  const [ isHovering, setIsHovering ] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
   const nodeId = node.id
   const isMap = node.view === "map"
   const isTable = node.view === "table"
@@ -46,7 +48,7 @@ export function NodeContextMenu({
   const suggestedFunctions = getGroupedSuggestedFunctions(scope)
 
   const [suggestedFunctionButtons, setSuggestedFunctionButtons] = useState<
-    { name: string; suggestion: string; result: string, icon: string }[]
+    { name: string; suggestion: string; result: string; icon: string }[]
   >([])
 
   const repeatButtonRef = useRef<HTMLButtonElement>(null)
@@ -54,6 +56,13 @@ export function NodeContextMenu({
     { x: number; y: number } | undefined
   >()
   const [pendingInsertions, setPendingInsertions] = useState<Insertion[]>([])
+
+  const doesBulletContainComputations = scope.bullet.value.some(
+    (part) => part instanceof InlineExprNode
+  )
+
+  const showFunctionButtons =
+    !doesBulletContainComputations && node.value !== "" && !hideFunctionButtons
 
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
@@ -152,10 +161,10 @@ export function NodeContextMenu({
     })
   }
 
-  if (node.isTemporary) { 
-    return null 
+  if (node.isTemporary) {
+    return null
   }
-  
+
   if (!isFocusedOnNode && !isHovering && !isMap && !isTable && !isCalendar) {
     return null
   }
@@ -207,14 +216,14 @@ export function NodeContextMenu({
   return (
     <div
       className="absolute right-1 flex flex-col gap-1"
-      onMouseOver={e => setIsHovering(true)}
-      onMouseLeave={e => setIsHovering(false)}
+      onMouseOver={(e) => setIsHovering(true)}
+      onMouseLeave={(e) => setIsHovering(false)}
     >
       {scope.parentScope && pendingInsertions?.length === 0 && (
         <button
           className={classNames(
             "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
-            {"opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering}
+            { "opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering }
           )}
           onClick={onDelete}
         >
@@ -262,15 +271,19 @@ export function NodeContextMenu({
         </div>
       )}
 
-      {(isFocusedOnNode || isHovering) && suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
+      {(isFocusedOnNode || isHovering) &&
+        showFunctionButtons &&
+        suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
           return (
             <div key={name} className="relative">
-              {isHovering && 
-                <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">{result}</div>
-              }
+              {isHovering && (
+                <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">
+                  {result}
+                </div>
+              )}
               <button
                 className={classNames(
-                  "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1",
+                  "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
                 )}
                 onClick={() => {
                   if (!suggestion) {
@@ -301,11 +314,13 @@ export function NodeContextMenu({
                   }
 
                   const tempScope = new Scope(graph, suggestionNodeId, scope)
-                  scope.childScopes.unshift(tempScope)
+                  scope.childScopes.push(tempScope)
                   scope.eval()
                 }}
                 onMouseLeave={() => {
-                  const index = scope.childScopes.findIndex((scope) => scope.id === suggestionNodeId)
+                  const index = scope.childScopes.findIndex(
+                    (scope) => scope.id === suggestionNodeId
+                  )
                   if (index !== -1) {
                     scope.childScopes.splice(index, 1)
                   }
@@ -321,23 +336,26 @@ export function NodeContextMenu({
           )
         })}
 
-      {(isFocusedOnNode || isHovering) && pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
-        <button
-          className={classNames(
-            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-            isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-          )}
-          ref={repeatButtonRef}
-          onClick={onRepeat}
-          onMouseEnter={onMouseEnterRepeat}
-        >
-          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-            repeat
-          </span>
-        </button>
-      )}
+      {(isFocusedOnNode || isHovering) &&
+        pendingInsertions?.length === 0 &&
+        canFormulaBeRepeated(scope) && (
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+              isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            )}
+            ref={repeatButtonRef}
+            onClick={onRepeat}
+            onMouseEnter={onMouseEnterRepeat}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              repeat
+            </span>
+          </button>
+        )}
 
-      {(isFocusedOnNode || isHovering) && repeatButtonPosition &&
+      {(isFocusedOnNode || isHovering) &&
+        repeatButtonPosition &&
         createPortal(
           <div
             style={{

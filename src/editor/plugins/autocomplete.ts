@@ -7,7 +7,9 @@ import { scopeFacet } from "./state"
 import { KEYWORD_REGEX } from "../../language"
 import { REF_ID_REGEX } from "./refIdTokenPlugin"
 import { createFlightNode } from "../../flights"
-import { AIRLABS_API_KEY } from "../../api-keys"
+
+// @ts-ignore
+const AIRLABS_API_KEY = __APP_ENV__.AIRLABS_API_KEY
 
 export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => void) => void) {
   return async function mentionCompletionContext(context: CompletionContext) {
@@ -25,6 +27,7 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     const placesOptions = await getPlacesAutocompletion(search, graph, changeGraph)
     const flightsOptions = await getFlightsAutocompletion(search, graph, changeGraph)
 
+    const timeOptions = getTimesAutocompletion(search, graph, changeGraph)
     const dateOptions = getDatesAutocompletion(search, graph, changeGraph)
 
     const nodeOptions: Completion[] = Object.values(graph).flatMap((node: Node) => {
@@ -48,7 +51,11 @@ export function getMentionCompletionContext(changeGraph: (fn: (graph: Graph) => 
     return {
       from: reference.from,
       filter: false,
-      options: dateOptions.concat(nodeOptions).concat(flightsOptions).concat(placesOptions),
+      options: dateOptions
+        .concat(timeOptions)
+        .concat(nodeOptions)
+        .concat(flightsOptions)
+        .concat(placesOptions),
     }
   }
 }
@@ -140,6 +147,102 @@ async function getFlightsAutocompletion(
       },
     } as Completion,
   ]
+}
+
+const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
+
+function getTimesAutocompletion(
+  search: string,
+  graph: Graph,
+  changeGraph: (fn: (graph: Graph) => void) => void
+): Completion[] {
+  const match = search.match(TIME_REGEX)
+
+  if (match) {
+    const timeString = search
+
+    // if date node already exists and search matches canonical form we don't need to add a suggestion
+    // because the default node search will already suggest the date node
+    if (graph[timeString]) {
+      return []
+    }
+
+    return [
+      {
+        label: timeString,
+        apply: (view, completion, from, to) => {
+          if (!graph[timeString]) {
+            changeGraph((graph) => {
+              const node = createValueNode(graph, { id: timeString, value: timeString })
+              const attribute = createValueNode(graph, { value: `time: ${timeString}` })
+              node.children.push(attribute.id)
+            })
+          }
+          setTimeout(() => {
+            view.dispatch(
+              view.state.update({
+                changes: {
+                  from: from,
+                  to: to,
+                  insert: `#[${timeString}]`,
+                },
+              })
+            )
+          })
+        },
+      },
+    ]
+  }
+
+  // If you have typed one or two digits, suggest the :00 + quarters
+  const digitsRegex = /^\d{1,2}$/
+  const digitsMatch = search.match(digitsRegex)
+
+  if (digitsMatch) {
+    return [":00", ":15", ":30", ":45"]
+      .map((mins) => {
+        const timeString = search.padStart(2, "0") + mins
+
+        if (graph[timeString]) {
+          return undefined
+        }
+
+        return {
+          label: timeString,
+          apply: (
+            view: {
+              dispatch: (arg0: any) => void
+              state: { update: (arg0: { changes: { from: any; to: any; insert: string } }) => any }
+            },
+            completion: any,
+            from: any,
+            to: any
+          ) => {
+            if (!graph[timeString]) {
+              changeGraph((graph) => {
+                const node = createValueNode(graph, { id: timeString, value: timeString })
+                const attribute = createValueNode(graph, { value: `time: ${timeString}` })
+                node.children.push(attribute.id)
+              })
+            }
+            setTimeout(() => {
+              view.dispatch(
+                view.state.update({
+                  changes: {
+                    from: from,
+                    to: to,
+                    insert: `#[${timeString}]`,
+                  },
+                })
+              )
+            })
+          },
+        }
+      })
+      .filter((v) => v !== undefined) as Completion[]
+  }
+
+  return []
 }
 
 const DATE_REGEX = /^([0-9]{1,2})\/([0-9]{1,2})(\/([0-9]{2}|[0-9]{4}))?$/

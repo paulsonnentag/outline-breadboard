@@ -39,6 +39,7 @@ interface TextInputProps {
   onOutdent: () => void
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
+  onChangeIsMenuOpen: (isMenuOpen: boolean) => void
 }
 
 export function TextInput({
@@ -59,6 +60,7 @@ export function TextInput({
   onBlur,
   isHoveringOverId,
   setIsHoveringOverId,
+  onChangeIsMenuOpen,
 }: TextInputProps) {
   const { graph, changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -68,6 +70,11 @@ export function TextInput({
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
   const isMenuOpen = activeSlashIndex !== -1
   const search = activeSlashIndex !== -1 ? value.slice(activeSlashIndex + 1) : undefined
+
+  // trigger isMenuOpenEvent
+  useEffect(() => {
+    onChangeIsMenuOpen(isMenuOpen)
+  }, [isMenuOpen])
 
   // load suggestions
   useEffect(() => {

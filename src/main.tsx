@@ -12,9 +12,13 @@ import { getProfileDoc } from "./profile"
 
 const url = "ws://67.207.88.83" // cloud sync server on DigitalOcean
 
+// @ts-ignore
+const IS_VERCEL = __IS_VERCEL__
+
 const repo = new Repo({
   storage: new LocalForageStorageAdapter(),
-  network: [], //[new BrowserWebSocketClientAdapter(url)],
+  // disable websockets on Vercel until sync server has SSL certificate
+  network: IS_VERCEL ? [] : [new BrowserWebSocketClientAdapter(url)],
   sharePolicy: (peerId) => peerId.includes("storage-server"),
 })
 

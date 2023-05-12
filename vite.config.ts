@@ -33,6 +33,7 @@ export default defineConfig(({ command, mode }) => {
     },
 
     define: {
+      __IS_VERCEL__: process.env.VITE_VERCEL_ENV !== undefined,
       __APP_ENV__: env,
     },
 

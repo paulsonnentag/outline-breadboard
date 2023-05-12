@@ -246,7 +246,7 @@ async function getRouteInformation(
   const graphDocHandle = getGraphDocHandle()
   const doc = await graphDocHandle.value()
 
-  const key = JSON.stringify({ from, to })
+  const key = JSON.stringify({ from, to, mode })
   const cachedResult: google.maps.DirectionsResult = doc.cache[key]
     ? JSON.parse(doc.cache[key])
     : undefined

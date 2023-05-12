@@ -235,13 +235,13 @@ export class Scope {
       return []
     }
 
-    return this.value.flatMap((part: any) => {
+    return this.value.flatMap((part: any, index: number) => {
       if (!(part instanceof Scope)) {
         return []
       }
 
       const date = parseDate(part.id)
-      return date ? [{ scope: part, data: date }] : []
+      return date ? [{ scope: part, data: date, index }] : []
     })
   }
 
@@ -250,13 +250,13 @@ export class Scope {
       return []
     }
 
-    return this.value.flatMap((part: any) => {
+    return this.value.flatMap((part: any, index: number) => {
       if (!(part instanceof Scope)) {
         return []
       }
 
       const latLng = parseLatLng(part.getProperty("position"))
-      return latLng ? [{ scope: part, data: latLng }] : []
+      return latLng ? [{ scope: part, data: latLng, index }] : []
     })
   }
 
@@ -534,6 +534,7 @@ export function useRootScope(rootId: string): Scope | undefined {
 
 export interface DataWithProvenance<T> {
   scope: Scope
+  index?: number
   data: T
 }
 

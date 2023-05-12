@@ -211,7 +211,8 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
 
       const argsSource = fn.args.map((arg) => {
         if (arg.name === anchorArgument.name) {
-          return `${arg.name}: ${anchorArgument.expression}`
+          const refId = (scope.bullet.value[value.index as number] as IdRefNode).id
+          return `${arg.name}: #[${refId}]`
         }
 
         const extractionFn = extractionFnForArgument[arg.name as string]

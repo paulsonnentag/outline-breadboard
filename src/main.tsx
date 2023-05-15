@@ -24,34 +24,6 @@ const repo = new Repo({
 
 const profileDocHandle = getProfileDoc(repo)
 
-/*
-
-;(window as any).exportDoc = () => {
-  if (!handle) {
-    return
-  }
-
-  handle.value().then((value) => {
-    console.log("copy out the doc value", { value: JSON.stringify(value) })
-  })
-}
-;(window as any).replaceDoc = async (jsonString: string) => {
-  if (!handle) {
-    return
-  }
-
-  handle.change((doc) => {
-    Object.entries(JSON.parse(jsonString)).forEach(([key, value]) => {
-      ;(doc as any)[key] = value
-    })
-  })
-
-  console.log("replace doc")
-}
-
-
-   */
-
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   //<React.StrictMode>
   <RepoContext.Provider value={repo}>

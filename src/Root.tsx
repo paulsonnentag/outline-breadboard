@@ -27,6 +27,9 @@ interface RootProps {
 
 const DEFAULT_WIDTH = 800
 
+// set to true to speed up page reloads during development, only the selected document will be loaded
+const LOAD_SINGLE_DOC = false
+
 export function Root({ profileDocId }: RootProps) {
   const repo = useRepo()
   const [profile, changeProfile] = useDocument<ProfileDoc>(profileDocId)
@@ -76,7 +79,7 @@ export function Root({ profileDocId }: RootProps) {
 
       changeProfile((profile) => {
         profile.graphIds.push(graphDocHandle.documentId)
-        setSelectedGraphId(graphDocHandle.documentId)
+        onChangeSelectedGraphId(graphDocHandle.documentId)
       })
     })
   }
@@ -195,20 +198,22 @@ function Sidebar({
       </div>
 
       <div className="flex flex-col gap-1">
-        {graphIds.map((graphId, index) => {
-          const isSelected = selectedGraphId === graphId
+        {graphIds
+          .filter((graphId) => graphId === selectedGraphId || !LOAD_SINGLE_DOC)
+          .map((graphId, index) => {
+            const isSelected = selectedGraphId === graphId
 
-          return (
-            <SidebarTab
-              key={index}
-              graphId={graphId}
-              isSelected={isSelected}
-              onSelect={() => {
-                onChangeSelectedGraphId(graphId)
-              }}
-            />
-          )
-        })}
+            return (
+              <SidebarTab
+                key={index}
+                graphId={graphId}
+                isSelected={isSelected}
+                onSelect={() => {
+                  onChangeSelectedGraphId(graphId)
+                }}
+              />
+            )
+          })}
 
         <button
           className="flex gap-1 text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-200 rounded-md items-center"

@@ -1,6 +1,6 @@
 import classNames from "classnames"
 import { useEffect, useState } from "react"
-import { getGraph, getNode, useGraph } from "../graph"
+import { getGraph, getNode, Graph, useGraph } from "../graph"
 import { suggestionToExprSource } from "./TextInput"
 import { parseExpression } from "../language"
 import { Scope } from "../language/scopes"
@@ -9,11 +9,26 @@ import { HAS_MISSING_ARGUMENTS_VALUE } from "../language/functions/function-def"
 import { IdRefNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
 import { getSuggestedFunctions } from "../language/function-suggestions"
+import { getSuggestedMentions } from "./mentions"
+
+export interface MentionSuggestionValue {
+  type: "mention"
+  name: string
+  expression: string
+}
+
+export interface FunctionSuggestionValue {
+  type: "function"
+  name: string
+  arguments: SuggestionArgument[]
+}
+
+type SuggestionValue = MentionSuggestionValue | FunctionSuggestionValue
 
 export interface Suggestion {
+  value: SuggestionValue
   icon?: string
-  title: string
-  arguments: SuggestionArgument[]
+  beforeInsert?: (graph: Graph, changeGraph: (fn: (graph: Graph) => void) => void) => Promise<void>
 }
 
 interface SuggestionArgument {
@@ -98,19 +113,20 @@ async function getSuggestions(
 ): Promise<Suggestion[]> {
   switch (mode) {
     case "mentions":
-      return Promise.resolve([])
+      return getSuggestedMentions(scope, search)
 
     case "functions":
       return getSuggestedFunctions(scope)
         .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search.toLowerCase()))
         .slice(0, MAX_SUGGESTIONS)
         .map((suggestion) => {
-          //        const inlineExpr = `{${expression}}`
-
           return {
-            title: suggestion.name,
+            value: {
+              type: "function",
+              name: suggestion.name,
+              arguments: suggestion.arguments,
+            },
             icon: suggestion.icon,
-            arguments: suggestion.arguments,
           }
         })
   }
@@ -127,9 +143,20 @@ interface SuggestionRowProps {
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
+interface SuggestionRowProps {
+  suggestion: Suggestion
+  scope: Scope
+  isFocused: boolean
+  onHover: () => void
+  onUnhover: () => void
+  onClick: () => void
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
+}
+
 function SuggestionRow({
-  suggestion,
   scope,
+  suggestion,
   isFocused,
   onHover,
   onUnhover,
@@ -137,15 +164,67 @@ function SuggestionRow({
   isHoveringOverId,
   setIsHoveringOverId,
 }: SuggestionRowProps) {
+  return (
+    <div
+      className={classNames("py-2 px-3 flex items-center gap-1", { "bg-gray-300": isFocused })}
+      onMouseEnter={(e) => onHover()}
+      onMouseLeave={(e) => onUnhover()}
+      onClick={(e) => onClick()}
+    >
+      <span
+        className={classNames("material-icons-outlined font-normal text-sm mr-1", {
+          "opacity-50": suggestion.icon === undefined,
+        })}
+      >
+        {suggestion.icon || "data_object"}
+      </span>
+
+      {suggestion.value.type === "mention" && (
+        <MentionSuggestionValueView value={suggestion.value} />
+      )}
+
+      {suggestion.value.type === "function" && (
+        <FunctionSuggestionValueView
+          value={suggestion.value}
+          scope={scope}
+          isHoveringOverId={isHoveringOverId}
+          setIsHoveringOverId={setIsHoveringOverId}
+        />
+      )}
+    </div>
+  )
+}
+
+interface MentionSuggestionsValueViewProps {
+  value: MentionSuggestionValue
+}
+
+function MentionSuggestionValueView({ value }: MentionSuggestionsValueViewProps) {
+  return <p className="font-medium">{value.name}</p>
+}
+
+interface FunctionSuggestionValueViewProps {
+  value: FunctionSuggestionValue
+  scope: Scope
+  isHoveringOverId: string | undefined
+  setIsHoveringOverId: (nodeId: string | undefined) => void
+}
+
+function FunctionSuggestionValueView({
+  value,
+  scope,
+  isHoveringOverId,
+  setIsHoveringOverId,
+}: FunctionSuggestionValueViewProps) {
   const { graph } = useGraph()
   const [result, setResult] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    const expr = suggestionToExprSource(suggestion)
+    const expr = suggestionToExprSource(value)
 
     const parametersScopes: Scope[] = []
 
-    for (const arg of suggestion.arguments) {
+    for (const arg of value.arguments) {
       if (!arg.value) {
         continue
       }
@@ -170,27 +249,14 @@ function SuggestionRow({
       })
   }, [scope])
 
-  const fn = FUNCTIONS[suggestion.title]
+  const fn = FUNCTIONS[value.name]
   const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
 
   return (
-    <div
-      className={classNames("py-2 px-3 flex items-center gap-1", { "bg-gray-300": isFocused })}
-      onMouseEnter={(e) => onHover()}
-      onMouseLeave={(e) => onUnhover()}
-      onClick={(e) => onClick()}
-    >
-      <span
-        className={classNames("material-icons-outlined font-normal text-sm mr-1", {
-          "opacity-50": suggestion.icon === undefined,
-        })}
-      >
-        {suggestion.icon || "data_object"}
-      </span>
+    <>
+      <p className="font-medium">{value.name}</p>
 
-      <p className="font-medium">{suggestion.title}</p>
-
-      {suggestion.arguments?.map(
+      {value.arguments?.map(
         (a, i) =>
           a.value !== undefined && (
             <p key={i}>
@@ -205,7 +271,7 @@ function SuggestionRow({
       )}
 
       {result && <p className="italic text-purple-600">= {summaryView(result)}</p>}
-    </div>
+    </>
   )
 }
 

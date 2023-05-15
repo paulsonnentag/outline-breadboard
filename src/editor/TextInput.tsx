@@ -2,7 +2,7 @@ import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { getNode, useGraph } from "../graph"
-import { autocompletion, closeBrackets, completionStatus } from "@codemirror/autocomplete"
+import { closeBrackets, completionStatus } from "@codemirror/autocomplete"
 import {
   isAtSign,
   isBackspace,
@@ -14,7 +14,6 @@ import {
   isUp,
 } from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
-import { getMentionCompletionContext } from "./plugins/autocomplete"
 import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
 import { Scope } from "../language/scopes"
 import classNames from "classnames"
@@ -26,7 +25,7 @@ import {
 } from "./plugins/expressionResultPlugin"
 import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
 import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
-import { Suggestion, SuggestionMenu } from "./SuggestionMenu"
+import { FunctionSuggestionValue, Suggestion, SuggestionMenu } from "./SuggestionMenu"
 import { FunctionSuggestion, getSuggestedFunctions } from "../language/function-suggestions"
 
 interface TextInputProps {
@@ -105,10 +104,6 @@ export function TextInput({
         minimalSetup,
         EditorView.lineWrapping,
         getRefIdTokenPlugin(setIsHoveringOverId),
-        autocompletion({
-          activateOnTyping: true,
-          override: [getMentionCompletionContext(changeGraph) /*functionAutocompletionContext*/],
-        }),
         nodeIdFacet.of(nodeId),
         expressionResultsField,
         expressionResultsDecorations,
@@ -259,25 +254,36 @@ export function TextInput({
     }
   }, [value, editorViewRef.current])
 
-  const onSelectSuggestion = (suggestion: Suggestion) => {
+  const onSelectSuggestion = async (suggestion: Suggestion) => {
     const currentEditorView = editorViewRef.current
     if (!currentEditorView || !activeAutocompleteMenu) {
       return
     }
 
-    const expr = `{${suggestionToExprSource(suggestion)}}`
+    // call before insert handler if defined, this allows suggestions like POI suggestions create nodes before the suggested reference is inserted
+    const beforeInsert = suggestion.beforeInsert
+    if (beforeInsert) {
+      await beforeInsert(graph, changeGraph)
+    }
 
-    currentEditorView.dispatch(
-      currentEditorView.state.update({
-        changes: {
-          from: activeAutocompleteMenu.index,
-          to: currentEditorView.state.selection.main.head,
-          insert: expr,
-        },
-      })
-    )
+    let expr =
+      suggestion.value.type === "function"
+        ? `{${suggestionToExprSource(suggestion.value)}}`
+        : suggestion.value.expression
 
-    setActiveAutocompleteMenu(undefined)
+    // hack, wait till next frame so newly created nodes are not undefined
+    setTimeout(() => {
+      currentEditorView.dispatch(
+        currentEditorView.state.update({
+          changes: {
+            from: activeAutocompleteMenu.index,
+            to: currentEditorView.state.selection.main.head,
+            insert: expr,
+          },
+        })
+      )
+      setActiveAutocompleteMenu(undefined)
+    })
   }
 
   const onKeyDown = (evt: KeyboardEvent) => {
@@ -413,10 +419,8 @@ export function TextInput({
   )
 }
 
-export function suggestionToExprSource(suggestion: Suggestion | FunctionSuggestion) {
-  const name = "title" in suggestion ? suggestion.title : suggestion.name
-
-  return `${name}(${(suggestion.arguments ?? [])
+export function suggestionToExprSource(suggestion: FunctionSuggestion | FunctionSuggestionValue) {
+  return `${suggestion.name}(${(suggestion.arguments ?? [])
     .map(({ label, value }) => `${label}: ${value ?? ""}`)
     .join(", ")})`
 }

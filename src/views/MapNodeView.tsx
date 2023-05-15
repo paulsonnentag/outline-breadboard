@@ -43,18 +43,32 @@ export function MapNodeView({
   const { graph, changeGraph } = graphContext
 
   const markers = scope.extractDataInScope<Marker>((scope) => {
-    const position = parseLatLng(scope.getProperty("position"))
-
-    if (!position) {
-      return
-    }
-
     const color = scope.lookupValue("color")
 
-    return {
-      position,
-      color,
+    const markers: Marker[] = []
+
+    // hack to get parking spot results in here
+    if (Array.isArray(scope.value)) {
+      for (const part of scope.value) {
+        if (Array.isArray(part)) {
+          for (const item of part) {
+            if (typeof item.lat === "number" && typeof item.lng === "number") {
+              markers.push({
+                position: { lat: item.lat, lng: item.lng },
+                color,
+              })
+            }
+          }
+        }
+      }
     }
+
+    const position = parseLatLng(scope.getProperty("position"))
+    if (position) {
+      markers.push({ position, color })
+    }
+
+    return markers
   })
 
   // todo: replace when complex computed results are also represented as scopes

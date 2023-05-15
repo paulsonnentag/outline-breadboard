@@ -8,6 +8,7 @@ import { valueToString } from "./plugins/expressionResultPlugin"
 import { HAS_MISSING_ARGUMENTS_VALUE } from "../language/functions/function-def"
 import { IdRefNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
+import { getSuggestedFunctions } from "../language/function-suggestions"
 
 export interface Suggestion {
   icon?: string
@@ -23,39 +24,96 @@ interface SuggestionArgument {
 
 interface SuggestionMenuProps {
   scope: Scope
+  search: string
+  mode: "functions" | "mentions"
   suggestions: Suggestion[]
+  onChangeSuggestions: (suggestions: Suggestion[]) => void
   focusedIndex: number
-  selectSuggestion: (suggestion: Suggestion) => void
+  onSelectSuggestion: (suggestion: Suggestion) => void
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
-export function SuggestionMenu(props: SuggestionMenuProps) {
+export function SuggestionMenu({
+  search,
+  mode,
+  focusedIndex,
+  scope,
+  isHoveringOverId,
+  suggestions,
+  setIsHoveringOverId,
+  onSelectSuggestion,
+  onChangeSuggestions,
+}: SuggestionMenuProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(undefined)
+
+  // load suggestions
+  useEffect(() => {
+    if (search === undefined) {
+      return
+    }
+
+    getSuggestions(scope, search, mode).then((newSuggestions: Suggestion[]) => {
+      onChangeSuggestions(newSuggestions)
+    })
+  }, [search])
 
   return (
     <div className="bg-gray-100 border border-gray-300 rounded">
-      {props.suggestions.map((s, i) => (
+      {suggestions.map((suggestion, index) => (
         <SuggestionRow
-          scope={props.scope}
-          key={i}
-          suggestion={s}
-          isFocused={hoveredIndex === i || (hoveredIndex === undefined && props.focusedIndex === i)}
+          scope={scope}
+          key={index}
+          suggestion={suggestion}
+          isFocused={
+            hoveredIndex === index || (hoveredIndex === undefined && focusedIndex === index)
+          }
           onHover={() => {
-            setHoveredIndex(i)
+            setHoveredIndex(index)
           }} /* override keyboard focus for i */
           onUnhover={() => {
-            hoveredIndex === i && setHoveredIndex(undefined)
+            hoveredIndex === index && setHoveredIndex(undefined)
           }} /* return to keyboard's focus if currently set to i */
           onClick={() => {
-            props.selectSuggestion(s)
+            onSelectSuggestion(suggestion)
           }} /* should also trigger with return key */
-          isHoveringOverId={props.isHoveringOverId}
-          setIsHoveringOverId={props.setIsHoveringOverId}
+          isHoveringOverId={isHoveringOverId}
+          setIsHoveringOverId={setIsHoveringOverId}
         />
       ))}
+
+      {suggestions.length === 0 && (
+        <div className="py-2 px-3 flex items-center gap-1 text-gray-400">no results</div>
+      )}
     </div>
   )
+}
+
+const MAX_SUGGESTIONS = 15
+
+async function getSuggestions(
+  scope: Scope,
+  search: string,
+  mode: "mentions" | "functions"
+): Promise<Suggestion[]> {
+  switch (mode) {
+    case "mentions":
+      return Promise.resolve([])
+
+    case "functions":
+      return getSuggestedFunctions(scope)
+        .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search.toLowerCase()))
+        .slice(0, MAX_SUGGESTIONS)
+        .map((suggestion) => {
+          //        const inlineExpr = `{${expression}}`
+
+          return {
+            title: suggestion.name,
+            icon: suggestion.icon,
+            arguments: suggestion.arguments,
+          }
+        })
+  }
 }
 
 interface SuggestionRowProps {

@@ -2,10 +2,18 @@ import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
 import { getNode, useGraph } from "../graph"
-import { autocompletion, closeBrackets, completionStatus } from "@codemirror/autocomplete"
-import { isBackspace, isDown, isEnter, isEscape, isSlash, isTab, isUp } from "../keyboardEvents"
+import { closeBrackets, completionStatus } from "@codemirror/autocomplete"
+import {
+  isAtSign,
+  isBackspace,
+  isDown,
+  isEnter,
+  isEscape,
+  isSlash,
+  isTab,
+  isUp,
+} from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
-import { getMentionCompletionContext } from "./plugins/autocomplete"
 import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
 import { Scope } from "../language/scopes"
 import classNames from "classnames"
@@ -17,7 +25,7 @@ import {
 } from "./plugins/expressionResultPlugin"
 import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
 import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
-import { Suggestion, SuggestionMenu } from "./SuggestionMenu"
+import { FunctionSuggestionValue, Suggestion, SuggestionMenu } from "./SuggestionMenu"
 import { FunctionSuggestion, getSuggestedFunctions } from "../language/function-suggestions"
 
 interface TextInputProps {
@@ -40,6 +48,11 @@ interface TextInputProps {
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
   onChangeIsMenuOpen: (isMenuOpen: boolean) => void
+}
+
+interface AutocompleteMenu {
+  type: "mentions" | "functions"
+  index: number
 }
 
 export function TextInput({
@@ -65,30 +78,21 @@ export function TextInput({
   const { graph, changeGraph } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
-  const [activeSlashIndex, setActiveSlashIndex] = useState(-1)
+  const [activeAutocompleteMenu, setActiveAutocompleteMenu] = useState<
+    AutocompleteMenu | undefined
+  >()
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
-  const isMenuOpen = activeSlashIndex !== -1
-  const search = activeSlashIndex !== -1 ? value.slice(activeSlashIndex + 1) : undefined
+  const isMenuOpen = activeAutocompleteMenu !== undefined
+  const search =
+    activeAutocompleteMenu !== undefined ? value.slice(activeAutocompleteMenu.index + 1) : undefined
 
   // trigger isMenuOpenEvent
   useEffect(() => {
     onChangeIsMenuOpen(isMenuOpen)
   }, [isMenuOpen])
 
-  // load suggestions
-  useEffect(() => {
-    if (search === undefined) {
-      return
-    }
-
-    getSuggestions(scope, search).then((newSuggestions: Suggestion[]) => {
-      setSuggestions(newSuggestions)
-    })
-  }, [search])
-
   // mount editor
-
   useEffect(() => {
     if (!containerRef.current) {
       return
@@ -100,10 +104,6 @@ export function TextInput({
         minimalSetup,
         EditorView.lineWrapping,
         getRefIdTokenPlugin(setIsHoveringOverId),
-        autocompletion({
-          activateOnTyping: true,
-          override: [getMentionCompletionContext(changeGraph) /*functionAutocompletionContext*/],
-        }),
         nodeIdFacet.of(nodeId),
         expressionResultsField,
         expressionResultsDecorations,
@@ -254,25 +254,36 @@ export function TextInput({
     }
   }, [value, editorViewRef.current])
 
-  const onSelectSuggestion = (suggestion: Suggestion) => {
+  const onSelectSuggestion = async (suggestion: Suggestion) => {
     const currentEditorView = editorViewRef.current
-    if (!currentEditorView) {
+    if (!currentEditorView || !activeAutocompleteMenu) {
       return
     }
 
-    const expr = `{${suggestionToExprSource(suggestion)}}`
+    // call before insert handler if defined, this allows suggestions like POI suggestions create nodes before the suggested reference is inserted
+    const beforeInsert = suggestion.beforeInsert
+    if (beforeInsert) {
+      await beforeInsert(graph, changeGraph)
+    }
 
-    currentEditorView.dispatch(
-      currentEditorView.state.update({
-        changes: {
-          from: activeSlashIndex,
-          to: currentEditorView.state.selection.main.head,
-          insert: expr,
-        },
-      })
-    )
+    let expr =
+      suggestion.value.type === "function"
+        ? `{${suggestionToExprSource(suggestion.value)}}`
+        : suggestion.value.expression
 
-    setActiveSlashIndex(-1)
+    // hack, wait till next frame so newly created nodes are not undefined
+    setTimeout(() => {
+      currentEditorView.dispatch(
+        currentEditorView.state.update({
+          changes: {
+            from: activeAutocompleteMenu.index,
+            to: currentEditorView.state.selection.main.head,
+            insert: expr,
+          },
+        })
+      )
+      setActiveAutocompleteMenu(undefined)
+    })
   }
 
   const onKeyDown = (evt: KeyboardEvent) => {
@@ -281,16 +292,24 @@ export function TextInput({
       return
     }
 
-    if (isSlash(evt)) {
-      // Do not open the suggestion menu for computations if the
-      // data autocomplete menu is already open
-      if (completionStatus(currentEditorView.state) !== null) {
-        return
+    if (isAtSign(evt)) {
+      if (!activeAutocompleteMenu) {
+        setActiveAutocompleteMenu({
+          type: "mentions",
+          index: currentEditorView.state.selection.main.head,
+        })
+        setSelectedSuggestionIndex(0)
       }
-      setActiveSlashIndex(currentEditorView.state.selection.main.head)
-      setSelectedSuggestionIndex(0)
+    } else if (isSlash(evt)) {
+      if (!activeAutocompleteMenu) {
+        setActiveAutocompleteMenu({
+          type: "functions",
+          index: currentEditorView.state.selection.main.head,
+        })
+        setSelectedSuggestionIndex(0)
+      }
     } else if (isEscape(evt)) {
-      setActiveSlashIndex(-1)
+      setActiveAutocompleteMenu(undefined)
     } else if (isEnter(evt)) {
       if (completionStatus(currentEditorView.state) !== null) {
         return
@@ -340,8 +359,11 @@ export function TextInput({
         evt.preventDefault()
       }
     } else if (isBackspace(evt)) {
-      if (isMenuOpen) {
-        setActiveSlashIndex(-1)
+      if (
+        isMenuOpen &&
+        currentEditorView.state.selection.main.head - 1 === activeAutocompleteMenu.index
+      ) {
+        setActiveAutocompleteMenu(undefined)
       }
 
       const ranges = currentEditorView.state.selection.ranges
@@ -380,12 +402,15 @@ export function TextInput({
     >
       <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
 
-      {isMenuOpen && (
+      {isMenuOpen && search !== undefined && (
         <SuggestionMenu
+          mode={activeAutocompleteMenu.type}
           scope={scope}
+          search={search}
           suggestions={suggestions}
+          onChangeSuggestions={setSuggestions}
           focusedIndex={selectedSuggestionIndex}
-          selectSuggestion={onSelectSuggestion}
+          onSelectSuggestion={onSelectSuggestion}
           isHoveringOverId={isHoveringOverId}
           setIsHoveringOverId={setIsHoveringOverId}
         />
@@ -394,27 +419,8 @@ export function TextInput({
   )
 }
 
-const MAX_SUGGESTIONS = 15
-
-async function getSuggestions(scope: Scope, search: string): Promise<Suggestion[]> {
-  return getSuggestedFunctions(scope)
-    .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search.toLowerCase()))
-    .slice(0, MAX_SUGGESTIONS)
-    .map((suggestion) => {
-      //        const inlineExpr = `{${expression}}`
-
-      return {
-        title: suggestion.name,
-        icon: suggestion.icon,
-        arguments: suggestion.arguments,
-      }
-    })
-}
-
-export function suggestionToExprSource(suggestion: Suggestion | FunctionSuggestion) {
-  const name = "title" in suggestion ? suggestion.title : suggestion.name
-
-  return `${name}(${(suggestion.arguments ?? [])
+export function suggestionToExprSource(suggestion: FunctionSuggestion | FunctionSuggestionValue) {
+  return `${suggestion.name}(${(suggestion.arguments ?? [])
     .map(({ label, value }) => `${label}: ${value ?? ""}`)
     .join(", ")})`
 }

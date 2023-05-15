@@ -27,3 +27,7 @@ export function isEscape(evt: KeyboardEvent | ReactKeyboardEvent) {
 export function isSlash(evt: KeyboardEvent | ReactKeyboardEvent) {
   return evt.key === "/"
 }
+
+export function isAtSign(evt: KeyboardEvent | ReactKeyboardEvent) {
+  return evt.key === "@"
+}

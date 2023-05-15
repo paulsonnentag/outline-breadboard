@@ -15,6 +15,7 @@ import { FnNode, IdRefNode, InlineExprNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
+import colors, { allColors } from "../colors"
 
 export interface NodeContextMenuProps {
   node: ValueNode
@@ -64,6 +65,8 @@ export function NodeContextMenu({
 
   const showFunctionButtons =
     !doesBulletContainComputations && node.value !== "" && !hideFunctionButtons
+
+  const colorPalette = colors.getColors(scope.getProperty("color") || scope.lookupValue("color"))
 
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
@@ -362,6 +365,88 @@ export function NodeContextMenu({
             </div>
           )
         })}
+
+        <div 
+          className="relative"
+          onMouseOver={e => setIsHoveringOverButton("color")}
+          onMouseLeave={e => isHoveringOverButton === "color" && setIsHoveringOverButton(undefined)}
+        >
+          {isHoveringOverButton === "color" ? (
+            <div className="absolute z-50 right-0 pr-8">
+              <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
+                {Object.keys(colors.allColors).map(key => { 
+                  const suggestion = `color: ${key}`
+                  
+                  return (
+                    <button 
+                      className={classNames(
+                        "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
+                      )}
+                      style={{ "background": colors.getColors(key)["500"] }}
+                      onClick={() => {
+                        if (!suggestion) {
+                          return
+                        }
+                        scope.insertChildNode(suggestion)
+                      }}
+                      onMouseEnter={() => {
+                        // todo: awful hack, create temporary node in graph that's not persisted in automerge
+                        graph[suggestionNodeId] = {
+                          children: [],
+                          computedProps: {},
+                          expandedResultsByIndex: {},
+                          isSelected: false,
+                          key: "",
+                          paneWidth: 0,
+                          value: suggestion,
+                          view: "",
+                          computations: [],
+                          id: suggestionNodeId,
+                          isCollapsed: false,
+                          type: "value",
+                          isTemporary: true,
+                        }
+          
+                        if (onChangeIsComputationSuggestionHovered) {
+                          onChangeIsComputationSuggestionHovered(true)
+                        }
+          
+                        const tempScope = new Scope(graph, suggestionNodeId, scope)
+                        scope.childScopes.push(tempScope)
+                        scope.eval()
+                      }}
+                      onMouseLeave={() => {
+                        const index = scope.childScopes.findIndex(
+                          (scope) => scope.id === suggestionNodeId
+                        )
+                        if (index !== -1) {
+                          scope.childScopes.splice(index, 1)
+                        }
+          
+                        if (onChangeIsComputationSuggestionHovered) {
+                          onChangeIsComputationSuggestionHovered(false)
+                        }
+                      }}
+                    >
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ) : isHovering && (
+            <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
+              Color picker
+            </div>
+          )}
+
+          <button
+            className={classNames(
+              "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
+            )}
+            style={{ "background": colorPalette["500"] }}
+          >
+          </button>
+        </div>
 
       {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
         <button

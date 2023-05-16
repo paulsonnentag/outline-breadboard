@@ -349,7 +349,7 @@ export function MapNodeView({
           popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
         }
 
-        mapRef.current?.panTo(marker.data.position)
+        // mapRef.current?.panTo(marker.data.position)
       })
 
       markerContent.onmouseenter = () => {
@@ -690,7 +690,7 @@ export async function createPlaceNode(
               id: placeId,
               name,
               props: [
-                // { type: "image", url: photo } as ImageValue, todo: add back images
+                ["image", `![${photo}]`],
                 ["rating", rating],
                 ["address", address],
                 ["phone", phone],

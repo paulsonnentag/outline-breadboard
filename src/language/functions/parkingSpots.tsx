@@ -194,6 +194,10 @@ export async function createParkingSpotNode(
         name: parkingSpot.title,
         props: [
           // { type: "image", url: photo } as ImageValue, todo: add back images
+          [
+            "image",
+            parkingSpot.images.length > 0 ? `![${parkingSpot.images[0].thumb}]` : undefined,
+          ],
           ["rating", parkingSpot.rating.toString()],
           [
             "address",

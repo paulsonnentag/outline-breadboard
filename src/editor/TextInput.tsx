@@ -27,6 +27,7 @@ import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
 import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
 import { FunctionSuggestionValue, Suggestion, SuggestionMenu } from "./SuggestionMenu"
 import { FunctionSuggestion, getSuggestedFunctions } from "../language/function-suggestions"
+import { imagePlugin } from "./plugins/imagePlugin"
 
 interface TextInputProps {
   isRoot: boolean
@@ -111,6 +112,7 @@ export function TextInput({
         scopeCompartment.of(scopeFacet.of(scope)),
         placeholder(isRoot ? "Untitled" : ""),
         closeBrackets(),
+        imagePlugin,
       ],
       parent: containerRef.current,
       dispatch(transaction) {

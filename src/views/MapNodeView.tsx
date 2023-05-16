@@ -276,9 +276,7 @@ export function MapNodeView({
 
       const isHovering = isHoveringOverId && marker.scope.isInScope(isHoveringOverId)
 
-      const accentColors = marker.data.color
-        ? colors.accentColors(marker.data.color)
-        : colors.defaultAccentColors
+      const colorPalette = colors.getColors(marker.data.color)
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
 
@@ -304,9 +302,9 @@ export function MapNodeView({
       markerContent.style.transform = `translate(0, 8px)`
 
       if (isHovering) {
-        markerContent.style.backgroundColor = accentColors[5]
+        markerContent.style.backgroundColor = colorPalette[600]
       } else {
-        markerContent.style.backgroundColor = accentColors[2]
+        markerContent.style.backgroundColor = colorPalette[400]
       }
 
       // new version of google maps, but types haven't been updates
@@ -365,14 +363,12 @@ export function MapNodeView({
     dataLayersRef.current = []
 
     for (const geoJsonShape of geoJsonShapes) {
-      const accentColors = geoJsonShape.data.color
-        ? colors.accentColors(geoJsonShape.data.color)
-        : colors.defaultAccentColors
+      const colorPalette = colors.getColors(geoJsonShape.data.color)
 
       const dataLayer = new google.maps.Data()
       dataLayer.addGeoJson(geoJsonShape.data.geoJson)
       dataLayer.setStyle({
-        strokeColor: accentColors[2],
+        strokeColor: colorPalette[400],
         strokeWeight: 4,
       })
 
@@ -396,11 +392,11 @@ export function MapNodeView({
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
       const color = dataLayerValue.scope.lookupValue("color")
-      const accentColors = color ? colors.accentColors(color) : colors.defaultAccentColors
+      const colorPalette = colors.getColors(color)
       const isHovering = isHoveringOverId && dataLayerValue.scope.isInScope(isHoveringOverId)
 
       dataLayerValue.data.setStyle({
-        strokeColor: isHovering ? accentColors[5] : accentColors[2],
+        strokeColor: isHovering ? colorPalette[600] : colorPalette[400],
         zIndex: isHovering ? 10 : 0,
       })
     }

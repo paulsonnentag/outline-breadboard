@@ -382,7 +382,7 @@ export function NodeContextMenu({
                       className={classNames(
                         "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
                       )}
-                      style={{ "background": colors.getColors(key)["500"] }}
+                      style={{ "background": colors.getColors(key)[500] }}
                       onClick={() => {
                         if (!suggestion) {
                           return
@@ -443,7 +443,7 @@ export function NodeContextMenu({
             className={classNames(
               "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
             )}
-            style={{ "background": colorPalette["500"] }}
+            style={{ "background": colorPalette[500] }}
           >
           </button>
         </div>

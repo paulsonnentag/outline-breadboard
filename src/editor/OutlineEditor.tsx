@@ -18,7 +18,7 @@ import { NodeView } from "../views"
 import { NodeContextMenu } from "./NodeContextMenu"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
-import colors, { defaultAccentColors } from "../colors"
+import colors from "../colors"
 import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView } from "../language/functions"
 
@@ -392,7 +392,7 @@ export function OutlineEditor({
   }
 
   const color = scope.lookupValue("color")
-  const accentColors = color ? colors.accentColors(color) : defaultAccentColors
+  const colorPalette = colors.getColors(scope.lookupValue("color"))
 
   return (
     <div
@@ -404,18 +404,6 @@ export function OutlineEditor({
       }, 
         "mr-2" // room for the NodeContextMenu
       )}
-      style={
-        accentColors
-          ? ({
-              "--accent-color-1": accentColors[0],
-              "--accent-color-2": accentColors[1],
-              "--accent-color-3": accentColors[2],
-              "--accent-color-4": accentColors[3],
-              "--accent-color-5": accentColors[4],
-              "--accent-color-6": accentColors[5],
-            } as React.CSSProperties)
-          : {}
-      }
       onDragOver={onDragOver}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}

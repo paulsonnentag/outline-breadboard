@@ -1,6 +1,8 @@
+import { MouseEvent } from "react"
+
 interface IconButtonProps {
   icon: string
-  onClick: () => void
+  onClick: (evt: MouseEvent) => void
 }
 
 export function IconButton({ icon, onClick }: IconButtonProps) {

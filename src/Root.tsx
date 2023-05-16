@@ -11,11 +11,12 @@ import {
   registerGraphHandle,
   ValueNode,
 } from "./graph"
+import { save } from "@automerge/automerge"
 
 import { OutlineEditor, OutlineEditorProps } from "./editor/OutlineEditor"
 import { IconButton } from "./IconButton"
 import classNames from "classnames"
-import { download, isString } from "./utils"
+import { downloadTextFile, downloadUint8Array, isString } from "./utils"
 import { useRootScope } from "./language/scopes"
 import { useDocument, useHandle, useRepo } from "automerge-repo-react-hooks"
 import { importGraph, ProfileDoc } from "./profile"
@@ -85,17 +86,22 @@ export function Root({ profileDocId }: RootProps) {
     })
   }
 
-  const onExport = async () => {
+  const onExport = async (asRaw: boolean) => {
     if (!selectedGraphId) {
       return
     }
 
-    const doc = await repo.find<GraphDoc>(selectedGraphId).value()
+    const handle = repo.find<GraphDoc>(selectedGraphId)
+    const doc = await handle.value()
     const firstRootNodeId = doc.rootNodeIds[0]
     const node = getNode(doc.graph, firstRootNodeId)
-    const filename = `${node.value.toLowerCase().replaceAll(" ", "_") ?? "untitled"}.json`
+    const filename = `${node.value.toLowerCase().replaceAll(" ", "_") ?? "untitled"}`
 
-    download(filename, JSON.stringify(doc, null, 2))
+    if (asRaw) {
+      downloadUint8Array(save(handle.doc), `${filename}.bin`)
+    } else {
+      downloadTextFile(`${filename}.json`, JSON.stringify(doc, null, 2))
+    }
   }
 
   const onImport = async () => {
@@ -165,7 +171,7 @@ interface SidebarProps {
   onChangeSelectedGraphId: (graphId: DocumentId) => void
   onOpenSettings: () => void
   onAddNewDocument: () => void
-  onExport: () => void
+  onExport: (asRaw: boolean) => void
   onImport: () => void
 }
 
@@ -186,11 +192,11 @@ function Sidebar({
         <div className="flex gap-2">
           {selectedGraphId && (
             <div className="w-[24px] h-[24px]">
-              <IconButton icon="upload" onClick={() => onExport()} />
+              <IconButton icon="download" onClick={(evt) => onExport(evt.metaKey)} />
             </div>
           )}
           <div className="w-[24px] h-[24px]">
-            <IconButton icon="download" onClick={() => onImport()} />
+            <IconButton icon="upload" onClick={() => onImport()} />
           </div>
           <div className="w-[24px] h-[24px]">
             <IconButton icon="settings" onClick={() => onOpenSettings()} />

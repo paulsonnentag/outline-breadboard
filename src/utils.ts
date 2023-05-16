@@ -107,7 +107,7 @@ export function formatDistance(distanceInKm: number, distanceUnit: string) {
 }
 
 // adapted from: https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server#18197341
-export function download(filename: string, text: string) {
+export function downloadTextFile(filename: string, text: string) {
   var element = document.createElement("a")
   element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text))
   element.setAttribute("download", filename)
@@ -118,4 +118,28 @@ export function download(filename: string, text: string) {
   element.click()
 
   document.body.removeChild(element)
+}
+
+export function downloadUint8Array(
+  data: Uint8Array,
+  filename: string = "file.bin",
+  mimeType: string = "application/octet-stream"
+): void {
+  // Convert Uint8Array into Blob
+  const blob = new Blob([data], { type: mimeType })
+
+  // Create a link element
+  const link = document.createElement("a")
+
+  // Set link properties
+  link.href = window.URL.createObjectURL(blob)
+  link.download = filename
+
+  // This is necessary as link.click() does not work on the latest Firefox
+  link.style.display = "none"
+  document.body.appendChild(link)
+  link.click()
+
+  // Remove the link when done
+  document.body.removeChild(link)
 }

@@ -2,6 +2,17 @@ import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 import { parseLatLng } from "../../properties"
 import { Scope } from "../scopes"
+import LatLngLiteral = google.maps.LatLngLiteral
+import {
+  createRecordNode,
+  getGraph,
+  getGraphDocHandle,
+  getLabelOfNode,
+  Graph,
+  ValueNode,
+} from "../../graph"
+import { placesServiceApi } from "../../google"
+import { DragEvent } from "react"
 
 export const PARKING_SPOTS_FN: FunctionDefs = {
   ParkingSpots: {
@@ -29,17 +40,41 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
       return suggestions
     },
     summaryView: (value) => `${value.length} spots`,
-    expandedView: (items) => {
-      if (!items) {
+    expandedView: (parkingSpots) => {
+      if (!parkingSpots) {
         return null
+      }
+
+      const onDragStart = (evt: DragEvent, item: ParkingSpot) => {
+        evt.stopPropagation()
+        var elem = document.createElement("div")
+        elem.style.position = "absolute"
+        elem.className = "bg-white border border-gray-200 px-2 py-1 rounded flex gap-2"
+        elem.style.top = "-1000px"
+        elem.innerText = item.title
+        document.body.appendChild(elem)
+
+        setTimeout(() => {
+          elem.remove()
+        })
+
+        evt.dataTransfer.effectAllowed = "move"
+        evt.dataTransfer.setDragImage(elem, -10, -10)
+        evt.dataTransfer.setData(
+          "application/node",
+          JSON.stringify({
+            type: "create",
+            nodeId: item.id,
+          })
+        )
       }
 
       return (
         <div>
-          {items.map((item: any) => (
-            <div className="flex">
+          {parkingSpots.map((parkingSpot: any) => (
+            <div className="flex" draggable onDragStart={(evt) => onDragStart(evt, parkingSpot)}>
               <div className="bullet"></div>
-              {item.title_short}
+              {parkingSpot.title}
             </div>
           ))}
         </div>
@@ -69,23 +104,37 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
 
       const result = await getParkingSpots(position.lat, position.lng)
 
-      console.log("parking spots")
-
       return result
     },
   },
 }
 
-const CACHE: { [key: string]: any } = {}
-
 const RADIUS_IN_KM = 200
-const LIMIT = 20
+const LIMIT = 10
 
-const getParkingSpots = async (lat: number, lng: number): Promise<any[]> => {
+interface ParkingSpot {
+  id: string
+  title: string
+  description: string
+  images: {
+    url: string
+    thumb: string
+  }[]
+  rating: number
+  position: LatLngLiteral
+  address: { city: string; country: string; street: string; zipcode: string }
+  type: string
+}
+
+const PARKING_SPOT_RESULTS_CACHE: { [key: string]: any } = {}
+
+const PARKING_SPOT_CACHE: { [id: string]: ParkingSpot } = {}
+
+const getParkingSpots = async (lat: number, lng: number): Promise<ParkingSpot[]> => {
   const key = `${lat}:${lng}`
 
-  if (CACHE[key]) {
-    return CACHE[key]
+  if (PARKING_SPOT_RESULTS_CACHE[key]) {
+    return PARKING_SPOT_RESULTS_CACHE[key]
   }
 
   const result = fetch(
@@ -94,9 +143,68 @@ const getParkingSpots = async (lat: number, lng: number): Promise<any[]> => {
     )}`
   )
     .then((response) => response.json())
-    .then((spots) => spots.slice(0, LIMIT))
+    .then((spots) => {
+      return Promise.all(
+        spots
+          .slice(0, LIMIT)
+          .map(({ id, title_short, description, images, address, lat, lng, type, rating }: any) => {
+            const parkingSpotId = `parking-spot-${id}`
 
-  CACHE[key] = result
+            const parkingSpot: ParkingSpot = {
+              id: parkingSpotId,
+              title: title_short,
+              description,
+              images,
+              address,
+              position: { lat, lng },
+              type: type.label,
+              rating,
+            }
+
+            PARKING_SPOT_CACHE[parkingSpotId] = parkingSpot
+
+            return parkingSpot
+          })
+      )
+    })
+
+  PARKING_SPOT_RESULTS_CACHE[key] = result
 
   return result
+}
+
+export function isParkingSpotId(id: string) {
+  return id.startsWith(`parking-spot-`)
+}
+
+function getParkingSpotById(id: string) {
+  return PARKING_SPOT_CACHE[id]
+}
+
+export async function createParkingSpotNode(
+  changeGraph: (fn: (graph: Graph) => void) => void,
+  parkingSpotId: string
+): Promise<ValueNode> {
+  return new Promise((resolve) => {
+    const parkingSpot = getParkingSpotById(parkingSpotId)
+
+    changeGraph((graph) => {
+      const placeNode = createRecordNode(graph, {
+        id: parkingSpotId,
+        name: parkingSpot.title,
+        props: [
+          // { type: "image", url: photo } as ImageValue, todo: add back images
+          ["rating", parkingSpot.rating.toString()],
+          [
+            "address",
+            `${parkingSpot.address.street}, ${parkingSpot.address.zipcode} ${parkingSpot.address.city}, ${parkingSpot.address.country}`,
+          ],
+          ["description", parkingSpot.description],
+          ["position", `${parkingSpot.position.lat},${parkingSpot.position.lng}`],
+        ],
+      })
+
+      resolve(placeNode)
+    })
+  })
 }

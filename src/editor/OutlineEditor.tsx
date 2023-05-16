@@ -22,6 +22,7 @@ import colors from "../colors"
 import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView, FUNCTIONS } from "../language/functions"
 import { FnNode, InlineExprNode } from "../language/ast"
+import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
 
 export interface OutlineEditorProps {
   scope: Scope
@@ -286,7 +287,10 @@ export function OutlineEditor({
 
     evt.dataTransfer.effectAllowed = "move"
     evt.dataTransfer.setDragImage(elem, -10, -10)
-    evt.dataTransfer.setData("application/node", JSON.stringify({ id: nodeId, parentId, index }))
+    evt.dataTransfer.setData(
+      "application/node",
+      JSON.stringify({ type: "move", id: nodeId, parentId, index })
+    )
     setIsBeingDragged(true)
   }
 
@@ -316,7 +320,7 @@ export function OutlineEditor({
     setIsDraggedOver(false)
   }
 
-  const onDrop = (evt: DragEvent) => {
+  const onDrop = async (evt: DragEvent) => {
     evt.stopPropagation()
 
     setIsDraggedOver(false)
@@ -357,39 +361,61 @@ export function OutlineEditor({
       return
     }
 
-    const {
-      id: sourceId,
-      parentId: sourceParentId,
-      index: sourceIndex,
-    } = JSON.parse(evt.dataTransfer.getData("application/node"))
+    const dragData = JSON.parse(evt.dataTransfer.getData("application/node"))
 
-    const isLinkModeEnabled = evt.shiftKey
+    switch (dragData.type) {
+      case "move": {
+        const { id: sourceId, parentId: sourceParentId, index: sourceIndex } = dragData
 
-    changeGraph((graph) => {
-      const node = getNode(graph, nodeId)
+        const isLinkModeEnabled = evt.shiftKey
 
-      let nodeIdToInsert: string = sourceId
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
 
-      if (!isLinkModeEnabled) {
-        const sourceParent = getNode(graph, sourceParentId)
-        delete sourceParent.children[sourceIndex]
-      } else {
-        nodeIdToInsert = createRefNode(graph, sourceId).id
+          let nodeIdToInsert: string = sourceId
+
+          if (!isLinkModeEnabled) {
+            const sourceParent = getNode(graph, sourceParentId)
+            delete sourceParent.children[sourceIndex]
+          } else {
+            nodeIdToInsert = createRefNode(graph, sourceId).id
+          }
+
+          if ((node.children.length !== 0 || !parentId) && !isCollapsed) {
+            // important to get node from mutable graph
+            node.children.unshift(nodeIdToInsert)
+          } else {
+            const insertIndex =
+              ((parentId === sourceParentId && sourceIndex) || isLinkModeEnabled) < index
+                ? index
+                : index + 1
+
+            const parent = getNode(graph, parentId)
+            parent.children.splice(insertIndex, 0, nodeIdToInsert)
+          }
+        })
+        break
       }
 
-      if ((node.children.length !== 0 || !parentId) && !isCollapsed) {
-        // important to get node from mutable graph
-        node.children.unshift(nodeIdToInsert)
-      } else {
-        const insertIndex =
-          ((parentId === sourceParentId && sourceIndex) || isLinkModeEnabled) < index
-            ? index
-            : index + 1
+      case "create": {
+        if (isParkingSpotId(dragData.nodeId) && !graph[dragData.nodeId]) {
+          await createParkingSpotNode(changeGraph, dragData.nodeId)
+        }
 
-        const parent = getNode(graph, parentId)
-        parent.children.splice(insertIndex, 0, nodeIdToInsert)
+        changeGraph((graph) => {
+          const node = getNode(graph, nodeId)
+          const nodeIdToInsert = createValueNode(graph, { value: `#[${dragData.nodeId}]` }).id
+
+          if ((node.children.length !== 0 || !parentId) && !isCollapsed) {
+            // important to get node from mutable graph
+            node.children.unshift(nodeIdToInsert)
+          } else {
+            const parent = getNode(graph, parentId)
+            parent.children.splice(index + 1, 0, nodeIdToInsert)
+          }
+        })
       }
-    })
+    }
   }
 
   const color = scope.lookupValue("color")

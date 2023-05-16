@@ -20,10 +20,12 @@ import colors from "../colors"
 import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
+import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
 
 interface Marker {
   color?: string
   position: LatLngLiteral
+  customId?: string // allows id override to handle pseudo bullets like parking spots
 }
 
 interface GeoJsonShape {
@@ -52,10 +54,15 @@ export function MapNodeView({
       for (const part of scope.value) {
         if (Array.isArray(part)) {
           for (const item of part) {
-            if (typeof item.lat === "number" && typeof item.lng === "number") {
+            if (
+              item.position &&
+              typeof item.position.lat === "number" &&
+              typeof item.position.lng === "number"
+            ) {
               markers.push({
-                position: { lat: item.lat, lng: item.lng },
+                position: item.position,
                 color,
+                customId: item.id,
               })
             }
           }
@@ -274,7 +281,9 @@ export function MapNodeView({
     for (let i = 0; i < markers.length; i++) {
       const marker = markers[i]
 
-      const isHovering = isHoveringOverId && marker.scope.isInScope(isHoveringOverId)
+      const isHovering =
+        (isHoveringOverId && marker.scope.isInScope(isHoveringOverId)) ||
+        marker.data.customId === isHoveringOverId
 
       const colorPalette = colors.getColors(marker.data.color)
 
@@ -308,21 +317,33 @@ export function MapNodeView({
       }
 
       // new version of google maps, but types haven't been updates
-      ;(mapsMarker as any).addEventListener("gmp-click", () => {
+      ;(mapsMarker as any).addEventListener("gmp-click", async () => {
         // defer to selection handler if active
         /*if (isSelectionHandlerActive()) {
             triggerSelect(marker.)
             return
           }*/
 
-        changeGraph((graph) => {
-          const node = getNode(graph, marker.scope.id)
-          node.isCollapsed = false
-        })
+        // special handling for pseudo nodes of parking spots
+
+        let rootId
+
+        if (marker.data.customId && isParkingSpotId(marker.data.customId)) {
+          await createParkingSpotNode(changeGraph, marker.data.customId)
+          rootId = marker.data.customId
+
+          console.log("special handling")
+        } else {
+          changeGraph((graph) => {
+            const node = getNode(graph, marker.scope.id)
+            node.isCollapsed = false
+          })
+          rootId = marker.scope.id
+        }
 
         if (popOverRef.current) {
           popOverRef.current.position = marker.data.position
-          popOverRef.current.rootId = marker.scope.id
+          popOverRef.current.rootId = rootId
           popOverRef.current.show()
           popOverRef.current.draw()
           popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
@@ -332,7 +353,7 @@ export function MapNodeView({
       })
 
       markerContent.onmouseenter = () => {
-        setIsHoveringOverId(marker.scope.id)
+        setIsHoveringOverId(marker.data.customId ?? marker.scope.id)
       }
       markerContent.onmouseleave = () => {
         setIsHoveringOverId(undefined)

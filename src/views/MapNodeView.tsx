@@ -16,7 +16,7 @@ import { debounce } from "lodash"
 import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
-import colors from "../colors"
+import colors, { allColors } from "../colors"
 import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
@@ -360,7 +360,8 @@ export function MapNodeView({
       }
 
       mapsMarker.position = marker.data.position
-      mapsMarker.zIndex = isHovering ? 10 : 0
+      const isDefaultColor = marker.data.color === undefined
+      mapsMarker.zIndex = isHovering ? 10 : !isDefaultColor ? 10 : 0
     }
   }, [markers, mapRef.current, isHoveringOverId])
 

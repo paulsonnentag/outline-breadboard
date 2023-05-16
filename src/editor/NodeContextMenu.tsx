@@ -243,16 +243,25 @@ export function NodeContextMenu({
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">
           <div className="relative">
-            {isHovering && 
-              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "map" ? "opacity-100" : "opacity-50")}>Map</div>
-            }
+            {isHovering && (
+              <div
+                className={classNames(
+                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                  isHoveringOverButton === "map" ? "opacity-100" : "opacity-50"
+                )}
+              >
+                Map
+              </div>
+            )}
             <button
               className={classNames(
                 "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
                 isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
               )}
-              onMouseOver={e => setIsHoveringOverButton("map")}
-              onMouseLeave={e => isHoveringOverButton === "map" && setIsHoveringOverButton(undefined)}
+              onMouseOver={(e) => setIsHoveringOverButton("map")}
+              onMouseLeave={(e) =>
+                isHoveringOverButton === "map" && setIsHoveringOverButton(undefined)
+              }
               onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
@@ -262,16 +271,25 @@ export function NodeContextMenu({
           </div>
 
           <div className="relative">
-            {isHovering && 
-              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "table" ? "opacity-100" : "opacity-50")}>Table</div>
-            }
+            {isHovering && (
+              <div
+                className={classNames(
+                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                  isHoveringOverButton === "table" ? "opacity-100" : "opacity-50"
+                )}
+              >
+                Table
+              </div>
+            )}
             <button
               className={classNames(
                 "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
                 isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
               )}
-              onMouseOver={e => setIsHoveringOverButton("table")}
-              onMouseLeave={e => isHoveringOverButton === "table" && setIsHoveringOverButton(undefined)}
+              onMouseOver={(e) => setIsHoveringOverButton("table")}
+              onMouseLeave={(e) =>
+                isHoveringOverButton === "table" && setIsHoveringOverButton(undefined)
+              }
               onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
@@ -281,17 +299,25 @@ export function NodeContextMenu({
           </div>
 
           <div className="relative">
-            {isHovering && 
-              <div className={classNames("absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1", isHoveringOverButton === "calendar" ? "opacity-100" : "opacity-50")}>Calendar</div>
-            }
+            {isHovering && (
+              <div
+                className={classNames(
+                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                  isHoveringOverButton === "calendar" ? "opacity-100" : "opacity-50"
+                )}
+              >
+                Calendar
+              </div>
+            )}
             <button
               className={classNames(
                 "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
                 isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
               )}
-
-              onMouseOver={e => setIsHoveringOverButton("calendar")}
-              onMouseLeave={e => isHoveringOverButton === "calendar" && setIsHoveringOverButton(undefined)}
+              onMouseOver={(e) => setIsHoveringOverButton("calendar")}
+              onMouseLeave={(e) =>
+                isHoveringOverButton === "calendar" && setIsHoveringOverButton(undefined)
+              }
               onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
@@ -366,87 +392,88 @@ export function NodeContextMenu({
           )
         })}
 
-        <div 
-          className="relative"
-          onMouseOver={e => setIsHoveringOverButton("color")}
-          onMouseLeave={e => isHoveringOverButton === "color" && setIsHoveringOverButton(undefined)}
-        >
-          {isHoveringOverButton === "color" ? (
-            <div className="absolute z-50 right-0 pr-8">
-              <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center gap-0.5 bg-white px-1 cursor-pointer">
-                {Object.keys(colors.allColors).map(key => { 
-                  const suggestion = `color: ${key}`
-                  
-                  return (
-                    <button 
-                      className={classNames(
-                        "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
-                      )}
-                      style={{ "background": colors.getColors(key)[500] }}
-                      onClick={() => {
-                        if (!suggestion) {
-                          return
-                        }
-                        scope.insertChildNode(suggestion)
-                      }}
-                      onMouseEnter={() => {
-                        // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                        graph[suggestionNodeId] = {
-                          children: [],
-                          computedProps: {},
-                          expandedResultsByIndex: {},
-                          isSelected: false,
-                          key: "",
-                          paneWidth: 0,
-                          value: suggestion,
-                          view: "",
-                          computations: [],
-                          id: suggestionNodeId,
-                          isCollapsed: false,
-                          type: "value",
-                          isTemporary: true,
-                        }
-          
-                        if (onChangeIsComputationSuggestionHovered) {
-                          onChangeIsComputationSuggestionHovered(true)
-                        }
-          
-                        const tempScope = new Scope(graph, suggestionNodeId, scope)
-                        scope.childScopes.push(tempScope)
-                        scope.eval()
-                      }}
-                      onMouseLeave={() => {
-                        const index = scope.childScopes.findIndex(
-                          (scope) => scope.id === suggestionNodeId
-                        )
-                        if (index !== -1) {
-                          scope.childScopes.splice(index, 1)
-                        }
-          
-                        if (onChangeIsComputationSuggestionHovered) {
-                          onChangeIsComputationSuggestionHovered(false)
-                        }
-                      }}
-                    >
-                    </button>
-                  )
-                })}
-              </div>
+      <div
+        className="relative"
+        onMouseOver={(e) => setIsHoveringOverButton("color")}
+        onMouseLeave={(e) => isHoveringOverButton === "color" && setIsHoveringOverButton(undefined)}
+      >
+        {isHoveringOverButton === "color" ? (
+          <div className="absolute z-50 right-0 pr-8">
+            <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center gap-0.5 bg-white px-1 cursor-pointer">
+              {Object.keys(colors.allColors).map((key) => {
+                const suggestion = `color: ${key}`
+
+                return (
+                  <button
+                    key={key}
+                    className={classNames(
+                      "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
+                    )}
+                    style={{ background: colors.getColors(key)[500] }}
+                    onClick={() => {
+                      if (!suggestion) {
+                        return
+                      }
+                      scope.insertChildNode(suggestion)
+                    }}
+                    onMouseEnter={() => {
+                      // todo: awful hack, create temporary node in graph that's not persisted in automerge
+                      graph[suggestionNodeId] = {
+                        children: [],
+                        computedProps: {},
+                        expandedResultsByIndex: {},
+                        isSelected: false,
+                        key: "",
+                        paneWidth: 0,
+                        value: suggestion,
+                        view: "",
+                        computations: [],
+                        id: suggestionNodeId,
+                        isCollapsed: false,
+                        type: "value",
+                        isTemporary: true,
+                      }
+
+                      if (onChangeIsComputationSuggestionHovered) {
+                        onChangeIsComputationSuggestionHovered(true)
+                      }
+
+                      const tempScope = new Scope(graph, suggestionNodeId, scope)
+                      scope.childScopes.push(tempScope)
+                      scope.eval()
+                    }}
+                    onMouseLeave={() => {
+                      const index = scope.childScopes.findIndex(
+                        (scope) => scope.id === suggestionNodeId
+                      )
+                      if (index !== -1) {
+                        scope.childScopes.splice(index, 1)
+                      }
+
+                      if (onChangeIsComputationSuggestionHovered) {
+                        onChangeIsComputationSuggestionHovered(false)
+                      }
+                    }}
+                  ></button>
+                )
+              })}
             </div>
-          ) : isHovering && (
+          </div>
+        ) : (
+          isHovering && (
             <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
               Color picker
             </div>
-          )}
+          )
+        )}
 
-          <button
-            className={classNames(
-              "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
-            )}
-            style={{ "background": colorPalette[500] }}
-          >
-          </button>
-        </div>
+        <button
+          className={classNames(
+            "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
+          )}
+          style={{ background: colorPalette[500] }}
+        ></button>
+      </div>
 
       {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
         <button

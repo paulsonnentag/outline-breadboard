@@ -28,7 +28,23 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
 
       return suggestions
     },
-    summaryView: (value) => (value ? `${value.length} spots` : "loading"),
+    summaryView: (value) => `${value.length} spots`,
+    expandedView: (items) => {
+      if (!items) {
+        return null
+      }
+
+      return (
+        <div>
+          {items.map((item: any) => (
+            <div className="flex">
+              <div className="bullet"></div>
+              {item.title_short}
+            </div>
+          ))}
+        </div>
+      )
+    },
     autocomplete: {
       icon: "local_parking",
       name: "ParkingSpots",
@@ -62,7 +78,8 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
 
 const CACHE: { [key: string]: any } = {}
 
-const RADIUS_IN_KM = 5
+const RADIUS_IN_KM = 200
+const LIMIT = 20
 
 const getParkingSpots = async (lat: number, lng: number): Promise<any[]> => {
   const key = `${lat}:${lng}`
@@ -73,9 +90,11 @@ const getParkingSpots = async (lat: number, lng: number): Promise<any[]> => {
 
   const result = fetch(
     `https://api.val.town/v1/eval/@${encodeURIComponent(
-      `paulsun.parkingSpots(${lat}, ${lng}, ${5})`
+      `paulsun.parkingSpots(${lat}, ${lng}, ${RADIUS_IN_KM})`
     )}`
-  ).then((response) => response.json())
+  )
+    .then((response) => response.json())
+    .then((spots) => spots.slice(0, LIMIT))
 
   CACHE[key] = result
 

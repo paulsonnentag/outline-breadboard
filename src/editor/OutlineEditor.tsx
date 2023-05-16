@@ -20,7 +20,8 @@ import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
 import colors from "../colors"
 import { Scope } from "../language/scopes"
-import { ComputationResultsSummaryView } from "../language/functions"
+import { ComputationResultsSummaryView, FUNCTIONS } from "../language/functions"
+import { FnNode, InlineExprNode } from "../language/ast"
 
 export interface OutlineEditorProps {
   scope: Scope
@@ -399,9 +400,10 @@ export function OutlineEditor({
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      className={classNames({
-        "text-gray-300": isBeingDragged || isParentDragged,
-      }, 
+      className={classNames(
+        {
+          "text-gray-300": isBeingDragged || isParentDragged,
+        },
         "mr-2" // room for the NodeContextMenu
       )}
       onDragOver={onDragOver}
@@ -524,6 +526,14 @@ export function OutlineEditor({
 
                   const computationColor = color ?? "purple"
 
+                  const expression = scope.bullet.value[index]
+
+                  const functionName =
+                    expression instanceof InlineExprNode && expression.expr instanceof FnNode
+                      ? expression.expr.name
+                      : undefined
+                  const customView = functionName ? FUNCTIONS[functionName].expandedView : undefined
+
                   return (
                     <pre
                       className={`bg-${computationColor}-200 text-${computationColor}-600 mt-2 rounded p-1`}
@@ -534,7 +544,9 @@ export function OutlineEditor({
                         })
                       }}
                     >
-                      {safeJsonStringify(scope.valueOf(index))}
+                      {customView
+                        ? customView(scope.valueOf(index))
+                        : safeJsonStringify(scope.valueOf(index))}
                     </pre>
                   )
                 })}

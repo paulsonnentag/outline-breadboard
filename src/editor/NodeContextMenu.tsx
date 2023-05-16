@@ -373,7 +373,7 @@ export function NodeContextMenu({
         >
           {isHoveringOverButton === "color" ? (
             <div className="absolute z-50 right-0 pr-8">
-              <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
+              <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center gap-0.5 bg-white px-1 cursor-pointer">
                 {Object.keys(colors.allColors).map(key => { 
                   const suggestion = `color: ${key}`
                   

@@ -39,7 +39,7 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
 
       return suggestions
     },
-    summaryView: (value) => `${value.length} spots`,
+    summaryView: (value) => `🅿️ ${value.length} spots`,
     expandedView: (parkingSpots) => {
       if (!parkingSpots) {
         return null

@@ -113,7 +113,7 @@ async function getSuggestions(
 ): Promise<Suggestion[]> {
   switch (mode) {
     case "mentions":
-      return getSuggestedMentions(scope, search)
+      return (await getSuggestedMentions(scope, search)).slice(0, MAX_SUGGESTIONS)
 
     case "functions":
       return getSuggestedFunctions(scope)

@@ -25,6 +25,7 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
       node.type !== "value" ||
       node.value.match(KEYWORD_REGEX) || // don't suggest nodes that are a property
       node.value.match(REF_ID_REGEX) || // don't suggest nodes that are transclusions
+      node.children.length == 0 || // don't suggest nodes that have no children
       !isString(node.value) ||
       node.value === "" ||
       node.value.startsWith("=") ||

@@ -18,11 +18,13 @@ class ImageWidget extends WidgetType {
   }
 
   toDOM() {
+    const container = document.createElement("span")
     const image = document.createElement("img")
     image.src = this.url
-    image.height = 200
+    image.style.height = "200px"
+    image.style.width = "auto"
 
-    return image
+    return container
   }
 
   ignoreEvent() {

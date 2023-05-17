@@ -21,6 +21,7 @@ import { useRootScope } from "./language/scopes"
 import { useDocument, useHandle, useRepo } from "automerge-repo-react-hooks"
 import { importGraph, ProfileDoc } from "./profile"
 import fileDialog from "file-dialog"
+import Logo from "./Logo"
 
 interface RootProps {
   profileDocId: DocumentId
@@ -187,7 +188,7 @@ function Sidebar({
   return (
     <div className="p-4 w-[300px] bg-gray-100 border-r border-r-gray-200 flex-shrink-0 flex flex-col gap-2">
       <div className="flex justify-between pb-4">
-        <div className="text-xl">Breadboard</div>
+        <Logo />
 
         <div className="flex gap-2">
           {selectedGraphId && (

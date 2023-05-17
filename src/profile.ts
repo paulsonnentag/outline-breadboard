@@ -55,7 +55,6 @@ export function importGraph(repo: Repo, profileId: DocumentId, graphData: GraphD
 
   graphDocHandle.change((doc) => {
     doc.graph = graphData.graph
-    doc.cache = graphData.cache
     doc.rootNodeIds = graphData.rootNodeIds
 
     profileHandle.change((profileDoc) => {

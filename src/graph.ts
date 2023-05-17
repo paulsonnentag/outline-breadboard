@@ -44,7 +44,6 @@ export function getGraphDocHandle() {
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
   handle.change((doc) => {
-    doc.cache = {}
     doc.graph = {}
 
     const rootNode = createValueNode(doc.graph, { value: "" })

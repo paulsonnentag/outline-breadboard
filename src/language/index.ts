@@ -75,3 +75,5 @@ function parseKey(source: string): StringNode | undefined {
 
   return undefined
 }
+
+export const ALIAS_REGEX = /(^[^{]*?): #\[(.*?)\]$/

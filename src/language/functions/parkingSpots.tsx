@@ -110,7 +110,7 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
 }
 
 const RADIUS_IN_KM = 200
-const LIMIT = 10
+const LIMIT = 20
 
 interface ParkingSpot {
   id: string

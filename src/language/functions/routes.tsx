@@ -5,6 +5,7 @@ import { getGraphDocHandle } from "../../graph"
 import { DataWithProvenance, Scope } from "../scopes"
 import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
+import { computationResultCache } from "../../cache"
 
 export const ROUTE_FN: FunctionDefs = {
   Drive: {
@@ -217,12 +218,9 @@ async function getRouteInformation(
   unit: string
 ): Promise<RouteInformation | undefined> {
   const graphDocHandle = getGraphDocHandle()
-  const doc = await graphDocHandle.value()
 
   const key = JSON.stringify({ from, to, mode })
-  const cachedResult: google.maps.DirectionsResult = doc.cache[key]
-    ? JSON.parse(doc.cache[key])
-    : undefined
+  const cachedResult = await computationResultCache.getItem<any>(key)
 
   if (cachedResult) {
     return directionsResultToRoute(cachedResult, unit)
@@ -242,11 +240,11 @@ async function getRouteInformation(
       (result: google.maps.DirectionsResult | null) => {
         result = result ?? { routes: [] }
 
-        graphDocHandle.change((graphDoc) => {
-          graphDoc.cache[key] = JSON.stringify(result) // store it as string, because otherwise it takes a long time to write it into automerge
-        })
+        const plainResult = JSON.parse(JSON.stringify(result))
 
-        resolve(directionsResultToRoute(JSON.parse(JSON.stringify(result)), unit)) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
+        computationResultCache.setItem(key, plainResult)
+
+        resolve(directionsResultToRoute(plainResult, unit)) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
       }
     )
   })

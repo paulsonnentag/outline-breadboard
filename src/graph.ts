@@ -6,7 +6,6 @@ import { Change, useRepo } from "automerge-repo-react-hooks"
 
 export interface GraphDoc {
   rootNodeIds: string[]
-  cache: { [key: string]: any }
   graph: Graph
 }
 

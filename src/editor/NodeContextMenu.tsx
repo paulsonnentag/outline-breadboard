@@ -226,20 +226,6 @@ export function NodeContextMenu({
       onMouseOver={(e) => setIsHovering(true)}
       onMouseLeave={(e) => setIsHovering(false)}
     >
-      {scope.parentScope && pendingInsertions?.length === 0 && (
-        <button
-          className={classNames(
-            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
-            { "opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering }
-          )}
-          onClick={onDelete}
-        >
-          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-            close
-          </span>
-        </button>
-      )}
-
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">
           <div className="relative">
@@ -518,6 +504,32 @@ export function NodeContextMenu({
           </div>,
           document.body
         )}
+
+      {scope.parentScope && pendingInsertions?.length === 0 && (
+        <div className="relative">
+          {isHovering && (
+            <div
+              className={classNames(
+                "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                isHoveringOverButton === "map" ? "opacity-100" : "opacity-50"
+              )}
+            >
+              Delete
+            </div>
+          )}
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
+              { "opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering }
+            )}
+            onClick={onDelete}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              delete
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }

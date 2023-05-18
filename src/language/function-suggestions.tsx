@@ -1,9 +1,8 @@
-import { DataWithProvenance, Scope } from "./scopes"
+import { Scope } from "./scopes"
 import { FUNCTIONS } from "./functions"
-import { sortBy, split } from "lodash"
-import { ArgumentNode, FnNode, IdRefNode, InlineExprNode } from "./ast"
-import { createValueNode, getNode, Graph, ValueNode } from "../graph"
-import { REF_ID_REGEX } from "../editor/plugins/refIdTokenPlugin"
+import { sortBy } from "lodash"
+import { FnNode, IdRefNode, InlineExprNode } from "./ast"
+import { createValueNode, getNode, Graph } from "../graph"
 
 export interface FunctionSuggestion {
   name: string
@@ -27,23 +26,42 @@ interface ParameterValue {
   type: ParameterType
 }
 
-export function getSuggestedFunctions(scope: Scope): FunctionSuggestion[] {
+export interface FunctionSuggestionWithText extends FunctionSuggestion {
+  text: string
+}
+
+export function getSuggestedFunctions(scope: Scope, graph: Graph): FunctionSuggestionWithText[] {
   const parameters: Parameter[] = getParameters(scope)
 
   const result = sortBy(
-    Object.entries(FUNCTIONS).flatMap(([name, fn]) => {
-      let suggestions: FunctionSuggestion[] = []
+    Object.entries(FUNCTIONS)
+      .flatMap(([name, fn]) => {
+        let suggestions: FunctionSuggestion[] = []
 
-      if (fn.suggestions) {
-        suggestions = suggestions.concat(fn.suggestions(parameters))
-      }
+        if (fn.suggestions) {
+          suggestions = suggestions.concat(fn.suggestions(parameters))
+        }
 
-      if (fn.autocomplete) {
-        suggestions.push(fn.autocomplete)
-      }
+        if (fn.autocomplete) {
+          suggestions.push(fn.autocomplete)
+        }
 
-      return suggestions
-    }),
+        return suggestions
+      })
+      .map((suggestion) => {
+        const functionText = `${suggestion.name} ${suggestion.arguments
+          .map((arg) => {
+            if (!arg.value) {
+              return `${arg.label}: `
+            }
+            // assume value is a id ref like `#[....]`
+            const id = arg.value.slice(2, -1)
+            return `${arg.label}: ${getNode(graph, id).value}`
+          })
+          .join(", ")}`
+
+        return { ...suggestion, text: functionText } as FunctionSuggestionWithText
+      }),
     (suggestion: FunctionSuggestion) => suggestion.rank ?? Infinity
   )
 

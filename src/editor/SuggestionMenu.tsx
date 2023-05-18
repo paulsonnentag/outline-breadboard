@@ -20,6 +20,7 @@ export interface MentionSuggestionValue {
 export interface FunctionSuggestionValue {
   type: "function"
   name: string
+  text: string
   arguments: SuggestionArgument[]
 }
 
@@ -116,8 +117,9 @@ async function getSuggestions(
       return (await getSuggestedMentions(scope, search)).slice(0, MAX_SUGGESTIONS)
 
     case "functions":
-      return getSuggestedFunctions(scope)
-        .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search.toLowerCase()))
+      const graph = getGraph()
+      return getSuggestedFunctions(scope, graph)
+        .filter((suggestion) => suggestion.text.toLowerCase().startsWith(search.toLowerCase()))
         .slice(0, MAX_SUGGESTIONS)
         .map((suggestion) => {
           return {
@@ -125,6 +127,7 @@ async function getSuggestions(
               type: "function",
               name: suggestion.name,
               arguments: suggestion.arguments,
+              text: suggestion.text,
             },
             icon: suggestion.icon,
           }

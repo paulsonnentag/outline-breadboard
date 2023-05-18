@@ -86,9 +86,21 @@ export function getGroupedSuggestedFunctions(scope: Scope): GroupedFunctionSugge
 }
 
 export function getParameters(scope: Scope): Parameter[] {
-  return getOwnParameters(scope)
+  const uniqueParameters: { [value: string]: Parameter } = {}
+
+  const parameters = getOwnParameters(scope)
     .concat(getSequentialParameters(scope))
     .concat(getParentParameters(scope))
+
+  for (const parameter of parameters) {
+    const existingParam = uniqueParameters[parameter.value.expression]
+
+    if (!existingParam || existingParam.distance > parameter.distance) {
+      uniqueParameters[parameter.value.expression] = parameter
+    }
+  }
+
+  return Object.values(uniqueParameters)
 }
 
 function getOwnParameters(scope: Scope): Parameter[] {

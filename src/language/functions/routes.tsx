@@ -95,7 +95,7 @@ function suggestionsFn(name: string, icon: string) {
         if (locationA !== locationB) {
           let rank = locationA.distance + locationB.distance
 
-          if (locationA.scope.isPrecedingSiblingOf(locationB.scope)) {
+          if (locationA.value.scope.isPrecedingSiblingOf(locationB.value.scope)) {
             rank -= 1
           }
 

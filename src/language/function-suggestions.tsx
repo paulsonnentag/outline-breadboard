@@ -1,8 +1,9 @@
 import { DataWithProvenance, Scope } from "./scopes"
 import { FUNCTIONS } from "./functions"
-import { sortBy } from "lodash"
+import { sortBy, split } from "lodash"
 import { ArgumentNode, FnNode, IdRefNode, InlineExprNode } from "./ast"
 import { createValueNode, getNode, Graph, ValueNode } from "../graph"
+import { REF_ID_REGEX } from "../editor/plugins/refIdTokenPlugin"
 
 export interface FunctionSuggestion {
   name: string
@@ -15,12 +16,12 @@ export interface Parameter {
   relationship: "prev" | "next" | "parent" | "self"
   distance: number
   value: ParameterValue
-  scope: Scope
 }
 
 export type ParameterType = "date" | "location" | "flight"
 
 interface ParameterValue {
+  scope: Scope
   expression: string
   value: any
   type: ParameterType
@@ -90,6 +91,7 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
       expression: `#[${date.scope.id}]`,
       value: date.data,
       type: "date",
+      scope,
     })
   }
 
@@ -99,58 +101,93 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
       expression: `#[${location.scope.id}]`,
       value: location.data,
       type: "location",
+      scope,
     })
   }
 
   return values
 }
 
-function getSequentialParameters(scope: Scope): Parameter[] {
-  const parent = scope.parentScope
-
-  if (!parent) {
+export function getSequentialParameters(scope: Scope): Parameter[] {
+  if (!scope.parentScope) {
     return []
   }
 
-  const index = parent.childScopes.indexOf(scope)
+  const beforeValues: ParameterValue[] = []
+  const afterValues: ParameterValue[] = []
+
+  const splitIndex = scope.parentScope.childScopes.indexOf(scope)
+
+  extractSequentialParameterValuesOfSubtree(scope, afterValues)
+  extractSequentialParameters(scope, splitIndex, beforeValues, afterValues)
+
+  /*console.log({
+    before: before.map((p, index) => {
+      return {
+        value: getNode(graph, p.expression.slice(2, -1)).value,
+        distance: before.length - index,
+      }
+    }),
+    after: after.map((p, index) => {
+      return {
+        relationship: "next",
+        value: getNode(graph, p.expression.slice(2, -1)).value,
+        distance: index + 1,
+      }
+    }),
+  })*/
 
   const parameters: Parameter[] = []
 
-  let distance = 1
-  let prevScope, nextScope
-  do {
-    prevScope = parent.childScopes[index - distance]
-    if (prevScope) {
-      const values = parseValuesInScope(prevScope)
+  beforeValues.forEach((value, index) => {
+    parameters.push({
+      value,
+      distance: beforeValues.length - index,
+      relationship: "prev",
+    })
+  })
 
-      for (const value of values) {
-        parameters.push({
-          relationship: "prev",
-          distance,
-          value,
-          scope: prevScope,
-        })
-      }
-    }
-
-    nextScope = parent.childScopes[index + distance]
-    if (nextScope) {
-      const values = parseValuesInScope(nextScope)
-
-      for (const value of values) {
-        parameters.push({
-          relationship: "next",
-          distance,
-          value,
-          scope: nextScope,
-        })
-      }
-    }
-
-    distance += 1
-  } while (prevScope || nextScope)
+  afterValues.forEach((value, index) => {
+    parameters.push({
+      value,
+      distance: index + 1,
+      relationship: "next",
+    })
+  })
 
   return parameters
+}
+
+function extractSequentialParameters(
+  scope: Scope,
+  splitIndex: number,
+  before: ParameterValue[],
+  after: ParameterValue[]
+) {
+  for (let index = 0; index < scope.childScopes.length; index++) {
+    if (index === splitIndex) {
+      continue
+    }
+
+    const childScope = scope.childScopes[index]
+
+    extractSequentialParameterValuesOfSubtree(childScope, index < splitIndex ? before : after)
+  }
+
+  if (scope.parentScope) {
+    const parentSplitIndex = scope.parentScope.childScopes.indexOf(scope)
+    extractSequentialParameters(scope.parentScope, parentSplitIndex, before, after)
+
+    before.unshift(...parseValuesInScope(scope.parentScope))
+  }
+}
+
+function extractSequentialParameterValuesOfSubtree(scope: Scope, values: ParameterValue[]) {
+  values.push(...parseValuesInScope(scope))
+
+  for (const childScope of scope.childScopes) {
+    extractSequentialParameterValuesOfSubtree(childScope, values)
+  }
 }
 
 function getParentParameters(scope: Scope): Parameter[] {
@@ -170,7 +207,6 @@ function _getParentParameters(scope: Scope, distance: number, parameters: Parame
     parameters.push({
       distance,
       relationship: "parent",
-      scope: parentScope,
       value,
     })
   }
@@ -353,7 +389,7 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
           // only make sequential parameter relative if in the example there are no other siblings of the same type in between
           if (
             !isSiblingScopeOfTypeInBetween(
-              parameter.scope,
+              parameter.value.scope,
               anchorArgument.scope,
               parameter.value.type
             )
@@ -389,7 +425,7 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
           // only make sequential parameter relative if in the example there are no other siblings of the same type in between
           if (
             !isSiblingScopeOfTypeInBetween(
-              parameter.scope,
+              parameter.value.scope,
               anchorArgument.scope,
               parameter.value.type
             )
@@ -494,13 +530,13 @@ function getAnchorArgument(scope: Scope): AnchorArgument | undefined {
       continue
     }
 
-    const outputPosition = getOutputPosition(parameter.scope, scope)
+    const outputPosition = getOutputPosition(parameter.value.scope, scope)
 
     if (outputPosition) {
       return {
         name: argument.name,
         expression: argumentExpression,
-        scope: parameter.scope,
+        scope: parameter.value.scope,
         type: parameter.value.type,
         outputPosition,
       }

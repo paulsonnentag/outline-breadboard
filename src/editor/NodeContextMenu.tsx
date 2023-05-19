@@ -251,7 +251,16 @@ export function NodeContextMenu({
               onMouseLeave={(e) =>
                 isHoveringOverButton === "map" && setIsHoveringOverButton(undefined)
               }
-              onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+
+                if (e.metaKey) {
+                  onPopoutView("map")
+                } else {
+                  onToggleView("map")
+                }
+              }}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
                 map
@@ -279,7 +288,16 @@ export function NodeContextMenu({
               onMouseLeave={(e) =>
                 isHoveringOverButton === "table" && setIsHoveringOverButton(undefined)
               }
-              onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+
+                if (e.metaKey) {
+                  onPopoutView("table")
+                } else {
+                  onToggleView("table")
+                }
+              }}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
                 table_chart
@@ -307,7 +325,16 @@ export function NodeContextMenu({
               onMouseLeave={(e) =>
                 isHoveringOverButton === "calendar" && setIsHoveringOverButton(undefined)
               }
-              onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+
+                if (e.metaKey) {
+                  onPopoutView("calendar")
+                } else {
+                  onToggleView("calendar")
+                }
+              }}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
                 calendar_month
@@ -330,10 +357,13 @@ export function NodeContextMenu({
                 className={classNames(
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
                 )}
-                onClick={() => {
+                onMouseDown={(evt) => {
                   if (!suggestion) {
                     return
                   }
+
+                  evt.stopPropagation()
+                  evt.preventDefault()
                   scope.insertChildNode(suggestion)
                 }}
                 onMouseEnter={() => {
@@ -399,10 +429,12 @@ export function NodeContextMenu({
                       "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
                     )}
                     style={{ background: colors.getColors(key)[500] }}
-                    onClick={() => {
+                    onMouseDown={(evt) => {
                       if (!suggestion) {
                         return
                       }
+                      evt.stopPropagation()
+                      evt.preventDefault()
                       scope.insertChildNode(suggestion)
                     }}
                     onMouseEnter={() => {
@@ -471,7 +503,6 @@ export function NodeContextMenu({
             isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
           )}
           ref={repeatButtonRef}
-          onClick={onRepeat}
           onMouseEnter={onMouseEnterRepeat}
         >
           <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
@@ -497,7 +528,10 @@ export function NodeContextMenu({
                 "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
                 isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
               )}
-              onClick={onRepeat}
+              onMouseDown={(evt) => {
+                evt.preventDefault()
+                onRepeat()
+              }}
               onMouseLeave={onMouseLeaveRepeat}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
@@ -525,7 +559,10 @@ export function NodeContextMenu({
               "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
               { "opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering }
             )}
-            onClick={onDelete}
+            onMouseDown={(evt) => {
+              evt.preventDefault()
+              onDelete()
+            }}
           >
             <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
               delete

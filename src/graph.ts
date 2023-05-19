@@ -9,8 +9,21 @@ export interface GraphDoc {
   graph: Graph
 }
 
+let REPO: Repo
 let GRAPH_DOC: GraphDoc
 let GRAPH_DOC_HANDLE: DocHandle<GraphDoc>
+
+export function registerRepo(repo: Repo) {
+  return REPO
+}
+
+export function getRepo(): Repo {
+  if (!REPO) {
+    throw new Error("no registered repo")
+  }
+
+  return REPO
+}
 
 export async function registerGraphHandle(handle: DocHandle<GraphDoc>) {
   if (GRAPH_DOC_HANDLE) {

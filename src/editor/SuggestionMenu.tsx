@@ -33,7 +33,7 @@ export interface Suggestion {
 
 interface SuggestionArgument {
   label: string
-  value?: string
+  expression?: string
   // color?: string // todo
 }
 
@@ -225,11 +225,11 @@ function FunctionSuggestionValueView({
     const parametersScopes: Scope[] = []
 
     for (const arg of value.arguments) {
-      if (!arg.value) {
+      if (!arg.expression) {
         continue
       }
 
-      const ast = parseExpression(arg.value)
+      const ast = parseExpression(arg.expression)
 
       if (ast instanceof IdRefNode) {
         const transcludedScope = new Scope(graph, ast.id, scope)
@@ -258,7 +258,7 @@ function FunctionSuggestionValueView({
 
       {value.arguments?.map(
         (a, i) =>
-          a.value !== undefined && (
+          a.expression !== undefined && (
             <p key={i}>
               <span className="text-gray-500 inline-block mr-1">{a.label}</span>
               <ArgumentValue
@@ -282,7 +282,7 @@ interface ArgumentValueProps {
 }
 
 function ArgumentValue(props: ArgumentValueProps) {
-  const mentionId = props.argument.value?.match(/#\[(.*?)\]/)?.[1]
+  const mentionId = props.argument.expression?.match(/#\[(.*?)\]/)?.[1]
 
   return (
     <span
@@ -294,7 +294,7 @@ function ArgumentValue(props: ArgumentValueProps) {
         mentionId === props.isHoveringOverId && props.setIsHoveringOverId(undefined)
       }
     >
-      {props.argument.value && expressionToLabel(props.argument.value)}
+      {props.argument.expression && expressionToLabel(props.argument.expression)}
     </span>
   )
 }

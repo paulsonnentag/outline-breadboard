@@ -340,6 +340,28 @@ export class StringNode extends AstNode {
   }
 }
 
+// Hack, is not created by the parser, is used to manually inject literal values into the ast
+export class LiteralNode extends AstNode {
+  from = 0
+  to = 0
+
+  constructor(private value: any) {
+    super()
+  }
+
+  eval(scope: Scope): Promise<any> {
+    return Promise.resolve(this.value)
+  }
+
+  getReferencedIds(): string[] {
+    return []
+  }
+
+  isConstant(): boolean {
+    return true
+  }
+}
+
 export class NumberNode extends AstNode {
   from: number
   to: number

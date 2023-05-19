@@ -11,7 +11,7 @@ import {
 import classNames from "classnames"
 import { suggestionToExprSource } from "./TextInput"
 import { parseExpression } from "../language"
-import { FnNode, IdRefNode, InlineExprNode } from "../language/ast"
+import { FnNode, IdRefNode, InlineExprNode, LiteralNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
@@ -75,33 +75,37 @@ export function NodeContextMenu({
       const newSuggestedFunctionButtons = []
       for (const [name, suggestions] of Object.entries(suggestedFunctions)) {
         const defaultSuggestion = suggestions[0]
-          ? `{${suggestionToExprSource(suggestions[0])}}`
+        const defaultSuggestionExpr = defaultSuggestion
+          ? `{${suggestionToExprSource(defaultSuggestion)}}`
           : undefined
 
         const hasDefaultSuggestionBeenAlreadyInserted =
-          scope.source === defaultSuggestion ||
+          scope.source === defaultSuggestionExpr ||
           scope.childScopes.some(
-            (scope) => scope.source === defaultSuggestion && scope.id !== suggestionNodeId
+            (scope) => scope.source === defaultSuggestionExpr && scope.id !== suggestionNodeId
           )
 
         if (suggestions.length === 0 || hasDefaultSuggestionBeenAlreadyInserted) {
           continue
         }
 
-        if (!defaultSuggestion) {
+        if (!defaultSuggestionExpr) {
           continue
         }
-        const ast = parseExpression(defaultSuggestion.slice(1, -1)) as FnNode
-        const parametersScopes: Scope[] = []
-        for (const arg of ast.args) {
-          if (arg.exp instanceof IdRefNode) {
-            const transcludedScope = new Scope(graph, arg.exp.id, scope)
-            transcludedScope.eval()
-            parametersScopes.push(transcludedScope)
-          }
+        const ast = parseExpression(defaultSuggestionExpr.slice(1, -1)) as FnNode
+
+        // hack replace arguments with literal values
+        for (let index = 0; index < ast.args.length; index++) {
+          const argValue = defaultSuggestion.arguments[index].value
+          ast.args[index].exp = new LiteralNode(argValue)
         }
-        const scopeWithParameters = scope.withTranscludedScopes(parametersScopes)
-        const result = await ast.eval(scopeWithParameters)
+
+        const result = await ast.eval(scope)
+
+        if (!result) {
+          continue
+        }
+
         const fn = FUNCTIONS[name]
         const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
         const resultText = summaryView(result)
@@ -110,7 +114,7 @@ export function NodeContextMenu({
         const _resultText = resultText.slice(spaceIndex + 1).trim()
         newSuggestedFunctionButtons.push({
           name,
-          suggestion: defaultSuggestion,
+          suggestion: defaultSuggestionExpr,
           icon,
           result: _resultText,
         })
@@ -118,7 +122,6 @@ export function NodeContextMenu({
 
       setSuggestedFunctionButtons(newSuggestedFunctionButtons)
     })()
-    return () => {}
     // bit of an ugly hack to compare suggestedFunctions by value rather than identity,
     // but seems to work fine...
   }, [JSON.stringify(suggestedFunctions)])

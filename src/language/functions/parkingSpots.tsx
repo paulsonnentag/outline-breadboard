@@ -2,17 +2,9 @@ import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 import { parseLatLng } from "../../properties"
 import { Scope } from "../scopes"
-import LatLngLiteral = google.maps.LatLngLiteral
-import {
-  createRecordNode,
-  getGraph,
-  getGraphDocHandle,
-  getLabelOfNode,
-  Graph,
-  ValueNode,
-} from "../../graph"
-import { placesServiceApi } from "../../google"
+import { createRecordNode, Graph, ValueNode } from "../../graph"
 import { DragEvent } from "react"
+import LatLngLiteral = google.maps.LatLngLiteral
 
 export const PARKING_SPOTS_FN: FunctionDefs = {
   ParkingSpots: {
@@ -30,7 +22,8 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
           arguments: [
             {
               label: "near",
-              value: location.value.expression,
+              expression: location.value.expression,
+              value: location.value.value,
             },
           ],
           rank,
@@ -96,7 +89,10 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
         return undefined
       }
 
-      const position = parseLatLng(await (near as Scope).getPropertyAsync("position"))
+      const position =
+        near && near.lat !== undefined && near.lng !== undefined
+          ? near
+          : parseLatLng(await (near as Scope).getPropertyAsync("position"))
 
       if (!position) {
         return undefined
@@ -166,6 +162,10 @@ const getParkingSpots = async (lat: number, lng: number): Promise<ParkingSpot[]>
             return parkingSpot
           })
       )
+    })
+    .catch(() => {
+      console.log("handle error")
+      return []
     })
 
   PARKING_SPOT_RESULTS_CACHE[key] = result

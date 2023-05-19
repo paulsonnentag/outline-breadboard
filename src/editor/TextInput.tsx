@@ -423,6 +423,6 @@ export function TextInput({
 
 export function suggestionToExprSource(suggestion: FunctionSuggestion | FunctionSuggestionValue) {
   return `${suggestion.name}(${(suggestion.arguments ?? [])
-    .map(({ label, value }) => `${label}: ${value ?? ""}`)
+    .map(({ label, expression }) => `${label}: ${expression ?? ""}`)
     .join(", ")})`
 }

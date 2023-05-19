@@ -578,7 +578,7 @@ export function OutlineEditor({
                 })}
               </div>
             </div>
-            {!disableCustomViews && (
+            {!disableCustomViews && isFocused && (
               <NodeContextMenu
                 hideFunctionButtons={isMenuOpen}
                 onChangeIsComputationSuggestionHovered={setIsComputationSuggestionHovered}

@@ -31,11 +31,13 @@ function getSolarFunctionDef(property: "sunrise" | "sunset"): FunctionDef {
             arguments: [
               {
                 label: "in",
-                value: location.value.expression,
+                expression: location.value.expression,
+                value: location.value.value,
               },
               {
                 label: "on",
-                value: date.value.expression,
+                expression: date.value.expression,
+                value: date.value.value,
               },
             ],
             rank,
@@ -59,9 +61,15 @@ function getSolarFunctionDef(property: "sunrise" | "sunset"): FunctionDef {
     },
     function: async ([], namedArgs) => {
       if (namedArgs.on && namedArgs.in) {
-        let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined
+        let onDate = namedArgs.on
+          ? namedArgs.on instanceof Date
+            ? namedArgs.on
+            : parseDate(namedArgs.on.id)
+          : undefined
         let inLocation = namedArgs.in
-          ? parseLatLng(await namedArgs.in.getPropertyAsync("position"))
+          ? namedArgs.in && namedArgs.in.lat !== undefined && namedArgs.in.lng !== undefined
+            ? namedArgs.in
+            : parseLatLng(await namedArgs.in.getPropertyAsync("position"))
           : undefined
 
         if (!onDate || !inLocation) {

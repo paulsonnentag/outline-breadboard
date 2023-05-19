@@ -38,11 +38,13 @@ export const WEATHER_FN: FunctionDefs = {
             arguments: [
               {
                 label: "in",
-                value: location.value.expression,
+                expression: location.value.expression,
+                value: location.value.value,
               },
               {
                 label: "on",
-                value: date.value.expression,
+                expression: date.value.expression,
+                value: date.value.value,
               },
             ],
             rank,
@@ -74,9 +76,15 @@ export const WEATHER_FN: FunctionDefs = {
         ? namedArgs.unit
         : (await scope.lookupValueAsync("temperatureUnit")) ?? "celsius"
 
-      let onDate = namedArgs.on ? parseDate(namedArgs.on.id) : undefined
+      let onDate = namedArgs.on
+        ? namedArgs.on instanceof Date
+          ? namedArgs.on
+          : parseDate(namedArgs.on.id)
+        : undefined
       let inLocation = namedArgs.in
-        ? parseLatLng(await namedArgs.in.getPropertyAsync("position"))
+        ? namedArgs.in && namedArgs.in.lat !== undefined && namedArgs.in.lng !== undefined
+          ? namedArgs.in
+          : parseLatLng(await namedArgs.in.getPropertyAsync("position"))
         : undefined
 
       if (namedArgs.on && namedArgs.in) {
@@ -93,11 +101,21 @@ export interface WeatherInformation {
   weatherCode?: number
 }
 
+const OFFLINE = true
+
 async function getWeatherInformation(
   date: Date,
   location: google.maps.LatLngLiteral,
   unit: string
 ): Promise<WeatherInformation | undefined> {
+  if (OFFLINE) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ min: 0, max: 20, mean: 10 })
+      }, 1000)
+    })
+  }
+
   const alignedDate = startOfDay(date)
   const currentDay = startOfDay(Date.now())
   const lastDayWithPrediction = addDays(currentDay, 16)

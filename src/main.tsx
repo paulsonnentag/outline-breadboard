@@ -43,9 +43,8 @@ function setupSharedWorkerAndRepo() {
   ])
 
   const repo = new Repo({
-    storage: new LocalForageStorageAdapter(),
-    network: [new BrowserWebSocketClientAdapter(url)],
-    sharePolicy: (peerId) => peerId.includes("storage-server"),
+    network: [new MessageChannelNetworkAdapter(repoNetworkChannel.port1)],
+    sharePolicy: (peerId) => peerId.includes("shared-worker"),
   })
 
   registerRepo(repo)

@@ -23,6 +23,7 @@ class ImageWidget extends WidgetType {
     image.src = this.url
     image.style.height = "200px"
     image.style.width = "auto"
+    container.append(image)
 
     return container
   }

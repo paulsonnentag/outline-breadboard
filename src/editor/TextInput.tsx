@@ -87,7 +87,10 @@ export function TextInput({
   const isMenuOpen = activeAutocompleteMenu !== undefined
   const search =
     activeAutocompleteMenu !== undefined
-      ? value.slice(activeAutocompleteMenu.index).split(/[,)]/)[0].trim()
+      ? value
+          .slice(activeAutocompleteMenu.index + 1)
+          .split(/[,)]/)[0]
+          .trim()
       : undefined
 
   // trigger isMenuOpenEvent
@@ -280,7 +283,7 @@ export function TextInput({
       currentEditorView.dispatch(
         currentEditorView.state.update({
           changes: {
-            from: activeAutocompleteMenu.index - 1,
+            from: activeAutocompleteMenu.index,
             to: currentEditorView.state.selection.main.head,
             insert: expr,
           },
@@ -297,24 +300,32 @@ export function TextInput({
     }
 
     if (isAtSign(evt)) {
-      if (!activeAutocompleteMenu) {
+      const cursorPos = currentEditorView.state.selection.main.head
+      const isCursorPosSeparatedBySpace =
+        cursorPos === 0 || currentEditorView.state.sliceDoc(cursorPos - 1, cursorPos) === " "
+
+      if (!activeAutocompleteMenu && isCursorPosSeparatedBySpace) {
         // hack: wait till next frame so text has updated
         setTimeout(() => {
           setActiveAutocompleteMenu({
             type: "mentions",
-            index: currentEditorView.state.selection.main.head,
+            index: cursorPos,
           })
 
           setSelectedSuggestionIndex(0)
         })
       }
     } else if (isSlash(evt)) {
-      if (!activeAutocompleteMenu) {
+      const cursorPos = currentEditorView.state.selection.main.head
+      const isCursorPosSeparatedBySpace =
+        cursorPos === 0 || currentEditorView.state.sliceDoc(cursorPos - 1, cursorPos) === " "
+
+      if (!activeAutocompleteMenu && isCursorPosSeparatedBySpace) {
         // hack: wait till next frame so text has updated
         setTimeout(() => {
           setActiveAutocompleteMenu({
             type: "functions",
-            index: currentEditorView.state.selection.main.head,
+            index: cursorPos,
           })
           setSelectedSuggestionIndex(0)
         })
@@ -372,7 +383,7 @@ export function TextInput({
     } else if (isBackspace(evt)) {
       if (
         isMenuOpen &&
-        currentEditorView.state.selection.main.head === activeAutocompleteMenu.index
+        currentEditorView.state.selection.main.head - 1 === activeAutocompleteMenu.index
       ) {
         setActiveAutocompleteMenu(undefined)
       }

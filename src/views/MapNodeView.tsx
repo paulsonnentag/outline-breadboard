@@ -35,6 +35,24 @@ interface GeoJsonShape {
   geoJson: any
 }
 
+const COLOR_REGEX = /^color: (.*)$/
+function getColorOfNode(graph: Graph, nodeId: string): string | undefined {
+  if (!graph[nodeId]) {
+    return undefined
+  }
+
+  const node = getNode(graph, nodeId)
+  for (const childId of node.children) {
+    const childNode = getNode(graph, childId)
+
+    const match = childNode.value.match(COLOR_REGEX)
+
+    if (match) {
+      return match[1]
+    }
+  }
+}
+
 export function MapNodeView({
   node,
   scope,
@@ -61,9 +79,12 @@ export function MapNodeView({
               typeof item.position.lat === "number" &&
               typeof item.position.lng === "number"
             ) {
+              // hack to make custom colors work
+              const itemColor = getColorOfNode(graph, item.id)
+
               markers.push({
                 position: item.position,
-                color,
+                color: itemColor ?? color,
                 customId: item.id,
               })
             }
@@ -334,7 +355,9 @@ export function MapNodeView({
         let rootId
 
         if (marker.data.customId && isParkingSpotId(marker.data.customId)) {
-          await createParkingSpotNode(changeGraph, marker.data.customId)
+          if (!graph[marker.data.customId]) {
+            await createParkingSpotNode(changeGraph, marker.data.customId)
+          }
           rootId = marker.data.customId
         } else {
           changeGraph((graph) => {
@@ -659,7 +682,7 @@ function PopoverOutlineView({
         onOpenNodeInNewPane={onOpenNodeInNewPane}
         isHoveringOverId={undefined} /* TODO */
         setIsHoveringOverId={() => {}} /* TODO */
-        disableCustomViews={true}
+        disableCustomViews={false}
       />
     </GraphContext.Provider>
   )

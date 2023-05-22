@@ -101,9 +101,8 @@ export function MapNodeView({
     })
   })
 
-  // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
-  // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
-  // const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
+  const setLocation = parseLatLng(scope.getProperty("mapLocation"))
+  const setZoom = parseInt(scope.getProperty("mapZoom"))
 
   const google = useGoogleApi()
   const mapId = useId()
@@ -132,13 +131,13 @@ export function MapNodeView({
 
     const currentMap = (mapRef.current = new google.maps.Map(currentMapElement, {
       mapId,
-      zoom: 11,
-      center: { lat: 50.775555, lng: 6.083611 },
+      zoom: setZoom || 11,
+      center: setLocation || { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
       gestureHandling: "greedy",
     }))
 
-    if (minBounds) {
+    if (!setLocation && !setZoom && minBounds) {
       currentMap.fitBounds(minBounds)
     }
 

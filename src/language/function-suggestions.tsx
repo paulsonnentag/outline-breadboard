@@ -51,11 +51,11 @@ export function getSuggestedFunctions(scope: Scope, graph: Graph): FunctionSugge
       .map((suggestion) => {
         const functionText = `${suggestion.name} ${suggestion.arguments
           .map((arg) => {
-            if (!arg.value) {
+            if (!arg.expression) {
               return `${arg.label}: `
             }
-            // assume value is a id ref like `#[....]`
-            const id = arg.value.slice(2, -1)
+            // assume value is a id ref like `#[....]
+            const id = arg.expression.slice(2, -1)
             return `${arg.label}: ${getNode(graph, id).value}`
           })
           .join(", ")}`

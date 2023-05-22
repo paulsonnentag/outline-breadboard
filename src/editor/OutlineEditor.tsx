@@ -418,8 +418,7 @@ export function OutlineEditor({
     }
   }
 
-  const color = scope.lookupValue("color")
-  const colorPalette = colors.getColors(scope.lookupValue("color"))
+  const color = scope.getProperty("color") ?? scope.lookupValue("color")
 
   return (
     <div

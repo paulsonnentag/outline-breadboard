@@ -65,7 +65,7 @@ export function MapNodeView({
   const { graph, changeGraph } = graphContext
 
   const markers = scope.extractDataInScope<Marker>((scope) => {
-    const color = scope.lookupValue("color")
+    const color = scope.getProperty("color") ?? scope.lookupValue("color")
 
     const markers: Marker[] = []
 
@@ -750,10 +750,14 @@ function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBo
 function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.Map) {
   const center = map.getCenter()
   const zoom = map.getZoom()
-  
+
   const inputNode = getNode(graph, inputsNodeId)
-  const latLongInputIndex = inputNode.children.findIndex(c => getNode(graph, c).value.startsWith("mapLocation:"))
-  const zoomInputIndex = inputNode.children.findIndex(c => getNode(graph, c).value.startsWith("mapZoom:"))
+  const latLongInputIndex = inputNode.children.findIndex((c) =>
+    getNode(graph, c).value.startsWith("mapLocation:")
+  )
+  const zoomInputIndex = inputNode.children.findIndex((c) =>
+    getNode(graph, c).value.startsWith("mapZoom:")
+  )
 
   const latLongValue = `mapLocation: ${center!.lat()}, ${center!.lng()}`
 
@@ -761,7 +765,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
     getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
   } else {
     const latLngPropertyNode = createValueNode(graph, {
-      value: latLongValue
+      value: latLongValue,
     })
     inputNode.children.push(latLngPropertyNode.id)
   }
@@ -775,7 +779,7 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
     }
   } else {
     const zoomPropertyNode = createValueNode(graph, {
-      value: zoomValue
+      value: zoomValue,
     })
     inputNode.children.push(zoomPropertyNode.id)
   }

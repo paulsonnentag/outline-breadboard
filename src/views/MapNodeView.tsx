@@ -21,6 +21,8 @@ import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
+import { v4 } from "uuid"
+import { createValueNode } from "../graph"
 
 interface Marker {
   color?: string
@@ -182,7 +184,7 @@ export function MapNodeView({
       }
 
       changeGraph((graph) => {
-        // writeBackMapState(graph, inputsNodeId, currentMap)
+        writeBackMapState(graph, scope.id, currentMap)
       })
     }, 500)
   )
@@ -723,51 +725,36 @@ function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBo
   return bounds
 }
 
-/*
 function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.Map) {
   const center = map.getCenter()
   const zoom = map.getZoom()
-  const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-  const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
+  
   const inputNode = getNode(graph, inputsNodeId)
+  const latLongInputIndex = inputNode.children.findIndex(c => getNode(graph, c).value.startsWith("mapLocation:"))
+  const zoomInputIndex = inputNode.children.findIndex(c => getNode(graph, c).value.startsWith("mapZoom:"))
 
-  const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
+  const latLongValue = `mapLocation: ${center!.lat()}, ${center!.lng()}`
 
-  if (latLongInputIndex !== undefined) {
+  if (latLongInputIndex > -1) {
     getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
   } else {
-    const latLngPropertyNode: ValueNode = {
-      id: v4(),
-      type: "value",
-      value: latLongValue,
-      children: [],
-      isCollapsed: false,
-      isSelected: false,
-    }
-
-    graph[latLngPropertyNode.id] = latLngPropertyNode
+    const latLngPropertyNode = createValueNode(graph, {
+      value: latLongValue
+    })
     inputNode.children.push(latLngPropertyNode.id)
   }
 
-  const zoomValue = `zoom: ${zoom}`
+  const zoomValue = `mapZoom: ${zoom}`
 
-  if (zoomInputIndex !== undefined) {
+  if (zoomInputIndex > -1) {
     const zoomPropertyNode = getNode(graph, inputNode.children[zoomInputIndex])
     if (zoomPropertyNode.value !== zoomValue) {
       zoomPropertyNode.value = zoomValue
     }
   } else {
-    const zoomPropertyNode: ValueNode = {
-      id: v4(),
-      type: "value",
-      value: zoomValue,
-      children: [],
-      isCollapsed: false,
-      isSelected: false,
-    }
-
-    graph[zoomPropertyNode.id] = zoomPropertyNode
+    const zoomPropertyNode = createValueNode(graph, {
+      value: zoomValue
+    })
     inputNode.children.push(zoomPropertyNode.id)
   }
 }
-*/

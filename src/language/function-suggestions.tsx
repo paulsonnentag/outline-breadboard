@@ -6,7 +6,7 @@ import { createValueNode, getNode, Graph, ValueNode } from "../graph"
 
 export interface FunctionSuggestion {
   name: string
-  arguments: { label: string; value?: string }[]
+  arguments: { label: string; expression?: string; value?: any }[]
   icon?: string
   rank?: number // lower number is better
 }
@@ -22,6 +22,7 @@ export type ParameterType = "date" | "location" | "flight"
 
 interface ParameterValue {
   expression: string
+  value: any
   type: ParameterType
 }
 
@@ -87,6 +88,7 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
   for (const date of dates) {
     values.push({
       expression: `#[${date.scope.id}]`,
+      value: date.data,
       type: "date",
     })
   }
@@ -95,6 +97,7 @@ function parseValuesInScope(scope: Scope): ParameterValue[] {
   for (const location of locations) {
     values.push({
       expression: `#[${location.scope.id}]`,
+      value: location.data,
       type: "location",
     })
   }

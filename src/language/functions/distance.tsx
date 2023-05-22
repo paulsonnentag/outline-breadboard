@@ -27,11 +27,13 @@ export const DISTANCE_FN: FunctionDefs = {
               arguments: [
                 {
                   label: "from",
-                  value: locationA.value.expression,
+                  expression: locationA.value.expression,
+                  value: locationA.value.value,
                 },
                 {
                   label: "to",
-                  value: locationB.value.expression,
+                  expression: locationB.value.expression,
+                  value: locationB.value.value,
                 },
               ],
               rank,
@@ -67,8 +69,14 @@ export const DISTANCE_FN: FunctionDefs = {
       }
 
       if (from && to) {
-        const pos1 = parseLatLng(await (from as Scope).getPropertyAsync("position"))
-        const pos2 = parseLatLng(await (to as Scope).getPropertyAsync("position"))
+        const pos1 =
+          from && from.lat && from.lng
+            ? from
+            : parseLatLng(await (from as Scope).getPropertyAsync("position"))
+        const pos2 =
+          to && to.lat && to.lng
+            ? to
+            : parseLatLng(await (to as Scope).getPropertyAsync("position"))
 
         if (!pos1 || !pos2) {
           return undefined

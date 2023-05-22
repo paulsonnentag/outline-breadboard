@@ -11,7 +11,7 @@ import {
 import classNames from "classnames"
 import { suggestionToExprSource } from "./TextInput"
 import { parseExpression } from "../language"
-import { FnNode, IdRefNode, InlineExprNode } from "../language/ast"
+import { FnNode, IdRefNode, InlineExprNode, LiteralNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
@@ -75,33 +75,37 @@ export function NodeContextMenu({
       const newSuggestedFunctionButtons = []
       for (const [name, suggestions] of Object.entries(suggestedFunctions)) {
         const defaultSuggestion = suggestions[0]
-          ? `{${suggestionToExprSource(suggestions[0])}}`
+        const defaultSuggestionExpr = defaultSuggestion
+          ? `{${suggestionToExprSource(defaultSuggestion)}}`
           : undefined
 
         const hasDefaultSuggestionBeenAlreadyInserted =
-          scope.source === defaultSuggestion ||
+          scope.source === defaultSuggestionExpr ||
           scope.childScopes.some(
-            (scope) => scope.source === defaultSuggestion && scope.id !== suggestionNodeId
+            (scope) => scope.source === defaultSuggestionExpr && scope.id !== suggestionNodeId
           )
 
         if (suggestions.length === 0 || hasDefaultSuggestionBeenAlreadyInserted) {
           continue
         }
 
-        if (!defaultSuggestion) {
+        if (!defaultSuggestionExpr) {
           continue
         }
-        const ast = parseExpression(defaultSuggestion.slice(1, -1)) as FnNode
-        const parametersScopes: Scope[] = []
-        for (const arg of ast.args) {
-          if (arg.exp instanceof IdRefNode) {
-            const transcludedScope = new Scope(graph, arg.exp.id, scope)
-            transcludedScope.eval()
-            parametersScopes.push(transcludedScope)
-          }
+        const ast = parseExpression(defaultSuggestionExpr.slice(1, -1)) as FnNode
+
+        // hack replace arguments with literal values
+        for (let index = 0; index < ast.args.length; index++) {
+          const argValue = defaultSuggestion.arguments[index].value
+          ast.args[index].exp = new LiteralNode(argValue)
         }
-        const scopeWithParameters = scope.withTranscludedScopes(parametersScopes)
-        const result = await ast.eval(scopeWithParameters)
+
+        const result = await ast.eval(scope)
+
+        if (!result) {
+          continue
+        }
+
         const fn = FUNCTIONS[name]
         const summaryView = fn && fn.summaryView !== undefined ? fn.summaryView : valueToString
         const resultText = summaryView(result)
@@ -110,7 +114,7 @@ export function NodeContextMenu({
         const _resultText = resultText.slice(spaceIndex + 1).trim()
         newSuggestedFunctionButtons.push({
           name,
-          suggestion: defaultSuggestion,
+          suggestion: defaultSuggestionExpr,
           icon,
           result: _resultText,
         })
@@ -118,7 +122,6 @@ export function NodeContextMenu({
 
       setSuggestedFunctionButtons(newSuggestedFunctionButtons)
     })()
-    return () => {}
     // bit of an ugly hack to compare suggestedFunctions by value rather than identity,
     // but seems to work fine...
   }, [JSON.stringify(suggestedFunctions)])
@@ -226,20 +229,6 @@ export function NodeContextMenu({
       onMouseOver={(e) => setIsHovering(true)}
       onMouseLeave={(e) => setIsHovering(false)}
     >
-      {scope.parentScope && pendingInsertions?.length === 0 && (
-        <button
-          className={classNames(
-            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
-            { "opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering }
-          )}
-          onClick={onDelete}
-        >
-          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-            close
-          </span>
-        </button>
-      )}
-
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">
           <div className="relative">
@@ -262,7 +251,16 @@ export function NodeContextMenu({
               onMouseLeave={(e) =>
                 isHoveringOverButton === "map" && setIsHoveringOverButton(undefined)
               }
-              onClick={(e) => (e.metaKey ? onPopoutView("map") : onToggleView("map"))}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+
+                if (e.metaKey) {
+                  onPopoutView("map")
+                } else {
+                  onToggleView("map")
+                }
+              }}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
                 map
@@ -290,7 +288,16 @@ export function NodeContextMenu({
               onMouseLeave={(e) =>
                 isHoveringOverButton === "table" && setIsHoveringOverButton(undefined)
               }
-              onClick={(e) => (e.metaKey ? onPopoutView("table") : onToggleView("table"))}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+
+                if (e.metaKey) {
+                  onPopoutView("table")
+                } else {
+                  onToggleView("table")
+                }
+              }}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
                 table_chart
@@ -318,7 +325,16 @@ export function NodeContextMenu({
               onMouseLeave={(e) =>
                 isHoveringOverButton === "calendar" && setIsHoveringOverButton(undefined)
               }
-              onClick={(e) => (e.metaKey ? onPopoutView("calendar") : onToggleView("calendar"))}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+
+                if (e.metaKey) {
+                  onPopoutView("calendar")
+                } else {
+                  onToggleView("calendar")
+                }
+              }}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
                 calendar_month
@@ -341,10 +357,13 @@ export function NodeContextMenu({
                 className={classNames(
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
                 )}
-                onClick={() => {
+                onMouseDown={(evt) => {
                   if (!suggestion) {
                     return
                   }
+
+                  evt.stopPropagation()
+                  evt.preventDefault()
                   scope.insertChildNode(suggestion)
                 }}
                 onMouseEnter={() => {
@@ -410,10 +429,12 @@ export function NodeContextMenu({
                       "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
                     )}
                     style={{ background: colors.getColors(key)[500] }}
-                    onClick={() => {
+                    onMouseDown={(evt) => {
                       if (!suggestion) {
                         return
                       }
+                      evt.stopPropagation()
+                      evt.preventDefault()
                       scope.insertChildNode(suggestion)
                     }}
                     onMouseEnter={() => {
@@ -482,7 +503,6 @@ export function NodeContextMenu({
             isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
           )}
           ref={repeatButtonRef}
-          onClick={onRepeat}
           onMouseEnter={onMouseEnterRepeat}
         >
           <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
@@ -508,7 +528,10 @@ export function NodeContextMenu({
                 "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
                 isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
               )}
-              onClick={onRepeat}
+              onMouseDown={(evt) => {
+                evt.preventDefault()
+                onRepeat()
+              }}
               onMouseLeave={onMouseLeaveRepeat}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
@@ -518,6 +541,35 @@ export function NodeContextMenu({
           </div>,
           document.body
         )}
+
+      {scope.parentScope && pendingInsertions?.length === 0 && (
+        <div className="relative">
+          {isHovering && (
+            <div
+              className={classNames(
+                "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                isHoveringOverButton === "map" ? "opacity-100" : "opacity-50"
+              )}
+            >
+              Delete
+            </div>
+          )}
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
+              { "opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering }
+            )}
+            onMouseDown={(evt) => {
+              evt.preventDefault()
+              onDelete()
+            }}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              delete
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }

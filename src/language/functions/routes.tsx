@@ -105,11 +105,13 @@ function suggestionsFn(name: string, icon: string) {
             arguments: [
               {
                 label: "from",
-                value: locationA.value.expression,
+                expression: locationA.value.expression,
+                value: locationA.value.value,
               },
               {
                 label: "to",
-                value: locationB.value.expression,
+                expression: locationB.value.expression,
+                value: locationB.value.value,
               },
             ],
             rank,
@@ -133,8 +135,14 @@ function functionFn(
     }
 
     if (from && to) {
-      const fromPos = parseLatLng(await (from as Scope).getPropertyAsync("position"))
-      const toPos = parseLatLng(await (to as Scope).getPropertyAsync("position"))
+      const fromPos =
+        from && from.lat !== undefined && from.lng !== undefined
+          ? from
+          : parseLatLng(await (from as Scope).getPropertyAsync("position"))
+      const toPos =
+        to && to.lat !== undefined && to.lng !== undefined
+          ? to
+          : parseLatLng(await (to as Scope).getPropertyAsync("position"))
 
       if (!fromPos || !toPos) {
         return undefined

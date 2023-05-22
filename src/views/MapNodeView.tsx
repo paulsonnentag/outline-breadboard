@@ -254,7 +254,8 @@ export function MapNodeView({
   }, [childNodeIdsWithLatLng, google, isDragging, isPanning]) */
 
   // render markers on map
-  useEffect(() => {
+
+  const renderMarkers = () => {
     if (!mapRef.current || !google) {
       return
     }
@@ -297,6 +298,9 @@ export function MapNodeView({
           content: element,
           position: marker.data.position,
         })
+        ;(mapsMarker as any).addEventListener("gmp-click", () => {
+          ;(mapsMarker as any).__onclick()
+        })
 
         prevMarkers.push(mapsMarker)
       }
@@ -317,7 +321,7 @@ export function MapNodeView({
       }
 
       // new version of google maps, but types haven't been updates
-      ;(mapsMarker as any).addEventListener("gmp-click", async () => {
+      ;(mapsMarker as any).__onclick = async () => {
         // defer to selection handler if active
         /*if (isSelectionHandlerActive()) {
             triggerSelect(marker.)
@@ -331,8 +335,6 @@ export function MapNodeView({
         if (marker.data.customId && isParkingSpotId(marker.data.customId)) {
           await createParkingSpotNode(changeGraph, marker.data.customId)
           rootId = marker.data.customId
-
-          console.log("special handling")
         } else {
           changeGraph((graph) => {
             const node = getNode(graph, marker.scope.id)
@@ -350,7 +352,7 @@ export function MapNodeView({
         }
 
         // mapRef.current?.panTo(marker.data.position)
-      })
+      }
 
       markerContent.onmouseenter = () => {
         setIsHoveringOverId(marker.data.customId ?? marker.scope.id)
@@ -363,6 +365,10 @@ export function MapNodeView({
       const isDefaultColor = marker.data.color === undefined
       mapsMarker.zIndex = isHovering ? 10 : !isDefaultColor ? 10 : 0
     }
+  }
+
+  useEffect(() => {
+    renderMarkers()
   }, [markers, mapRef.current, isHoveringOverId])
 
   // render geoJson shapes on map

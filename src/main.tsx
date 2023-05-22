@@ -12,8 +12,6 @@ import "material-icons/iconfont/material-icons.css"
 import { getProfileDoc } from "./profile"
 import { registerRepo } from "./graph"
 
-const url = "ws://67.207.88.83" // cloud sync server on DigitalOcean
-
 // FIXME - had an issue with shared worker missing the connect message on the first startup
 // if it was also loading wasm - unsure what the issue is but repeating the sharedworker
 // in the only workaround we have at the moment

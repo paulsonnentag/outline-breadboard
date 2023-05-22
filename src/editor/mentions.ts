@@ -1,4 +1,4 @@
-import { createValueNode, getGraph, getGraphDocHandle, Graph, Node } from "../graph"
+import { createValueNode, getGraph, Graph, Node } from "../graph"
 import { KEYWORD_REGEX } from "../language"
 import { REF_ID_REGEX } from "./plugins/refIdTokenPlugin"
 import { isString } from "../utils"
@@ -7,6 +7,7 @@ import { createPlaceNode } from "../views/MapNodeView"
 import { createFlightNode } from "../flights"
 import { Scope } from "../language/scopes"
 import { Suggestion } from "./SuggestionMenu"
+import { getParametersSorted } from "../language/function-suggestions"
 
 // @ts-ignore
 const AIRLABS_API_KEY = __APP_ENV__.AIRLABS_API_KEY
@@ -62,8 +63,24 @@ async function getPlacesAutocompletion(
     return []
   }
 
+  // bias search result to show results near closest location in document
+  const locationBias = getParametersSorted(scope).find(
+    (parameter) => parameter.value.type === "location"
+  )
+
   const result: google.maps.places.AutocompleteResponse = await placesAutocompleteApi.then(
-    (autocomplete) => autocomplete.getPlacePredictions({ input: search })
+    (autocomplete) =>
+      autocomplete.getPlacePredictions(
+        locationBias
+          ? {
+              input: search,
+              radius: 5000, // 5 km
+              // unfortunately we have to specify a radius, if we specify a bigger radius it only biases locations based
+              // on weather they are in the radius not based on how close they are to the center
+              location: new google.maps.LatLng(locationBias.value.value),
+            }
+          : { input: search }
+      )
   )
 
   return result.predictions.flatMap((prediction) => {

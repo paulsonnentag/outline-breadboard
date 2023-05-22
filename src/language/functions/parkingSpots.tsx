@@ -106,7 +106,7 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
 }
 
 const RADIUS_IN_KM = 200
-const LIMIT = 20
+const LIMIT = 100
 
 interface ParkingSpot {
   id: string
@@ -193,7 +193,6 @@ export async function createParkingSpotNode(
         id: parkingSpotId,
         name: parkingSpot.title,
         props: [
-          // { type: "image", url: photo } as ImageValue, todo: add back images
           [
             "image",
             parkingSpot.images.length > 0 ? `![${parkingSpot.images[0].thumb}]` : undefined,

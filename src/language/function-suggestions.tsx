@@ -103,6 +103,10 @@ export function getParameters(scope: Scope): Parameter[] {
   return Object.values(uniqueParameters)
 }
 
+export function getParametersSorted(scope: Scope): Parameter[] {
+  return sortBy(getParameters(scope), (parameter) => parameter.distance)
+}
+
 function getOwnParameters(scope: Scope): Parameter[] {
   return parseValuesInScope(scope).map((value) => ({
     relationship: "self",

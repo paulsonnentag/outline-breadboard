@@ -86,7 +86,13 @@ export function TextInput({
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
   const isMenuOpen = activeAutocompleteMenu !== undefined
   const search =
-    activeAutocompleteMenu !== undefined ? value.slice(activeAutocompleteMenu.index + 1) : undefined
+    activeAutocompleteMenu !== undefined
+      ? value.slice(activeAutocompleteMenu.index).split(/[,)]/)[0].trim()
+      : undefined
+
+  if (activeAutocompleteMenu) {
+    console.log(search)
+  }
 
   // trigger isMenuOpenEvent
   useEffect(() => {
@@ -278,7 +284,7 @@ export function TextInput({
       currentEditorView.dispatch(
         currentEditorView.state.update({
           changes: {
-            from: activeAutocompleteMenu.index,
+            from: activeAutocompleteMenu.index - 1,
             to: currentEditorView.state.selection.main.head,
             insert: expr,
           },
@@ -296,19 +302,26 @@ export function TextInput({
 
     if (isAtSign(evt)) {
       if (!activeAutocompleteMenu) {
-        setActiveAutocompleteMenu({
-          type: "mentions",
-          index: currentEditorView.state.selection.main.head,
+        // hack: wait till next frame so text has updated
+        setTimeout(() => {
+          setActiveAutocompleteMenu({
+            type: "mentions",
+            index: currentEditorView.state.selection.main.head,
+          })
+
+          setSelectedSuggestionIndex(0)
         })
-        setSelectedSuggestionIndex(0)
       }
     } else if (isSlash(evt)) {
       if (!activeAutocompleteMenu) {
-        setActiveAutocompleteMenu({
-          type: "functions",
-          index: currentEditorView.state.selection.main.head,
+        // hack: wait till next frame so text has updated
+        setTimeout(() => {
+          setActiveAutocompleteMenu({
+            type: "functions",
+            index: currentEditorView.state.selection.main.head,
+          })
+          setSelectedSuggestionIndex(0)
         })
-        setSelectedSuggestionIndex(0)
       }
     } else if (isEscape(evt)) {
       setActiveAutocompleteMenu(undefined)
@@ -363,7 +376,7 @@ export function TextInput({
     } else if (isBackspace(evt)) {
       if (
         isMenuOpen &&
-        currentEditorView.state.selection.main.head - 1 === activeAutocompleteMenu.index
+        currentEditorView.state.selection.main.head === activeAutocompleteMenu.index
       ) {
         setActiveAutocompleteMenu(undefined)
       }

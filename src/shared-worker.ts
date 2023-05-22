@@ -40,7 +40,7 @@ const repo = new Repo({
   storage: new LocalForageStorageAdapter(),
   network: [new BrowserWebSocketClientAdapter(url)],
   peerId: ("shared-worker-" + Math.round(Math.random() * 10000)) as PeerId,
-  sharePolicy: (peerId) => peerId.includes("storage-server"),
+  sharePolicy: async (peerId) => peerId.includes("storage-server"),
 })
 
 self.addEventListener("connect", (e: MessageEvent) => {

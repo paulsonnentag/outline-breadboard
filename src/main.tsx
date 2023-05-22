@@ -42,7 +42,7 @@ function setupSharedWorkerAndRepo() {
 
   const repo = new Repo({
     network: [new MessageChannelNetworkAdapter(repoNetworkChannel.port1)],
-    sharePolicy: (peerId) => peerId.includes("shared-worker"),
+    sharePolicy: async (peerId) => peerId.includes("shared-worker"),
   })
 
   registerRepo(repo)

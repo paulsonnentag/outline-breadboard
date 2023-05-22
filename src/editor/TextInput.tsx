@@ -90,10 +90,6 @@ export function TextInput({
       ? value.slice(activeAutocompleteMenu.index).split(/[,)]/)[0].trim()
       : undefined
 
-  if (activeAutocompleteMenu) {
-    console.log(search)
-  }
-
   // trigger isMenuOpenEvent
   useEffect(() => {
     onChangeIsMenuOpen(isMenuOpen)

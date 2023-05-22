@@ -6,7 +6,6 @@ import {
   canFormulaBeRepeated,
   getGroupedSuggestedFunctions,
   Insertion,
-  newGetSequentialParameters,
   repeatFormula,
 } from "../language/function-suggestions"
 import classNames from "classnames"

@@ -1,7 +1,8 @@
 import { NodeViewProps } from "./index"
-import { useEffect, useId, useRef, useState } from "react"
+import { createContext, useEffect, useId, useRef, useState } from "react"
 import {
   createRecordNode,
+  createValueNode,
   getNode,
   Graph,
   GraphContext,
@@ -16,21 +17,19 @@ import { debounce } from "lodash"
 import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
-import colors, { allColors } from "../colors"
-import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
+import colors from "../colors"
+import { DataWithProvenance } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
-import LatLngLiteral = google.maps.LatLngLiteral
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
-import { v4 } from "uuid"
-import { createValueNode } from "../graph"
+import LatLngLiteral = google.maps.LatLngLiteral
 
-interface Marker {
+export interface Marker {
   color?: string
   position: LatLngLiteral
   customId?: string // allows id override to handle pseudo bullets like parking spots
 }
 
-interface GeoJsonShape {
+export interface GeoJsonShape {
   color?: string
   geoJson: any
 }
@@ -62,65 +61,83 @@ export function MapNodeView({
   setIsHoveringOverId,
 }: NodeViewProps) {
   const graphContext = useGraph()
-  const { graph, changeGraph } = graphContext
+  const { graph, changeGraph, temporaryMapObjects } = graphContext
 
-  const markers = scope.extractDataInScope<Marker>((scope) => {
-    const color = scope.getProperty("color") ?? scope.lookupValue("color")
+  let temporaryMarkers: DataWithProvenance<Marker>[] = []
+  let temporaryGeoJsonShapes: DataWithProvenance<GeoJsonShape>[] = []
 
-    const markers: Marker[] = []
+  // add temporary map objects
+  if (temporaryMapObjects && temporaryMapObjects.parentIds.includes(node.id)) {
+    for (const object of temporaryMapObjects.objects) {
+      if ("geoJson" in object.data) {
+        temporaryGeoJsonShapes.push(object as DataWithProvenance<GeoJsonShape>)
+      } else {
+        temporaryMarkers.push(object as DataWithProvenance<Marker>)
+      }
+    }
+  }
 
-    // hack to get parking spot results in here
-    if (Array.isArray(scope.value)) {
-      for (const part of scope.value) {
-        if (Array.isArray(part)) {
-          for (const item of part) {
-            if (
-              item.position &&
-              typeof item.position.lat === "number" &&
-              typeof item.position.lng === "number"
-            ) {
-              // hack to make custom colors work
-              const itemColor = getColorOfNode(graph, item.id)
+  const markers = scope
+    .extractDataInScope<Marker>((scope) => {
+      const color = scope.getProperty("color") ?? scope.lookupValue("color")
 
-              markers.push({
-                position: item.position,
-                color: itemColor ?? color,
-                customId: item.id,
-              })
+      const markers: Marker[] = []
+
+      // hack to get parking spot results in here
+      if (Array.isArray(scope.value)) {
+        for (const part of scope.value) {
+          if (Array.isArray(part)) {
+            for (const item of part) {
+              if (
+                item.position &&
+                typeof item.position.lat === "number" &&
+                typeof item.position.lng === "number"
+              ) {
+                // hack to make custom colors work
+                const itemColor = getColorOfNode(graph, item.id)
+
+                markers.push({
+                  position: item.position,
+                  color: itemColor ?? color,
+                  customId: item.id,
+                })
+              }
             }
           }
         }
       }
-    }
 
-    const position = parseLatLng(scope.getProperty("position"))
-    if (position) {
-      markers.push({ position, color })
-    }
+      const position = parseLatLng(scope.getProperty("position"))
+      if (position) {
+        markers.push({ position, color })
+      }
 
-    return markers
-  })
+      return markers
+    })
+    .concat(temporaryMarkers)
 
   // todo: replace when complex computed results are also represented as scopes
   // const [geoJsonShapes, setGeoJsonShapes] = useState<DataWithProvenance<GeoJsonShape>[]>([])
 
-  const geoJsonShapes = scope.extractDataInScope<GeoJsonShape>((scope) => {
-    const color = scope.lookupValue("color")
-    const values = scope.value instanceof Promise ? [] : scope.value
+  const geoJsonShapes = scope
+    .extractDataInScope<GeoJsonShape>((scope) => {
+      const color = scope.lookupValue("color")
+      const values = scope.value instanceof Promise ? [] : scope.value
 
-    return values.flatMap((value: any) => {
-      if (!value || !value.geoJson) {
-        return []
-      }
+      return values.flatMap((value: any) => {
+        if (!value || !value.geoJson) {
+          return []
+        }
 
-      return [
-        {
-          color,
-          geoJson: value.geoJson,
-        },
-      ]
+        return [
+          {
+            color,
+            geoJson: value.geoJson,
+          },
+        ]
+      })
     })
-  })
+    .concat(temporaryGeoJsonShapes)
 
   const setLocation = parseLatLng(scope.getProperty("mapLocation"))
   const setZoom = parseInt(scope.getProperty("mapZoom"))

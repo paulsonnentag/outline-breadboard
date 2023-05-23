@@ -23,7 +23,7 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
   const nodeOptions: Suggestion[] = Object.values(graph).flatMap((node: Node) => {
     if (
       scope.isInScope(node.id) || // avoid circular references
-      node.type !== "value" || 
+      node.type !== "value" ||
       !isString(node.value) ||
       node.value === "" ||
       node.value.startsWith("=") ||
@@ -98,28 +98,31 @@ async function getPlacesAutocompletion(
       )
   )
 
-  return result.predictions.flatMap((prediction) => {
-    if (graph[prediction.place_id]) {
-      return []
-    }
+  const handle = getGraphDocHandle()
+  const changeGraph = (fn: (graph: Graph) => void) => {
+    handle.change((doc) => fn(doc.graph))
+  }
 
-    return [
-      {
-        icon: "location_on",
-        value: {
-          type: "mention",
-          name: prediction.description,
-          expression: `#[${prediction.place_id}]`,
-        },
+  return (
+    await Promise.all(
+      result.predictions.map(async (prediction): Promise<Suggestion | undefined> => {
+        if (graph[prediction.place_id]) {
+          return undefined
+        }
 
-        beforeInsert: async (graph, changeGraph) => {
-          if (!graph[prediction.place_id]) {
-            await createPlaceNode(changeGraph, prediction.place_id)
-          }
-        },
-      } as Suggestion,
-    ]
-  })
+        await createPlaceNode(changeGraph, prediction.place_id)
+
+        return {
+          icon: "location_on",
+          value: {
+            type: "mention",
+            name: prediction.description,
+            expression: `#[${prediction.place_id}]`,
+          },
+        }
+      })
+    )
+  ).filter((v) => v !== undefined) as Suggestion[]
 }
 
 const FLIGHTS_REGEX = /[A-Z\d]{2}\d{1,4}/

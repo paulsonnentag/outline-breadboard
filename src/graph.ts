@@ -3,6 +3,8 @@ import { DocHandle, DocHandleChangeEvent, DocumentId, Repo } from "automerge-rep
 import { v4 } from "uuid"
 import { Doc } from "@automerge/automerge"
 import { Change, useRepo } from "automerge-repo-react-hooks"
+import { DataWithProvenance } from "./language/scopes"
+import { GeoJsonShape, Marker } from "./views/MapNodeView"
 import { ALIAS_REGEX } from "./language"
 
 export interface GraphDoc {
@@ -214,8 +216,15 @@ export function createNodeTree(graph: Graph, parentId: string, data: any): NodeD
   return parent
 }
 
+export interface TemporaryMapObjects {
+  parentIds: string[]
+  objects: DataWithProvenance<Marker | GeoJsonShape>[]
+}
+
 export interface GraphContextProps {
   graph: Graph
+  temporaryMapObjects?: TemporaryMapObjects // hack to allow autocompletion menu to expose options globally
+  setTemporaryMapObjects: (objects: TemporaryMapObjects | undefined) => void
   settingsNodeId: string
   settingsGraph: Graph
   changeGraph: (fn: (graph: Graph) => void) => void
@@ -261,7 +270,7 @@ export function getLabelOfNode(node: ValueNode): string {
   if (aliasMatch) {
     return aliasMatch[1]
   }
-  
+
   return node.value
 }
 

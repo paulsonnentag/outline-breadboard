@@ -9,6 +9,7 @@ import {
   GraphContextProps,
   GraphDoc,
   registerGraphHandle,
+  TemporaryMapObjects,
   ValueNode,
 } from "./graph"
 import { save } from "@automerge/automerge"
@@ -317,6 +318,7 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
   const [focusOffset, setFocusOffset] = useState<number>(0)
   const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
   const [initializedGraphId, setInitializedGraphId] = useState<DocumentId | undefined>()
+  const [temporaryMapObjects, setTemporaryMapObjects] = useState<TemporaryMapObjects | undefined>()
   const isSettingsPath = settingsGraphId === graphId
 
   const graphContext: GraphContextProps | undefined = useMemo(
@@ -327,6 +329,8 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
             changeGraph: (fn: (graph: Graph) => void) => changeDoc((doc) => fn(doc.graph)),
             settingsNodeId: settingsDoc.rootNodeIds[0],
             settingsGraph: settingsDoc.graph,
+            temporaryMapObjects,
+            setTemporaryMapObjects,
           }
         : undefined,
     [doc?.graph, changeDoc]

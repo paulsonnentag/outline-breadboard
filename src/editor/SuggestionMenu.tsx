@@ -105,7 +105,7 @@ export function SuggestionMenu({
   )
 }
 
-const MAX_SUGGESTIONS = 15
+const MAX_SUGGESTIONS = 10
 
 async function getSuggestions(
   scope: Scope,

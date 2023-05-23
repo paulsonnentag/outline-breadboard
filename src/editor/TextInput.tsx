@@ -1,7 +1,7 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react"
 import { EditorView, placeholder } from "@codemirror/view"
 import { minimalSetup } from "codemirror"
-import { getNode, useGraph } from "../graph"
+import { getNode, Graph, useGraph } from "../graph"
 import { closeBrackets, completionStatus } from "@codemirror/autocomplete"
 import {
   isAtSign,
@@ -15,7 +15,7 @@ import {
 } from "../keyboardEvents"
 import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
 import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
-import { Scope } from "../language/scopes"
+import { DataWithProvenance, Scope } from "../language/scopes"
 import classNames from "classnames"
 import {
   ExpressionResult,
@@ -26,12 +26,16 @@ import {
 import { FnNode, InlineExprNode, isLiteral } from "../language/ast"
 import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
 import { FunctionSuggestionValue, Suggestion, SuggestionMenu } from "./SuggestionMenu"
-import { FunctionSuggestion, getSuggestedFunctions } from "../language/function-suggestions"
+import { FunctionSuggestion } from "../language/function-suggestions"
 import { imagePlugin } from "./plugins/imagePlugin"
+import { parseLatLng } from "../properties"
+import { GeoJsonShape, Marker } from "../views/MapNodeView"
+import LatLngLiteral = google.maps.LatLngLiteral
 
 interface TextInputProps {
   isRoot: boolean
   placeholderText?: string
+  parentIds: string[]
   nodeId: string
   scope: Scope
   value: string
@@ -56,9 +60,28 @@ interface AutocompleteMenu {
   index: number
 }
 
+const LAT_LONG_REGEX = /^position: (.*)$/
+function getLatLongOfNode(graph: Graph, nodeId: string): LatLngLiteral | undefined {
+  if (!graph[nodeId]) {
+    return undefined
+  }
+
+  const node = getNode(graph, nodeId)
+  for (const childId of node.children) {
+    const childNode = getNode(graph, childId)
+
+    const match = childNode.value.match(LAT_LONG_REGEX)
+
+    if (match) {
+      return parseLatLng(match[1])
+    }
+  }
+}
+
 export function TextInput({
   isRoot,
   nodeId,
+  parentIds,
   scope,
   value,
   isFocused,
@@ -76,7 +99,7 @@ export function TextInput({
   setIsHoveringOverId,
   onChangeIsMenuOpen,
 }: TextInputProps) {
-  const { graph, changeGraph } = useGraph()
+  const { graph, changeGraph, setTemporaryMapObjects } = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
   const [activeAutocompleteMenu, setActiveAutocompleteMenu] = useState<
@@ -229,6 +252,7 @@ export function TextInput({
   useEffect(() => {
     if (!isFocused && activeAutocompleteMenu) {
       setActiveAutocompleteMenu(undefined)
+      setTemporaryMapObjects(undefined)
     }
   }, [isFocused])
 
@@ -297,7 +321,49 @@ export function TextInput({
         })
       )
       setActiveAutocompleteMenu(undefined)
+      setTemporaryMapObjects(undefined)
     })
+  }
+
+  const onChangeSuggestions = (suggestions: Suggestion[]) => {
+    const objects: DataWithProvenance<Marker | GeoJsonShape>[] = []
+
+    suggestions.forEach(({ value }) => {
+      if (value.type === "mention") {
+        // expect to be #[....]
+        const id = value.expression.slice(2, -1)
+        const latLng = getLatLongOfNode(graph, id)
+
+        if (latLng) {
+          objects.push({
+            scope: new Scope(graph, id, undefined, undefined),
+            data: {
+              position: latLng,
+            },
+          })
+        }
+      }
+    })
+
+    setTemporaryMapObjects({
+      parentIds,
+      objects,
+    })
+    setSuggestions(suggestions)
+  }
+
+  const onChangeSelectedSuggestionIndex = (index: number) => {
+    const suggestion = suggestions[index]
+
+    if (suggestion && suggestion.value.type === "mention") {
+      // assume it's an id ref like "#[...]"
+      const id = suggestion.value.expression.slice(2, -1)
+      setIsHoveringOverId(id)
+    } else {
+      setIsHoveringOverId(undefined)
+    }
+
+    setSelectedSuggestionIndex(index)
   }
 
   const onKeyDown = (evt: KeyboardEvent) => {
@@ -319,7 +385,7 @@ export function TextInput({
             index: cursorPos,
           })
 
-          setSelectedSuggestionIndex(0)
+          onChangeSelectedSuggestionIndex(0)
         })
       }
     } else if (isSlash(evt)) {
@@ -334,11 +400,12 @@ export function TextInput({
             type: "functions",
             index: cursorPos,
           })
-          setSelectedSuggestionIndex(0)
+          onChangeSelectedSuggestionIndex(0)
         })
       }
     } else if (isEscape(evt)) {
       setActiveAutocompleteMenu(undefined)
+      setTemporaryMapObjects(undefined)
     } else if (isEnter(evt)) {
       if (completionStatus(currentEditorView.state) !== null) {
         return
@@ -370,7 +437,9 @@ export function TextInput({
     } else if (isUp(evt)) {
       // ignore up key if auto complete is active
       if (isMenuOpen) {
-        setSelectedSuggestionIndex((index) => (index > 0 ? index - 1 : 0))
+        onChangeSelectedSuggestionIndex(
+          selectedSuggestionIndex > 0 ? selectedSuggestionIndex - 1 : 0
+        )
         evt.preventDefault()
       } else if (completionStatus(currentEditorView.state) === null) {
         onFocusUp()
@@ -379,8 +448,10 @@ export function TextInput({
     } else if (isDown(evt)) {
       // ignore down key if auto complete is active
       if (isMenuOpen) {
-        setSelectedSuggestionIndex((index) =>
-          index < suggestions.length - 1 ? index + 1 : suggestions.length - 1
+        onChangeSelectedSuggestionIndex(
+          selectedSuggestionIndex < suggestions.length - 1
+            ? selectedSuggestionIndex + 1
+            : suggestions.length - 1
         )
         evt.preventDefault()
       } else if (completionStatus(currentEditorView.state) === null) {
@@ -393,6 +464,7 @@ export function TextInput({
         currentEditorView.state.selection.main.head - 1 === activeAutocompleteMenu.index
       ) {
         setActiveAutocompleteMenu(undefined)
+        setTemporaryMapObjects(undefined)
       }
 
       const ranges = currentEditorView.state.selection.ranges
@@ -437,7 +509,7 @@ export function TextInput({
           scope={scope}
           search={search}
           suggestions={suggestions}
-          onChangeSuggestions={setSuggestions}
+          onChangeSuggestions={onChangeSuggestions}
           focusedIndex={selectedSuggestionIndex}
           onSelectSuggestion={onSelectSuggestion}
           isHoveringOverId={isHoveringOverId}

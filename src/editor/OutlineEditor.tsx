@@ -521,6 +521,7 @@ export function OutlineEditor({
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
             >
               <TextInput
+                parentIds={parentIds}
                 isRoot={isRoot}
                 nodeId={node.id}
                 value={node.value as string}

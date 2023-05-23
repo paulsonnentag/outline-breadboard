@@ -41,6 +41,7 @@
   left: 0;
 }
 
+
 /* This element draws the tip. */
 .popup-bubble-anchor::after {
   content: "";
@@ -122,6 +123,23 @@
 
 .ͼ1.cm-focused{
   outline: 0 !important;
+}
+
+.cm-tooltip {
+  position: relative;
+  margin-left: -4px;
+  padding-top: 8px;
+  background: none !important;
+  border: 0 !important;
+}
+
+.inner-tooltip {
+  background: white !important;
+  padding: 16px;
+  border-radius: 5px;
+  overflow-y: auto;
+  max-height: 250px;
+  box-shadow: 0 2px 10px 1px rgba(0, 0, 0, 0.5);
 }
 
 /* inline expr */

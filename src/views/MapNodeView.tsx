@@ -676,31 +676,34 @@ interface PopoverOutlineViewProps {
   onOpenNodeInNewPane: (nodeId: string) => void
 }
 
-function PopoverOutlineView({
+export function PopoverOutlineView({
   graphContext,
   rootId,
   onOpenNodeInNewPane,
 }: PopoverOutlineViewProps) {
-  const [selectedPath, setSelectedPath] = useState<number[] | undefined>([])
+  const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
+
   return (
     <GraphContext.Provider value={graphContext}>
-      <RootOutlineEditor
-        focusOffset={focusOffset}
-        nodeId={rootId}
-        index={0}
-        path={[]}
-        parentIds={[]}
-        selectedPath={selectedPath}
-        onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
-          setSelectedPath(newSelectedPath)
-          setFocusOffset(newFocusOffset)
-        }}
-        onOpenNodeInNewPane={onOpenNodeInNewPane}
-        isHoveringOverId={undefined} /* TODO */
-        setIsHoveringOverId={() => {}} /* TODO */
-        disableCustomViews={false}
-      />
+      <div>
+        <RootOutlineEditor
+          focusOffset={focusOffset}
+          nodeId={rootId}
+          index={0}
+          path={[]}
+          parentIds={[]}
+          selectedPath={selectedPath}
+          onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
+            setSelectedPath(newSelectedPath)
+            setFocusOffset(newFocusOffset)
+          }}
+          onOpenNodeInNewPane={onOpenNodeInNewPane}
+          isHoveringOverId={undefined} /* TODO */
+          setIsHoveringOverId={() => {}} /* TODO */
+          disableCustomViews={false}
+        />
+      </div>
     </GraphContext.Provider>
   )
 }

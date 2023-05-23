@@ -5,23 +5,6 @@ import { CalendarNodeView } from "./CalendarNodeView"
 import { Scope } from "../language/scopes"
 import { FunctionDefs } from "../language/functions/function-def"
 
-export const VIEW_FNS: FunctionDefs = {
-  MapView: {
-    autocomplete: {
-      icon: "map",
-      name: "MapView",
-      arguments: [
-        // {
-        //   label: "near",
-        // },
-      ],
-    },
-    function: async ([object, key], _, scope) => {
-      return { view: "map" }
-    },
-  },
-}
-
 export interface NodeViewProps {
   node: ValueNode
   scope: Scope

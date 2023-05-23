@@ -9,7 +9,6 @@ import { SUNSET_FN } from "./sunset"
 import { safeJsonStringify } from "../../utils"
 import { FLIGHT_STATUS_FN } from "./flightStatus"
 import { PARKING_SPOTS_FN } from "./parkingSpots"
-import { VIEW_FNS } from "../../views"
 
 export const FUNCTIONS: FunctionDefs = {
   ...CORE_FNS,
@@ -18,8 +17,7 @@ export const FUNCTIONS: FunctionDefs = {
   ...WEATHER_FN,
   ...SUNSET_FN,
   ...FLIGHT_STATUS_FN,
-  ...PARKING_SPOTS_FN,
-  ...VIEW_FNS,
+  ...PARKING_SPOTS_FN
 }
 
 interface ComputationsSummaryViewProps {

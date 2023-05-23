@@ -1,5 +1,5 @@
-import { createValueNode, getGraph, Graph, Node } from "../graph"
-import { KEYWORD_REGEX } from "../language"
+import { createValueNode, getGraph, getGraphDocHandle, Graph, Node } from "../graph"
+import { ALIAS_REGEX, KEYWORD_REGEX } from "../language"
 import { REF_ID_REGEX } from "./plugins/refIdTokenPlugin"
 import { isString } from "../utils"
 import { placesAutocompleteApi } from "../google"
@@ -23,14 +23,29 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
   const nodeOptions: Suggestion[] = Object.values(graph).flatMap((node: Node) => {
     if (
       scope.isInScope(node.id) || // avoid circular references
-      node.type !== "value" ||
-      node.value.match(KEYWORD_REGEX) || // don't suggest nodes that are a property
-      node.value.match(REF_ID_REGEX) || // don't suggest nodes that are transclusions
-      node.children.length == 0 || // don't suggest nodes that have no children
+      node.type !== "value" || 
       !isString(node.value) ||
       node.value === "" ||
       node.value.startsWith("=") ||
-      !node.value.toLowerCase().includes(search.toLowerCase()) ||
+      !node.value.toLowerCase().includes(search.toLowerCase())
+    ) {
+      return []
+    }
+
+    if (node.value.match(ALIAS_REGEX)) {
+      return [{
+        value: {
+          type: "mention",
+          name: node.value.match(KEYWORD_REGEX)![1],
+          expression: `#[${node.id}]`,
+        }
+      }]
+    }
+
+    if (
+      node.value.match(KEYWORD_REGEX) || // don't suggest nodes that are a property
+      node.value.match(REF_ID_REGEX) || // don't suggest nodes that are transclusions
+      node.children.length == 0 || // don't suggest nodes that have no children
       node.value.includes("{") // don't suggest nodes that contain an expression
     ) {
       return []

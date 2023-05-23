@@ -3,6 +3,7 @@ import { DocHandle, DocHandleChangeEvent, DocumentId, Repo } from "automerge-rep
 import { v4 } from "uuid"
 import { Doc } from "@automerge/automerge"
 import { Change, useRepo } from "automerge-repo-react-hooks"
+import { ALIAS_REGEX } from "./language"
 
 export interface GraphDoc {
   rootNodeIds: string[]
@@ -256,6 +257,11 @@ export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
 }
 
 export function getLabelOfNode(node: ValueNode): string {
+  let aliasMatch = node.value.match(ALIAS_REGEX)
+  if (aliasMatch) {
+    return aliasMatch[1]
+  }
+  
   return node.value
 }
 

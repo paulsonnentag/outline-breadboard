@@ -2,7 +2,7 @@ import classNames from "classnames"
 import { useEffect, useState } from "react"
 import { getGraph, getNode, Graph, useGraph } from "../graph"
 import { suggestionToExprSource } from "./TextInput"
-import { parseExpression } from "../language"
+import { ALIAS_REGEX, parseExpression } from "../language"
 import { Scope } from "../language/scopes"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { HAS_MISSING_ARGUMENTS_VALUE } from "../language/functions/function-def"
@@ -338,9 +338,17 @@ function ArgumentValue(props: ArgumentValueProps) {
 
 function expressionToLabel(expression: string) {
   const graph = getGraph()
+  
   return expression
-    .replace(/#\[([^\]]+)]/g, (match, id) => {
-      return getNode(graph, id).value
+  .replace(/#\[([^\]]+)]/g, (match, id) => {
+      const value = getNode(graph, id).value
+
+      const aliasMatch = value.match(ALIAS_REGEX)
+      if (aliasMatch) {
+        return aliasMatch[1]
+      }
+      
+      return value
     })
     .replace("$", "")
 }

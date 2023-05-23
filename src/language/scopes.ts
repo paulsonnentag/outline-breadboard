@@ -1,4 +1,4 @@
-import { parseBullet } from "./index"
+import { ALIAS_REGEX, parseBullet } from "./index"
 import { BulletNode } from "./ast"
 import { createValueNode, getGraphDocHandle, getNode, Graph, useGraph } from "../graph"
 import { useEffect, useState } from "react"
@@ -111,11 +111,27 @@ export class Scope {
 
   // if value is not resolved yet undefined is returned
   getProperty(name: string, index: number = 0): any {
-    return this.getChildScope(name)?.valueOf(index)
+    return this.getChildScope(name)?.valueOf(index) || this.getAliasedProperty(name, index)
+  }
+
+  getAliasedProperty(name: string, index: number = 0): any {
+    const aliasMatch = this.source.match(ALIAS_REGEX)
+
+    if (aliasMatch) {
+      return this.transcludedScopes[aliasMatch[2]]?.getProperty(name, index)
+    }
   }
 
   async getPropertyAsync(name: string): Promise<any> {
-    return this.getChildScope(name)?.valueOfAsync()
+    return this.getChildScope(name)?.valueOfAsync() || this.getAliasedPropertyAsync(name)
+  }
+
+  async getAliasedPropertyAsync(name: string): Promise<any> {
+    const aliasMatch = this.source.match(ALIAS_REGEX)
+
+    if (aliasMatch) {
+      return this.transcludedScopes[aliasMatch[2]]?.getPropertyAsync(name)
+    }
   }
 
   // will only contain resolved properties
@@ -243,6 +259,17 @@ export class Scope {
       const date = parseDate(part.id)
       return date ? [{ scope: part, data: date, index }] : []
     })
+    .concat((() => {
+      const aliasMatch = this.source.match(ALIAS_REGEX)
+
+      if (aliasMatch) {
+        const date = parseDate(this.transcludedScopes[aliasMatch[2]].getProperty("date"))
+
+        return date ? [{ scope: this, data: date, index: 0 }] : []
+      }
+
+      return []
+    })())
   }
 
   readAsLocation(): DataWithProvenance<LatLngLiteral>[] {
@@ -258,6 +285,17 @@ export class Scope {
       const latLng = parseLatLng(part.getProperty("position"))
       return latLng ? [{ scope: part, data: latLng, index }] : []
     })
+    .concat((() => {
+      const aliasMatch = this.source.match(ALIAS_REGEX)
+
+      if (aliasMatch) {
+        const latLng = parseLatLng(this.transcludedScopes[aliasMatch[2]].getProperty("position"))
+
+        return latLng ? [{ scope: this, data: latLng, index: 0 }] : []
+      }
+
+      return []
+    })())
   }
 
   extractDataInScope<T>(

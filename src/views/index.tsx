@@ -3,7 +3,12 @@ import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { CalendarNodeView } from "./CalendarNodeView"
 import { Scope } from "../language/scopes"
-import { FunctionDefs } from "../language/functions/function-def"
+
+export const ViewDefinitions = [
+  {id: "map", title: "Map", icon: "map"},
+  {id: "table", title: "Table", icon: "table_chart"},
+  {id: "calendar", title: "Calendar", icon: "calendar_month"},
+]
 
 export interface NodeViewProps {
   node: ValueNode

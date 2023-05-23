@@ -16,6 +16,7 @@ import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
 import colors, { allColors } from "../colors"
+import { ViewDefinitions } from "../views"
 
 export interface NodeContextMenuProps {
   node: ValueNode
@@ -231,116 +232,44 @@ export function NodeContextMenu({
     >
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">
-          <div className="relative">
-            {isHovering && (
-              <div
-                className={classNames(
-                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-                  isHoveringOverButton === "map" ? "opacity-100" : "opacity-50"
-                )}
-              >
-                Map
-              </div>
-            )}
-            <button
-              className={classNames(
-                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+          {ViewDefinitions.map(view => (
+            <div className="relative" key={view.id}>
+              {isHovering && (
+                <div
+                  className={classNames(
+                    "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                    isHoveringOverButton === view.id ? "opacity-100" : "opacity-50"
+                  )}
+                >
+                  {view.title}
+                </div>
               )}
-              onMouseOver={(e) => setIsHoveringOverButton("map")}
-              onMouseLeave={(e) =>
-                isHoveringOverButton === "map" && setIsHoveringOverButton(undefined)
-              }
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-
-                if (e.metaKey) {
-                  onPopoutView("map")
-                } else {
-                  onToggleView("map")
-                }
-              }}
-            >
-              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-                map
-              </span>
-            </button>
-          </div>
-
-          <div className="relative">
-            {isHovering && (
-              <div
+              <button
                 className={classNames(
-                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-                  isHoveringOverButton === "table" ? "opacity-100" : "opacity-50"
+                  "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                  isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
                 )}
-              >
-                Table
-              </div>
-            )}
-            <button
-              className={classNames(
-                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-              )}
-              onMouseOver={(e) => setIsHoveringOverButton("table")}
-              onMouseLeave={(e) =>
-                isHoveringOverButton === "table" && setIsHoveringOverButton(undefined)
-              }
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-
-                if (e.metaKey) {
-                  onPopoutView("table")
-                } else {
-                  onToggleView("table")
+                onMouseOver={(e) => setIsHoveringOverButton(view.id)}
+                onMouseLeave={(e) =>
+                  isHoveringOverButton === view.id && setIsHoveringOverButton(undefined)
                 }
-              }}
-            >
-              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-                table_chart
-              </span>
-            </button>
-          </div>
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
 
-          <div className="relative">
-            {isHovering && (
-              <div
-                className={classNames(
-                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-                  isHoveringOverButton === "calendar" ? "opacity-100" : "opacity-50"
-                )}
+                  if (e.metaKey) {
+                    onPopoutView(view.id)
+                  } else {
+                    onToggleView(view.id)
+                  }
+                }}
               >
-                Calendar
-              </div>
-            )}
-            <button
-              className={classNames(
-                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-              )}
-              onMouseOver={(e) => setIsHoveringOverButton("calendar")}
-              onMouseLeave={(e) =>
-                isHoveringOverButton === "calendar" && setIsHoveringOverButton(undefined)
-              }
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-
-                if (e.metaKey) {
-                  onPopoutView("calendar")
-                } else {
-                  onToggleView("calendar")
-                }
-              }}
-            >
-              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-                calendar_month
-              </span>
-            </button>
-          </div>
+                <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                  {view.icon}
+                </span>
+              </button>
+            </div>
+          ))}
         </div>
       )}
 

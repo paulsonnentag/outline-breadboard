@@ -68,27 +68,25 @@ class ExpressionResultWidget extends WidgetType {
     container.className = `ml-2 text-${this.color}-600 `
     container.append("= ")
 
-    if (!this.isExpanded) {
-      const valueElement = document.createElement("span")
-      valueElement.className = classNames("px-1 rounded", {
-        [`border border-${this.color}-200`]: isExpandable,
-        [`hover:bg-${this.color}-200`]: isExpandable,
-      })
+    const valueElement = document.createElement("span")
+    valueElement.className = classNames("px-1 rounded", {
+      [`border border-${this.color}-200`]: isExpandable,
+      [`hover:bg-${this.color}-200`]: isExpandable,
+      [`bg-${this.color}-200`]: this.isExpanded,
+    })
 
-      const summaryElement = summaryView ? summaryView(this.value) : valueToString(this.value)
-      valueElement.append(summaryElement)
-      container.append(valueElement)
+    const summaryElement = summaryView ? summaryView(this.value) : valueToString(this.value)
+    valueElement.append(summaryElement)
+    container.append(valueElement)
 
-      if (isExpandable) {
-        valueElement.addEventListener("click", () => {
-          getGraphDocHandle().change(({ graph }) => {
-            const node = getNode(graph, this.nodeId)
-            node.expandedResultsByIndex[this.index] = true
-          })
-
-          valueElement.remove()
+    if (isExpandable) {
+      valueElement.addEventListener("click", () => {
+        getGraphDocHandle().change(({ graph }) => {
+          const node = getNode(graph, this.nodeId)
+          node.expandedResultsByIndex[this.index] = !node.expandedResultsByIndex[this.index]
+          valueElement.className
         })
-      }
+      })
     }
 
     return container

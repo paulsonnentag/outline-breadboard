@@ -418,8 +418,7 @@ export function OutlineEditor({
     }
   }
 
-  const color = scope.lookupValue("color")
-  const colorPalette = colors.getColors(scope.lookupValue("color"))
+  const color = scope.getProperty("color") ?? scope.lookupValue("color")
 
   return (
     <div
@@ -563,12 +562,6 @@ export function OutlineEditor({
                   return (
                     <pre
                       className={`bg-${computationColor}-200 text-${computationColor}-600 mt-2 rounded p-1`}
-                      onClick={() => {
-                        changeGraph((graph) => {
-                          const node = getNode(graph, nodeId)
-                          delete node.expandedResultsByIndex[index]
-                        })
-                      }}
                     >
                       {customView
                         ? customView(scope.valueOf(index))

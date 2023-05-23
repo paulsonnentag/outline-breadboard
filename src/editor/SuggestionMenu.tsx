@@ -20,6 +20,7 @@ export interface MentionSuggestionValue {
 export interface FunctionSuggestionValue {
   type: "function"
   name: string
+  text: string
   arguments: SuggestionArgument[]
 }
 
@@ -116,8 +117,9 @@ async function getSuggestions(
       return (await getSuggestedMentions(scope, search)).slice(0, MAX_SUGGESTIONS)
 
     case "functions":
-      return getSuggestedFunctions(scope)
-        .filter((suggestion) => suggestion.name.toLowerCase().startsWith(search.toLowerCase()))
+      const graph = getGraph()
+      return getSuggestedFunctions(scope, graph)
+        .filter((suggestion) => fuzzyMatch(suggestion.text.toLowerCase(), search.toLowerCase()))
         .slice(0, MAX_SUGGESTIONS)
         .map((suggestion) => {
           return {
@@ -125,11 +127,46 @@ async function getSuggestions(
               type: "function",
               name: suggestion.name,
               arguments: suggestion.arguments,
+              text: suggestion.text,
             },
             icon: suggestion.icon,
           }
         })
   }
+}
+
+function fuzzyMatch(str: string, pattern: string): boolean {
+  // Initialize the pattern pointer
+  let patternIdx = 0
+
+  // strict mode is enabled when an argument, like "from:aachen" is typed
+  let isStrict: boolean = false
+
+  // Iterate over the characters in the input string
+  for (let i = 0; i < str.length; i++) {
+    if (isStrict && str[i] !== " " && str[i] !== pattern[patternIdx]) {
+      return false
+    }
+
+    // If the character in the string matches the current character in the pattern,
+    // increment the pattern pointer
+    if (str[i] === pattern[patternIdx]) {
+      if (str[i] === ":") {
+        // after "$keyword:" match strictly
+        isStrict = true
+      }
+
+      patternIdx++
+    }
+
+    // If all characters in the pattern have been matched, return true
+    if (patternIdx === pattern.length) {
+      return true
+    }
+  }
+
+  // If not all characters in the pattern have been matched, return false
+  return false
 }
 
 interface SuggestionRowProps {

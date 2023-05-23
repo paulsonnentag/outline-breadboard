@@ -185,6 +185,18 @@ function Sidebar({
   onExport,
   onImport,
 }: SidebarProps) {
+  const [showSidebar, setShowSidebar] = useState(true)
+
+  if (!showSidebar) {
+    return (
+      <div className="px-1 py-4  bg-gray-100 border-r border-r-gray-200 flex flex flex-col">
+        <div className="w-[24px] h-[24px]">
+          <IconButton icon="menu" onClick={() => setShowSidebar(true)} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 w-[300px] bg-gray-100 border-r border-r-gray-200 flex-shrink-0 flex flex-col gap-2">
       <div className="flex justify-between pb-4">
@@ -201,6 +213,10 @@ function Sidebar({
           </div>
           <div className="w-[24px] h-[24px]">
             <IconButton icon="settings" onClick={() => onOpenSettings()} />
+          </div>
+
+          <div className="w-[24px] h-[24px]">
+            <IconButton icon="menu" onClick={() => setShowSidebar(false)} />
           </div>
         </div>
       </div>

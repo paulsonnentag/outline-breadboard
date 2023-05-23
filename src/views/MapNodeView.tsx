@@ -21,6 +21,8 @@ import { DataWithProvenance, useUpdateHandler } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import LatLngLiteral = google.maps.LatLngLiteral
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
+import { v4 } from "uuid"
+import { createValueNode } from "../graph"
 
 interface Marker {
   color?: string
@@ -31,6 +33,24 @@ interface Marker {
 interface GeoJsonShape {
   color?: string
   geoJson: any
+}
+
+const COLOR_REGEX = /^color: (.*)$/
+function getColorOfNode(graph: Graph, nodeId: string): string | undefined {
+  if (!graph[nodeId]) {
+    return undefined
+  }
+
+  const node = getNode(graph, nodeId)
+  for (const childId of node.children) {
+    const childNode = getNode(graph, childId)
+
+    const match = childNode.value.match(COLOR_REGEX)
+
+    if (match) {
+      return match[1]
+    }
+  }
 }
 
 export function MapNodeView({
@@ -45,7 +65,7 @@ export function MapNodeView({
   const { graph, changeGraph } = graphContext
 
   const markers = scope.extractDataInScope<Marker>((scope) => {
-    const color = scope.lookupValue("color")
+    const color = scope.getProperty("color") ?? scope.lookupValue("color")
 
     const markers: Marker[] = []
 
@@ -59,9 +79,12 @@ export function MapNodeView({
               typeof item.position.lat === "number" &&
               typeof item.position.lng === "number"
             ) {
+              // hack to make custom colors work
+              const itemColor = getColorOfNode(graph, item.id)
+
               markers.push({
                 position: item.position,
-                color,
+                color: itemColor ?? color,
                 customId: item.id,
               })
             }
@@ -99,9 +122,8 @@ export function MapNodeView({
     })
   })
 
-  // readChildrenWithProperties(graph, inputsNodeId, [LatLongProperty])
-  // const zoom = ZoomProperty.readValueOfNode(graph, inputsNodeId)[0]
-  // const center: google.maps.LatLngLiteral = LatLongProperty.readValueOfNode(graph, inputsNodeId)[0]
+  const setLocation = parseLatLng(scope.getProperty("mapLocation"))
+  const setZoom = parseInt(scope.getProperty("mapZoom"))
 
   const google = useGoogleApi()
   const mapId = useId()
@@ -130,13 +152,13 @@ export function MapNodeView({
 
     const currentMap = (mapRef.current = new google.maps.Map(currentMapElement, {
       mapId,
-      zoom: 11,
-      center: { lat: 50.775555, lng: 6.083611 },
+      zoom: setZoom || 11,
+      center: setLocation || { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
       gestureHandling: "greedy",
     }))
 
-    if (minBounds) {
+    if (!setLocation && !setZoom && minBounds) {
       currentMap.fitBounds(minBounds)
     }
 
@@ -182,7 +204,7 @@ export function MapNodeView({
       }
 
       changeGraph((graph) => {
-        // writeBackMapState(graph, inputsNodeId, currentMap)
+        writeBackMapState(graph, scope.id, currentMap)
       })
     }, 500)
   )
@@ -254,7 +276,8 @@ export function MapNodeView({
   }, [childNodeIdsWithLatLng, google, isDragging, isPanning]) */
 
   // render markers on map
-  useEffect(() => {
+
+  const renderMarkers = () => {
     if (!mapRef.current || !google) {
       return
     }
@@ -297,6 +320,9 @@ export function MapNodeView({
           content: element,
           position: marker.data.position,
         })
+        ;(mapsMarker as any).addEventListener("gmp-click", () => {
+          ;(mapsMarker as any).__onclick()
+        })
 
         prevMarkers.push(mapsMarker)
       }
@@ -317,7 +343,7 @@ export function MapNodeView({
       }
 
       // new version of google maps, but types haven't been updates
-      ;(mapsMarker as any).addEventListener("gmp-click", async () => {
+      ;(mapsMarker as any).__onclick = async () => {
         // defer to selection handler if active
         /*if (isSelectionHandlerActive()) {
             triggerSelect(marker.)
@@ -329,10 +355,10 @@ export function MapNodeView({
         let rootId
 
         if (marker.data.customId && isParkingSpotId(marker.data.customId)) {
-          await createParkingSpotNode(changeGraph, marker.data.customId)
+          if (!graph[marker.data.customId]) {
+            await createParkingSpotNode(changeGraph, marker.data.customId)
+          }
           rootId = marker.data.customId
-
-          console.log("special handling")
         } else {
           changeGraph((graph) => {
             const node = getNode(graph, marker.scope.id)
@@ -350,7 +376,7 @@ export function MapNodeView({
         }
 
         // mapRef.current?.panTo(marker.data.position)
-      })
+      }
 
       markerContent.onmouseenter = () => {
         setIsHoveringOverId(marker.data.customId ?? marker.scope.id)
@@ -363,6 +389,10 @@ export function MapNodeView({
       const isDefaultColor = marker.data.color === undefined
       mapsMarker.zIndex = isHovering ? 10 : !isDefaultColor ? 10 : 0
     }
+  }
+
+  useEffect(() => {
+    renderMarkers()
   }, [markers, mapRef.current, isHoveringOverId])
 
   // render geoJson shapes on map
@@ -652,7 +682,7 @@ function PopoverOutlineView({
         onOpenNodeInNewPane={onOpenNodeInNewPane}
         isHoveringOverId={undefined} /* TODO */
         setIsHoveringOverId={() => {}} /* TODO */
-        disableCustomViews={true}
+        disableCustomViews={false}
       />
     </GraphContext.Provider>
   )
@@ -717,51 +747,40 @@ function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBo
   return bounds
 }
 
-/*
 function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.Map) {
   const center = map.getCenter()
   const zoom = map.getZoom()
-  const latLongInputIndex = LatLongProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
-  const zoomInputIndex = ZoomProperty.getChildIndexesOfNode(graph, inputsNodeId)[0]
+
   const inputNode = getNode(graph, inputsNodeId)
+  const latLongInputIndex = inputNode.children.findIndex((c) =>
+    getNode(graph, c).value.startsWith("mapLocation:")
+  )
+  const zoomInputIndex = inputNode.children.findIndex((c) =>
+    getNode(graph, c).value.startsWith("mapZoom:")
+  )
 
-  const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
+  const latLongValue = `mapLocation: ${center!.lat()}, ${center!.lng()}`
 
-  if (latLongInputIndex !== undefined) {
+  if (latLongInputIndex > -1) {
     getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
   } else {
-    const latLngPropertyNode: ValueNode = {
-      id: v4(),
-      type: "value",
+    const latLngPropertyNode = createValueNode(graph, {
       value: latLongValue,
-      children: [],
-      isCollapsed: false,
-      isSelected: false,
-    }
-
-    graph[latLngPropertyNode.id] = latLngPropertyNode
+    })
     inputNode.children.push(latLngPropertyNode.id)
   }
 
-  const zoomValue = `zoom: ${zoom}`
+  const zoomValue = `mapZoom: ${zoom}`
 
-  if (zoomInputIndex !== undefined) {
+  if (zoomInputIndex > -1) {
     const zoomPropertyNode = getNode(graph, inputNode.children[zoomInputIndex])
     if (zoomPropertyNode.value !== zoomValue) {
       zoomPropertyNode.value = zoomValue
     }
   } else {
-    const zoomPropertyNode: ValueNode = {
-      id: v4(),
-      type: "value",
+    const zoomPropertyNode = createValueNode(graph, {
       value: zoomValue,
-      children: [],
-      isCollapsed: false,
-      isSelected: false,
-    }
-
-    graph[zoomPropertyNode.id] = zoomPropertyNode
+    })
     inputNode.children.push(zoomPropertyNode.id)
   }
 }
-*/

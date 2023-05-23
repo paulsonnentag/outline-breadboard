@@ -235,10 +235,6 @@ export function useGraph(): GraphContextProps {
 
 export function getNode(graph: Graph, nodeId: string): ValueNode {
   const node = graph[nodeId]
-  if (!node) {
-    debugger
-  }
-
   return node.type === "ref" ? getNode(graph, node.refId) : node
 }
 

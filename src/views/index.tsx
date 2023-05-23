@@ -35,19 +35,9 @@ export interface NodeViewProps {
 export function NodeView(props: NodeViewProps) {
   const { node, scope } = props
 
-  let nodeView: string | undefined = undefined
-
-  if (Array.isArray(scope.value)) {
-    for (const part of scope.value) {
-      if (typeof part === 'object') {
-        nodeView = part["view"]
-      }
-    }
-  }
-
   let view
   
-  switch (node.view || nodeView) {
+  switch (node.view || scope.getProperty("view")) {
     case "map":
       view = <MapNodeView {...props} />
       break

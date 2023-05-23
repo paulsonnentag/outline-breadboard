@@ -18,7 +18,7 @@ import { parseLatLng, readLatLng } from "../properties"
 import { placesServiceApi, useGoogleApi } from "../google"
 import { isSelectionHandlerActive, triggerSelect } from "../selectionHandler"
 import colors from "../colors"
-import { DataWithProvenance } from "../language/scopes"
+import { DataWithProvenance, Scope } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
 import LatLngLiteral = google.maps.LatLngLiteral
@@ -221,7 +221,7 @@ export function MapNodeView({
       }
 
       changeGraph((graph) => {
-        writeBackMapState(graph, scope.id, currentMap)
+        writeBackMapState(graph, scope, currentMap)
       })
     }, 500)
   )
@@ -764,7 +764,13 @@ function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBo
   return bounds
 }
 
-function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.Map) {
+function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
+  const inputsNodeId = scope.props["view"]?.id
+
+  if (!inputsNodeId) {
+    return
+  }
+
   const center = map.getCenter()
   const zoom = map.getZoom()
 
@@ -785,6 +791,8 @@ function writeBackMapState(graph: Graph, inputsNodeId: string, map: google.maps.
       value: latLongValue,
     })
     inputNode.children.push(latLngPropertyNode.id)
+    
+    graph[inputsNodeId].isCollapsed = true // start this node collapsed by default
   }
 
   const zoomValue = `mapZoom: ${zoom}`

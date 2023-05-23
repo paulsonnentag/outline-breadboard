@@ -14,7 +14,7 @@ import {
 import { DragEvent, MouseEvent, useCallback, useState } from "react"
 import classNames from "classnames"
 import { getIsHovering, isString, last, safeJsonStringify } from "../utils"
-import { NodeView } from "../views"
+import { NodeView, SummaryView } from "../views"
 import { NodeContextMenu } from "./NodeContextMenu"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
@@ -459,6 +459,7 @@ export function OutlineEditor({
         </>
       ) : (
         <>
+          
           <div
             className={classNames(
               "flex items-start w-full",
@@ -586,7 +587,7 @@ export function OutlineEditor({
             )}
           </div>
 
-          <div className="pl-8">
+          <div className="pl-10">
             <NodeView
               scope={scope}
               node={node}
@@ -597,6 +598,12 @@ export function OutlineEditor({
               setIsHoveringOverId={setIsHoveringOverId}
             />
           </div>
+
+          {node.isCollapsed && (
+            <div className="pl-10">
+              <SummaryView scope={scope} />
+            </div>
+          )}
 
           <div
             className={classNames(

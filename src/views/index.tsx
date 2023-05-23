@@ -3,6 +3,24 @@ import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { CalendarNodeView } from "./CalendarNodeView"
 import { Scope } from "../language/scopes"
+import { FunctionDefs } from "../language/functions/function-def"
+
+export const VIEW_FNS: FunctionDefs = {
+  MapView: {
+    autocomplete: {
+      icon: "map",
+      name: "MapView",
+      arguments: [
+        // {
+        //   label: "near",
+        // },
+      ],
+    },
+    function: async ([object, key], _, scope) => {
+      return { view: "map" }
+    },
+  },
+}
 
 export interface NodeViewProps {
   node: ValueNode
@@ -15,11 +33,21 @@ export interface NodeViewProps {
 }
 
 export function NodeView(props: NodeViewProps) {
-  const { node } = props
+  const { node, scope } = props
+
+  let nodeView: string | undefined = undefined
+
+  if (Array.isArray(scope.value)) {
+    for (const part of scope.value) {
+      if (typeof part === 'object') {
+        nodeView = part["view"]
+      }
+    }
+  }
 
   let view
-
-  switch (node.view) {
+  
+  switch (node.view || nodeView) {
     case "map":
       view = <MapNodeView {...props} />
       break
@@ -33,11 +61,6 @@ export function NodeView(props: NodeViewProps) {
 
   return (
     <>
-      {node.isCollapsed && (
-        <div className="pl-6">
-          <SummaryView scope={props.scope} />
-        </div>
-      )}
       {view && <div className="pt-2">{view}</div>}
     </>
   )

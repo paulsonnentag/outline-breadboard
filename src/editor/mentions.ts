@@ -107,7 +107,7 @@ async function getPlacesAutocompletion(
   })
 }
 
-const FLIGHTS_REGEX = /[A-Z]{2}\d{1,4}/
+const FLIGHTS_REGEX = /[A-Z\d]{2}\d{1,4}/
 
 async function getFlightsAutocompletion(
   graph: Graph,

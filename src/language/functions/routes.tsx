@@ -58,6 +58,31 @@ export const ROUTE_FN: FunctionDefs = {
 
     function: functionFn("Bike", "bike", "BICYCLING" as any),
   },
+  Transit: {
+    icon: "directions_subway",
+    summaryView: (value) => (value ? `🚊️ ${value.duration}, ${value.distance}` : `🚊️`),
+    autocomplete: {
+      icon: "directions_subway",
+      name: "Transit",
+      arguments: [
+        {
+          label: "from",
+        },
+        {
+          label: "to",
+        },
+      ],
+    },
+
+    parameters: {
+      from: "location",
+      to: "location",
+    },
+
+    suggestions: suggestionsFn("Transit", "directions_subway"),
+
+    function: functionFn("Transit", "transit", "TRANSIT" as any),
+  },
   Walk: {
     icon: "directions_walk",
     summaryView: (value) => (value ? `🚶‍♀️ ${value.duration}, ${value.distance}` : `🚶‍♀️`),

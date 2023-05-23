@@ -225,6 +225,13 @@ export function TextInput({
     }
   }, [isFocused, focusOffset])
 
+  // close menu if no longer focused
+  useEffect(() => {
+    if (!isFocused && activeAutocompleteMenu) {
+      setActiveAutocompleteMenu(undefined)
+    }
+  }, [isFocused])
+
   // update value
 
   useEffect(() => {

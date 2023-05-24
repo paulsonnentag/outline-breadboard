@@ -16,6 +16,7 @@ import { FUNCTIONS } from "../language/functions"
 import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
 import colors, { allColors } from "../colors"
+import { ViewDefinitions } from "../views"
 
 export interface NodeContextMenuProps {
   node: ValueNode
@@ -25,7 +26,7 @@ export interface NodeContextMenuProps {
   isHoveredOnNode: boolean
   hideFunctionButtons: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
-  onChangeIsComputationSuggestionHovered?: (hasSuggestion: boolean) => void
+  computationSuggestionUpdated?: () => void
 }
 
 export function NodeContextMenu({
@@ -36,16 +37,16 @@ export function NodeContextMenu({
   isHoveredOnNode,
   hideFunctionButtons,
   onOpenNodeInNewPane,
-  onChangeIsComputationSuggestionHovered,
+  computationSuggestionUpdated,
 }: NodeContextMenuProps) {
   const suggestionNodeId = `TEMP_SUGGESTION_${useId()}`
   const { graph, changeGraph } = useGraph()
   const [isHovering, setIsHovering] = useState(false)
   const [isHoveringOverButton, setIsHoveringOverButton] = useState<string | undefined>(undefined)
   const nodeId = node.id
-  const isMap = node.view === "map"
-  const isTable = node.view === "table"
-  const isCalendar = node.view === "calendar"
+  const isMap = scope.getProperty("view") === "map"
+  const isTable = scope.getProperty("view") === "table"
+  const isCalendar = scope.getProperty("view") === "calendar"
 
   const suggestedFunctions = getGroupedSuggestedFunctions(scope)
 
@@ -125,18 +126,6 @@ export function NodeContextMenu({
     // bit of an ugly hack to compare suggestedFunctions by value rather than identity,
     // but seems to work fine...
   }, [JSON.stringify(suggestedFunctions)])
-
-  const onToggleView = (view: string) => {
-    changeGraph((graph) => {
-      const node = graph[nodeId]
-
-      if (node.view === view) {
-        delete node.view
-      } else {
-        node.view = view
-      }
-    })
-  }
 
   const onPopoutView = (view: string) => {
     // Create new node with refId = nodeId, view = view, add it to the root doc
@@ -223,6 +212,84 @@ export function NodeContextMenu({
     resetPendingInsertions()
   }
 
+  const showPreview = (suggestionValue: string, suggestionKey: string | undefined = undefined) => {
+    const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
+    
+    /*const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
+    
+    if (existingNodeId) {
+      // todo
+      return
+    }*/
+
+    // todo: awful hack, create temporary node in graph that's not persisted in automerge
+    graph[suggestionNodeId] = {
+      children: [],
+      computedProps: {},
+      expandedResultsByIndex: {},
+      isSelected: false,
+      key: "",
+      paneWidth: 0,
+      value: suggestion,
+      view: "",
+      computations: [],
+      id: suggestionNodeId,
+      isCollapsed: false,
+      type: "value",
+      isTemporary: true,
+    }
+
+    computationSuggestionUpdated?.()
+
+    const tempScope = new Scope(graph, suggestionNodeId, scope)
+    scope.childScopes.push(tempScope)
+    scope.eval()
+  }
+
+  const closePreview = (suggestionValue: string, suggestionKey: string | undefined = undefined) => {
+    /*const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
+    const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
+
+    if (existingNodeId) {
+      // todo
+      return
+    }*/
+
+    const index = scope.childScopes.findIndex(
+      (scope) => scope.id === suggestionNodeId
+    )
+    if (index !== -1) {
+      scope.childScopes.splice(index, 1)
+    }
+
+    computationSuggestionUpdated?.()
+  }
+
+  const savePreview = (suggestionValue: string, suggestionKey: string | undefined = undefined, toggle: boolean = false) => {
+    const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
+    const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
+
+    if (existingNodeId) {
+      changeGraph(graph => {
+        let node = graph[existingNodeId] as ValueNode
+
+        if (toggle && node.value === suggestion) {
+          let index = (graph[nodeId] as ValueNode).children.indexOf(node.id)
+
+          if (index !== -1) {
+            (graph[nodeId] as ValueNode).children.splice(index, 1)
+          }
+        }
+        else {
+          node.value = suggestion
+        }
+      })
+    }
+    else {
+      scope.insertChildNode(suggestion)
+    }
+  }
+
   return (
     <div
       className="absolute right-1 flex flex-col gap-1"
@@ -231,116 +298,48 @@ export function NodeContextMenu({
     >
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">
-          <div className="relative">
-            {isHovering && (
-              <div
-                className={classNames(
-                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-                  isHoveringOverButton === "map" ? "opacity-100" : "opacity-50"
-                )}
-              >
-                Map
-              </div>
-            )}
-            <button
-              className={classNames(
-                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+          {ViewDefinitions.map(view => (
+            <div className="relative" key={view.id}>
+              {isHovering && (
+                <div
+                  className={classNames(
+                    "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                    isHoveringOverButton === view.id ? "opacity-100" : "opacity-50"
+                  )}
+                >
+                  {view.title}
+                </div>
               )}
-              onMouseOver={(e) => setIsHoveringOverButton("map")}
-              onMouseLeave={(e) =>
-                isHoveringOverButton === "map" && setIsHoveringOverButton(undefined)
-              }
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-
-                if (e.metaKey) {
-                  onPopoutView("map")
-                } else {
-                  onToggleView("map")
-                }
-              }}
-            >
-              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-                map
-              </span>
-            </button>
-          </div>
-
-          <div className="relative">
-            {isHovering && (
-              <div
+              <button
                 className={classNames(
-                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-                  isHoveringOverButton === "table" ? "opacity-100" : "opacity-50"
+                  "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                  {"map": isMap, "table": isTable, "calendar": isCalendar}[view.id] ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
                 )}
+                onMouseEnter={evt => {
+                  setIsHoveringOverButton(view.id)
+                  // showPreview(view.id, "view")
+                }}
+                onMouseLeave={evt => {
+                  isHoveringOverButton === view.id && setIsHoveringOverButton(undefined)
+                  // closePreview(view.id, "view")
+                }}
+                onMouseDown={evt => {
+                  evt.stopPropagation()
+                  evt.preventDefault()
+
+                  if (evt.metaKey) {
+                    onPopoutView(view.id)
+                  } else {
+                    savePreview(view.id, "view", true)
+                  }
+                }}
               >
-                Table
-              </div>
-            )}
-            <button
-              className={classNames(
-                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                isTable ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-              )}
-              onMouseOver={(e) => setIsHoveringOverButton("table")}
-              onMouseLeave={(e) =>
-                isHoveringOverButton === "table" && setIsHoveringOverButton(undefined)
-              }
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-
-                if (e.metaKey) {
-                  onPopoutView("table")
-                } else {
-                  onToggleView("table")
-                }
-              }}
-            >
-              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-                table_chart
-              </span>
-            </button>
-          </div>
-
-          <div className="relative">
-            {isHovering && (
-              <div
-                className={classNames(
-                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-                  isHoveringOverButton === "calendar" ? "opacity-100" : "opacity-50"
-                )}
-              >
-                Calendar
-              </div>
-            )}
-            <button
-              className={classNames(
-                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
-              )}
-              onMouseOver={(e) => setIsHoveringOverButton("calendar")}
-              onMouseLeave={(e) =>
-                isHoveringOverButton === "calendar" && setIsHoveringOverButton(undefined)
-              }
-              onMouseDown={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-
-                if (e.metaKey) {
-                  onPopoutView("calendar")
-                } else {
-                  onToggleView("calendar")
-                }
-              }}
-            >
-              <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-                calendar_month
-              </span>
-            </button>
-          </div>
+                <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                  {view.icon}
+                </span>
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -357,51 +356,13 @@ export function NodeContextMenu({
                 className={classNames(
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
                 )}
-                onMouseDown={(evt) => {
-                  if (!suggestion) {
-                    return
-                  }
-
-                  evt.stopPropagation()
-                  evt.preventDefault()
-                  scope.insertChildNode(suggestion)
-                }}
-                onMouseEnter={() => {
-                  // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                  graph[suggestionNodeId] = {
-                    children: [],
-                    computedProps: {},
-                    expandedResultsByIndex: {},
-                    isSelected: false,
-                    key: "",
-                    paneWidth: 0,
-                    value: suggestion,
-                    view: "",
-                    computations: [],
-                    id: suggestionNodeId,
-                    isCollapsed: false,
-                    type: "value",
-                    isTemporary: true,
-                  }
-
-                  if (onChangeIsComputationSuggestionHovered) {
-                    onChangeIsComputationSuggestionHovered(true)
-                  }
-
-                  const tempScope = new Scope(graph, suggestionNodeId, scope)
-                  scope.childScopes.push(tempScope)
-                  scope.eval()
-                }}
-                onMouseLeave={() => {
-                  const index = scope.childScopes.findIndex(
-                    (scope) => scope.id === suggestionNodeId
-                  )
-                  if (index !== -1) {
-                    scope.childScopes.splice(index, 1)
-                  }
-
-                  if (onChangeIsComputationSuggestionHovered) {
-                    onChangeIsComputationSuggestionHovered(false)
+                onMouseEnter={evt => showPreview(suggestion)}
+                onMouseLeave={evt => closePreview(suggestion)}
+                onMouseDown={evt => {
+                  if (suggestion) {
+                    evt.stopPropagation()
+                    evt.preventDefault()
+                    savePreview(suggestion)
                   }
                 }}
               >
@@ -418,10 +379,8 @@ export function NodeContextMenu({
       >
         {isHoveringOverButton === "color" ? (
           <div className="absolute z-50 right-0 pr-8">
-            <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center gap-0.5 bg-white px-1 cursor-pointer">
+            <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
               {Object.keys(colors.allColors).map((key) => {
-                const suggestion = `color: ${key}`
-
                 return (
                   <button
                     key={key}
@@ -429,51 +388,12 @@ export function NodeContextMenu({
                       "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
                     )}
                     style={{ background: colors.getColors(key)[500] }}
-                    onMouseDown={(evt) => {
-                      if (!suggestion) {
-                        return
-                      }
+                    onMouseEnter={evt => showPreview(key, "color")}
+                    onMouseLeave={evt => closePreview(key, "color")}
+                    onMouseDown={evt => {
                       evt.stopPropagation()
                       evt.preventDefault()
-                      scope.insertChildNode(suggestion)
-                    }}
-                    onMouseEnter={() => {
-                      // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                      graph[suggestionNodeId] = {
-                        children: [],
-                        computedProps: {},
-                        expandedResultsByIndex: {},
-                        isSelected: false,
-                        key: "",
-                        paneWidth: 0,
-                        value: suggestion,
-                        view: "",
-                        computations: [],
-                        id: suggestionNodeId,
-                        isCollapsed: false,
-                        type: "value",
-                        isTemporary: true,
-                      }
-
-                      if (onChangeIsComputationSuggestionHovered) {
-                        onChangeIsComputationSuggestionHovered(true)
-                      }
-
-                      const tempScope = new Scope(graph, suggestionNodeId, scope)
-                      scope.childScopes.push(tempScope)
-                      scope.eval()
-                    }}
-                    onMouseLeave={() => {
-                      const index = scope.childScopes.findIndex(
-                        (scope) => scope.id === suggestionNodeId
-                      )
-                      if (index !== -1) {
-                        scope.childScopes.splice(index, 1)
-                      }
-
-                      if (onChangeIsComputationSuggestionHovered) {
-                        onChangeIsComputationSuggestionHovered(false)
-                      }
+                      savePreview(key, "color")
                     }}
                   ></button>
                 )

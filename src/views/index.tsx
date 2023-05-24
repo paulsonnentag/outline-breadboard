@@ -4,6 +4,12 @@ import { TableNodeView } from "./TableNodeView"
 import { CalendarNodeView } from "./CalendarNodeView"
 import { Scope } from "../language/scopes"
 
+export const ViewDefinitions = [
+  {id: "map", title: "Map", icon: "map"},
+  {id: "table", title: "Table", icon: "table_chart"},
+  {id: "calendar", title: "Calendar", icon: "calendar_month"},
+]
+
 export interface NodeViewProps {
   node: ValueNode
   scope: Scope
@@ -15,11 +21,11 @@ export interface NodeViewProps {
 }
 
 export function NodeView(props: NodeViewProps) {
-  const { node } = props
+  const { node, scope } = props
 
   let view
-
-  switch (node.view) {
+  
+  switch (node.view || scope.getProperty("view")) {
     case "map":
       view = <MapNodeView {...props} />
       break
@@ -33,11 +39,6 @@ export function NodeView(props: NodeViewProps) {
 
   return (
     <>
-      {node.isCollapsed && (
-        <div className="pl-6">
-          <SummaryView scope={props.scope} />
-        </div>
-      )}
       {view && <div className="pt-2">{view}</div>}
     </>
   )

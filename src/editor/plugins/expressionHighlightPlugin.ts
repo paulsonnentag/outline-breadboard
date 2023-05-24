@@ -1,20 +1,6 @@
-import {
-  Decoration,
-  DecorationSet,
-  EditorView,
-  ViewPlugin,
-  ViewUpdate,
-  WidgetType,
-} from "@codemirror/view"
-import { FnNode, InlineExprNode, isLiteral } from "../../language/ast"
-import { scopeFacet } from "./state"
-import { ComputationSummaryView, FUNCTIONS } from "../../language/functions"
-import { HAS_MISSING_ARGUMENTS_VALUE } from "../../language/functions/function-def"
-import { getGraphDocHandle, getNode } from "../../graph"
-import { createRoot } from "react-dom/client"
-import { Scope } from "../../language/scopes"
-import classNames from "classnames"
-import colors from "../../colors"
+import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view"
+import { FnNode, InlineExprNode } from "../../language/ast"
+import { FUNCTIONS } from "../../language/functions"
 import { parseBullet } from "../../language"
 
 export const expressionHighlightPlugin = ViewPlugin.fromClass(

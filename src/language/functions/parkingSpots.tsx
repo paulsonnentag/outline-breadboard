@@ -63,10 +63,15 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
       }
 
       return (
-        <div>
-          {parkingSpots.map((parkingSpot: any) => (
-            <div className="flex" draggable onDragStart={(evt) => onDragStart(evt, parkingSpot)}>
-              <div className="bullet"></div>
+        <div className="w-[300px] p-2">
+          {parkingSpots.map((parkingSpot: any, index: number) => (
+            <div
+              key={index}
+              className="flex"
+              draggable
+              onDragStart={(evt) => onDragStart(evt, parkingSpot)}
+            >
+              <div className="bullet flex-shrink-0"></div>
               {parkingSpot.title}
             </div>
           ))}

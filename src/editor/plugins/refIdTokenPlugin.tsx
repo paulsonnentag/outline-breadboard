@@ -12,13 +12,15 @@ import {
 import { getGraph, getLabelOfNode, getNode } from "../../graph"
 import { scopeFacet } from "./state"
 import { StateEffect, StateField } from "@codemirror/state"
+import { PopOverValue } from "../../Root"
 
 class RefIdWidget extends WidgetType {
   constructor(
     readonly view: EditorView,
     readonly id: string,
     readonly position: number,
-    readonly setIsHoveringOverId: (nodeId: string | undefined) => void
+    readonly setIsHoveringOverId: (nodeId: string | undefined) => void,
+    readonly onOpenPopOver: (x: number, y: number, value: PopOverValue) => void
   ) {
     super()
   }
@@ -38,8 +40,12 @@ class RefIdWidget extends WidgetType {
 
     refIdElement.dataset.refIdTokenId = this.id
 
-    refIdElement.addEventListener("click", () => {
-      // triggerSelect(this.id)
+    refIdElement.addEventListener("click", (evt) => {
+      const rect = refIdElement.getBoundingClientRect()
+
+      this.onOpenPopOver(rect.x, rect.y, { type: "node", id: this.id })
+
+      evt.stopPropagation()
     })
 
     refIdElement.addEventListener("mouseenter", () => {
@@ -60,7 +66,10 @@ class RefIdWidget extends WidgetType {
 
 export const REF_ID_REGEX = /#\[([^\]]+)]/g
 
-export function getRefIdTokenPlugin(setIsHoveringOverId: (nodeId: string | undefined) => void) {
+export function getRefIdTokenPlugin(
+  setIsHoveringOverId: (nodeId: string | undefined) => void,
+  onOpenPopOver: (x: number, y: number, value: PopOverValue) => void
+) {
   const refIdMatcher = new MatchDecorator({
     regexp: REF_ID_REGEX,
     decorate: (add, from, to, [, id], view) => {
@@ -70,7 +79,7 @@ export function getRefIdTokenPlugin(setIsHoveringOverId: (nodeId: string | undef
         from,
         to,
         Decoration.replace({
-          widget: new RefIdWidget(view, id, from, setIsHoveringOverId),
+          widget: new RefIdWidget(view, id, from, setIsHoveringOverId, onOpenPopOver),
         })
       )
     },

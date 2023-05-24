@@ -214,7 +214,7 @@ export function NodeContextMenu({
 
   const showPreview = (suggestionValue: string, suggestionKey: string | undefined = undefined) => {
     const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
-    
+
     /*const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
     
     if (existingNodeId) {
@@ -226,7 +226,6 @@ export function NodeContextMenu({
     graph[suggestionNodeId] = {
       children: [],
       computedProps: {},
-      expandedResultsByIndex: {},
       isSelected: false,
       key: "",
       paneWidth: 0,
@@ -255,9 +254,7 @@ export function NodeContextMenu({
       return
     }*/
 
-    const index = scope.childScopes.findIndex(
-      (scope) => scope.id === suggestionNodeId
-    )
+    const index = scope.childScopes.findIndex((scope) => scope.id === suggestionNodeId)
     if (index !== -1) {
       scope.childScopes.splice(index, 1)
     }
@@ -265,27 +262,32 @@ export function NodeContextMenu({
     computationSuggestionUpdated?.()
   }
 
-  const savePreview = (suggestionValue: string, suggestionKey: string | undefined = undefined, toggle: boolean = false) => {
+  const savePreview = (
+    suggestionValue: string,
+    suggestionKey: string | undefined = undefined,
+    toggle: boolean = false
+  ) => {
     const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
-    const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
+    const existingNodeId =
+      suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId
+        ? scope.props[suggestionKey]?.id
+        : undefined
 
     if (existingNodeId) {
-      changeGraph(graph => {
+      changeGraph((graph) => {
         let node = graph[existingNodeId] as ValueNode
 
         if (toggle && node.value === suggestion) {
           let index = (graph[nodeId] as ValueNode).children.indexOf(node.id)
 
           if (index !== -1) {
-            (graph[nodeId] as ValueNode).children.splice(index, 1)
+            ;(graph[nodeId] as ValueNode).children.splice(index, 1)
           }
-        }
-        else {
+        } else {
           node.value = suggestion
         }
       })
-    }
-    else {
+    } else {
       scope.insertChildNode(suggestion)
     }
   }
@@ -298,7 +300,7 @@ export function NodeContextMenu({
     >
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">
-          {ViewDefinitions.map(view => (
+          {ViewDefinitions.map((view) => (
             <div className="relative" key={view.id}>
               {isHovering && (
                 <div
@@ -313,17 +315,19 @@ export function NodeContextMenu({
               <button
                 className={classNames(
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                  {"map": isMap, "table": isTable, "calendar": isCalendar}[view.id] ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+                  { map: isMap, table: isTable, calendar: isCalendar }[view.id]
+                    ? "bg-gray-500 text-white"
+                    : "bg-transparent text-gray-600"
                 )}
-                onMouseEnter={evt => {
+                onMouseEnter={(evt) => {
                   setIsHoveringOverButton(view.id)
                   // showPreview(view.id, "view")
                 }}
-                onMouseLeave={evt => {
+                onMouseLeave={(evt) => {
                   isHoveringOverButton === view.id && setIsHoveringOverButton(undefined)
                   // closePreview(view.id, "view")
                 }}
-                onMouseDown={evt => {
+                onMouseDown={(evt) => {
                   evt.stopPropagation()
                   evt.preventDefault()
 
@@ -356,9 +360,9 @@ export function NodeContextMenu({
                 className={classNames(
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
                 )}
-                onMouseEnter={evt => showPreview(suggestion)}
-                onMouseLeave={evt => closePreview(suggestion)}
-                onMouseDown={evt => {
+                onMouseEnter={(evt) => showPreview(suggestion)}
+                onMouseLeave={(evt) => closePreview(suggestion)}
+                onMouseDown={(evt) => {
                   if (suggestion) {
                     evt.stopPropagation()
                     evt.preventDefault()
@@ -388,9 +392,9 @@ export function NodeContextMenu({
                       "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
                     )}
                     style={{ background: colors.getColors(key)[500] }}
-                    onMouseEnter={evt => showPreview(key, "color")}
-                    onMouseLeave={evt => closePreview(key, "color")}
-                    onMouseDown={evt => {
+                    onMouseEnter={(evt) => showPreview(key, "color")}
+                    onMouseLeave={(evt) => closePreview(key, "color")}
+                    onMouseDown={(evt) => {
                       evt.stopPropagation()
                       evt.preventDefault()
                       savePreview(key, "color")

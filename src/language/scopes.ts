@@ -24,8 +24,6 @@ export class Scope {
 
   computationResults: ComputationResult[] = []
 
-  readonly expandedResultsByIndex: { [index: number]: boolean }
-
   private updateHandlers: ((scope: Scope) => void)[] = []
 
   childScopes: Scope[] = []
@@ -41,7 +39,6 @@ export class Scope {
     this.id = id
     this.parentScope = parentScope
     const node = getNode(graph, id)
-    this.expandedResultsByIndex = node.expandedResultsByIndex
     this.source = node.value
     this.bullet = parseBullet(node.value)
     this.settingsScope = settingsScope
@@ -111,7 +108,11 @@ export class Scope {
 
   // if value is not resolved yet undefined is returned
   getProperty(name: string, index: number = 0): any {
-    return this.getChildScope(name)?.valueOf(index) || this.props["view"]?.getChildScope(name)?.valueOf(index) || this.getAliasedProperty(name, index) 
+    return (
+      this.getChildScope(name)?.valueOf(index) ||
+      this.props["view"]?.getChildScope(name)?.valueOf(index) ||
+      this.getAliasedProperty(name, index)
+    )
   }
 
   getAliasedProperty(name: string, index: number = 0): any {
@@ -123,7 +124,11 @@ export class Scope {
   }
 
   async getPropertyAsync(name: string): Promise<any> {
-    return this.getChildScope(name)?.valueOfAsync() || this.props["view"]?.getChildScope(name)?.valueOfAsync() || this.getAliasedPropertyAsync(name) 
+    return (
+      this.getChildScope(name)?.valueOfAsync() ||
+      this.props["view"]?.getChildScope(name)?.valueOfAsync() ||
+      this.getAliasedPropertyAsync(name)
+    )
   }
 
   async getAliasedPropertyAsync(name: string): Promise<any> {
@@ -251,25 +256,28 @@ export class Scope {
       return []
     }
 
-    return this.value.flatMap((part: any, index: number) => {
-      if (!(part instanceof Scope)) {
-        return []
-      }
+    return this.value
+      .flatMap((part: any, index: number) => {
+        if (!(part instanceof Scope)) {
+          return []
+        }
 
-      const date = parseDate(part.id)
-      return date ? [{ scope: part, data: date, index }] : []
-    })
-    .concat((() => {
-      const aliasMatch = this.source.match(ALIAS_REGEX)
+        const date = parseDate(part.id)
+        return date ? [{ scope: part, data: date, index }] : []
+      })
+      .concat(
+        (() => {
+          const aliasMatch = this.source.match(ALIAS_REGEX)
 
-      if (aliasMatch) {
-        const date = parseDate(this.transcludedScopes[aliasMatch[2]].getProperty("date"))
+          if (aliasMatch) {
+            const date = parseDate(this.transcludedScopes[aliasMatch[2]].getProperty("date"))
 
-        return date ? [{ scope: this, data: date, index: 0 }] : []
-      }
+            return date ? [{ scope: this, data: date, index: 0 }] : []
+          }
 
-      return []
-    })())
+          return []
+        })()
+      )
   }
 
   readAsLocation(): DataWithProvenance<LatLngLiteral>[] {
@@ -277,25 +285,30 @@ export class Scope {
       return []
     }
 
-    return this.value.flatMap((part: any, index: number) => {
-      if (!(part instanceof Scope)) {
-        return []
-      }
+    return this.value
+      .flatMap((part: any, index: number) => {
+        if (!(part instanceof Scope)) {
+          return []
+        }
 
-      const latLng = parseLatLng(part.getProperty("position"))
-      return latLng ? [{ scope: part, data: latLng, index }] : []
-    })
-    .concat((() => {
-      const aliasMatch = this.source.match(ALIAS_REGEX)
+        const latLng = parseLatLng(part.getProperty("position"))
+        return latLng ? [{ scope: part, data: latLng, index }] : []
+      })
+      .concat(
+        (() => {
+          const aliasMatch = this.source.match(ALIAS_REGEX)
 
-      if (aliasMatch) {
-        const latLng = parseLatLng(this.transcludedScopes[aliasMatch[2]].getProperty("position"))
+          if (aliasMatch) {
+            const latLng = parseLatLng(
+              this.transcludedScopes[aliasMatch[2]].getProperty("position")
+            )
 
-        return latLng ? [{ scope: this, data: latLng, index: 0 }] : []
-      }
+            return latLng ? [{ scope: this, data: latLng, index: 0 }] : []
+          }
 
-      return []
-    })())
+          return []
+        })()
+      )
   }
 
   extractDataInScope<T>(

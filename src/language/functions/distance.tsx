@@ -2,7 +2,7 @@ import { FunctionDefs } from "./function-def"
 import turfDistance from "@turf/distance"
 import { point as turfPoint } from "@turf/helpers"
 import { parseLatLng } from "../../properties"
-import { DataWithProvenance, Scope } from "../scopes"
+import { Scope } from "../scopes"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 
 export const DISTANCE_FN: FunctionDefs = {

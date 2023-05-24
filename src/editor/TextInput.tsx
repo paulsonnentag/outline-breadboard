@@ -18,6 +18,7 @@ import {
   graphContextCompartment,
   graphContextFacet,
   nodeIdFacet,
+  onOpenPopOverFacet,
   scopeCompartment,
   scopeFacet,
 } from "./plugins/state"
@@ -37,6 +38,7 @@ import { imagePlugin } from "./plugins/imagePlugin"
 import { parseLatLng } from "../properties"
 import { GeoJsonShape, Marker } from "../views/MapNodeView"
 import LatLngLiteral = google.maps.LatLngLiteral
+import { useOpenPopOver } from "../Root"
 
 interface TextInputProps {
   isRoot: boolean
@@ -105,6 +107,7 @@ export function TextInput({
   setIsHoveringOverId,
   onChangeIsMenuOpen,
 }: TextInputProps) {
+  const onOpenPopOver = useOpenPopOver()
   const graphContext = useGraph()
   const { graph, changeGraph, setTemporaryMapObjects } = graphContext
   const containerRef = useRef<HTMLDivElement>(null)
@@ -139,8 +142,9 @@ export function TextInput({
       extensions: [
         minimalSetup,
         EditorView.lineWrapping,
-        getRefIdTokenPlugin(setIsHoveringOverId),
+        getRefIdTokenPlugin(setIsHoveringOverId, onOpenPopOver),
         nodeIdFacet.of(nodeId),
+        onOpenPopOverFacet.of(onOpenPopOver),
         expressionResultsField,
         expressionResultsDecorations,
         expressionHighlightPlugin,
@@ -199,6 +203,7 @@ export function TextInput({
                 positionInSource: expression.to,
                 value,
                 functionName: expression.expr instanceof FnNode ? expression.expr.name : undefined,
+                onOpenPopOver,
               })
             }
           }
@@ -290,7 +295,6 @@ export function TextInput({
       }
 
       const node = getNode(graph, nodeId)
-      node.expandedResultsByIndex = {}
     })
 
     if (!currentEditorView) {

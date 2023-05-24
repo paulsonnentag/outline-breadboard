@@ -460,7 +460,6 @@ export function OutlineEditor({
         </>
       ) : (
         <>
-          
           <div
             className={classNames(
               "flex items-start w-full",
@@ -544,40 +543,13 @@ export function OutlineEditor({
                 onChangeIsMenuOpen={setIsMenuOpen}
               />
               <ComputationResultsSummaryView scope={scope} />
-
-              <div className="flex ml-[5px]">
-                {Object.entries(scope.expandedResultsByIndex).map(([key, isExpanded]) => {
-                  const index = parseInt(key)
-                  if (!isExpanded) {
-                    return null
-                  }
-
-                  const computationColor = color ?? "purple"
-
-                  const expression = scope.bullet.value[index]
-
-                  const functionName =
-                    expression instanceof InlineExprNode && expression.expr instanceof FnNode
-                      ? expression.expr.name
-                      : undefined
-                  const customView = functionName ? FUNCTIONS[functionName].expandedView : undefined
-
-                  return (
-                    <pre
-                      className={`bg-${computationColor}-200 text-${computationColor}-600 mt-2 rounded p-1`}
-                    >
-                      {customView
-                        ? customView(scope.valueOf(index))
-                        : safeJsonStringify(scope.valueOf(index))}
-                    </pre>
-                  )
-                })}
-              </div>
             </div>
             {!disableCustomViews && isFocused && (
               <NodeContextMenu
                 hideFunctionButtons={isMenuOpen}
-                computationSuggestionUpdated={() => setComputationSuggestionUpdate(computationSuggestionUpdate + 1)}
+                computationSuggestionUpdated={() =>
+                  setComputationSuggestionUpdate(computationSuggestionUpdate + 1)
+                }
                 node={node}
                 scope={scope}
                 isFocusedOnNode={isFocused}

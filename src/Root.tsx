@@ -1,7 +1,9 @@
 import { DocumentId } from "automerge-repo"
 import {
+  createContext,
   MouseEvent as ReactMouseEvent,
   MouseEventHandler,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -25,13 +27,16 @@ import { save } from "@automerge/automerge"
 import { OutlineEditor, OutlineEditorProps } from "./editor/OutlineEditor"
 import { IconButton } from "./IconButton"
 import classNames from "classnames"
-import { downloadTextFile, downloadUint8Array, isString } from "./utils"
+import { downloadTextFile, downloadUint8Array, isString, safeJsonStringify } from "./utils"
 import { useRootScope } from "./language/scopes"
 import { useDocument, useRepo } from "automerge-repo-react-hooks"
 import { importGraph, ProfileDoc } from "./profile"
 import fileDialog from "file-dialog"
 import Logo from "./Logo"
 import { PopoverOutlineView } from "./views/MapNodeView"
+import { useStaticCallback } from "./hooks"
+import { FnNode, InlineExprNode } from "./language/ast"
+import { FUNCTIONS } from "./language/functions"
 
 interface RootProps {
   profileDocId: DocumentId
@@ -498,42 +503,37 @@ export function RootOutlineEditor(props: RootOutlineEditorProps) {
   return <OutlineEditor scope={scope} {...props} />
 }
 
+export type PopOverValue =
+  | { type: "node"; id: string }
+  | { type: "computationResult"; name: string; value: any }
+
+interface PopOverContextProps {
+  onOpenPopOver: (x: number, y: number, value: PopOverValue) => void
+}
+
+export const PopOverContext = createContext<PopOverContextProps | undefined>(undefined)
+
+export const useOpenPopOver = () => {
+  const context = useContext(PopOverContext)
+  if (!context) {
+    throw new Error("missing popover context")
+  }
+
+  return context.onOpenPopOver
+}
+
 function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
   const graphContext = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
-  const [activeTooltip, setActiveTooltip] = useState<
-    { x: number; y: number; rootId: string } | undefined
+  const [activePopOver, setActivePopOver] = useState<
+    { x: number; y: number; value: PopOverValue } | undefined
   >()
-
-  const onClick = (evt: ReactMouseEvent) => {
-    const currentContainer = containerRef.current
-    if (!currentContainer) {
-      return
-    }
-
-    const target = evt.target as HTMLDivElement
-    const rootId = target.dataset.refIdTokenId
-
-    if (rootId) {
-      const containerRect = currentContainer.getBoundingClientRect()
-      const tokenRect = target.getBoundingClientRect()
-
-      setActiveTooltip({
-        x: tokenRect.x - containerRect.x,
-        y: tokenRect.y - containerRect.y + tokenRect.height,
-        rootId,
-      })
-
-      evt.stopPropagation()
-      evt.preventDefault()
-    }
-  }
 
   // close tooltip on click outside
   useEffect(() => {
     const onClick = (evt: MouseEvent) => {
-      setActiveTooltip(undefined)
+      setActivePopOver(undefined)
     }
 
     document.addEventListener("click", onClick)
@@ -543,35 +543,86 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
     }
   }, [])
 
+  const onOpenPopOver = useStaticCallback((x: number, y: number, value: PopOverValue) => {
+    const currentContainer = containerRef.current
+    if (!currentContainer) {
+      return
+    }
+
+    const containerRect = currentContainer.getBoundingClientRect()
+
+    setActivePopOver({
+      x: x - containerRect.x,
+      y: y - containerRect.y + 20,
+      value,
+    })
+  })
+
+  const popOverContext = useMemo<PopOverContextProps>(() => {
+    return {
+      onOpenPopOver,
+    }
+  }, [])
+
   return (
-    <div onClick={onClick} className="relative" ref={containerRef}>
-      <RootOutlineEditor {...props} />
-      {activeTooltip && (
-        <div
-          ref={tooltipRef}
-          className="absolute pt-2"
-          style={{
-            top: `${activeTooltip.y}px`,
-            left: `${activeTooltip.x}px`,
-          }}
-        >
+    <PopOverContext.Provider value={popOverContext}>
+      <div className="relative" ref={containerRef}>
+        <RootOutlineEditor {...props} />
+        {activePopOver && (
           <div
-            className="relative tooltip flex flex-col"
-            onClick={(evt) => {
-              evt.stopPropagation()
+            ref={tooltipRef}
+            className="absolute pt-2"
+            style={{
+              top: `${activePopOver.y}px`,
+              left: `${activePopOver.x}px`,
             }}
           >
-            <PopoverOutlineView
-              rootId={activeTooltip.rootId}
-              graphContext={graphContext}
-              onOpenNodeInNewPane={() => {
-                setActiveTooltip(undefined)
-                props.onOpenNodeInNewPane(activeTooltip.rootId)
+            <div
+              className="relative tooltip flex flex-col"
+              onClick={(evt) => {
+                evt.stopPropagation()
               }}
-            />
+            >
+              {activePopOver && activePopOver.value.type === "node" && (
+                <PopoverOutlineView
+                  rootId={activePopOver.value.id}
+                  graphContext={graphContext}
+                  onOpenNodeInNewPane={() => {
+                    setActivePopOver(undefined)
+                    props.onOpenNodeInNewPane((activePopOver.value as any).id)
+                  }}
+                />
+              )}
+
+              {activePopOver && activePopOver.value.type === "computationResult" && (
+                <PopoverComputationResult
+                  value={activePopOver.value.value}
+                  name={activePopOver.value.name}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </PopOverContext.Provider>
+  )
+}
+
+interface PopoverComputationResultProps {
+  name: string
+  value: any
+}
+
+export function PopoverComputationResult({ value, name }: PopoverComputationResultProps) {
+  const computationColor = "purple"
+
+  const customView = FUNCTIONS[name].expandedView
+
+  return (
+    <pre
+      className={`bg-${computationColor}-200 text-${computationColor}-600 rounded p-1 overflow-auto`}
+    >
+      {customView ? customView(value) : safeJsonStringify(value)}
+    </pre>
   )
 }

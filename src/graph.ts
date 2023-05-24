@@ -88,7 +88,6 @@ export interface ValueNode {
   }
   isCollapsed: boolean
   isSelected: boolean
-  expandedResultsByIndex: { [index: number]: boolean }
   isTemporary?: boolean
 }
 
@@ -160,7 +159,6 @@ export function createValueNode(graph: Graph, nodeDef: NodeDef): ValueNode {
     computedProps: {},
     isCollapsed: false,
     isSelected: false,
-    expandedResultsByIndex: {},
     isTemporary: nodeDef.isTemporary === true,
   }
 

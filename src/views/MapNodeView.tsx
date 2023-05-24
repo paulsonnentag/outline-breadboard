@@ -139,8 +139,8 @@ export function MapNodeView({
     })
     .concat(temporaryGeoJsonShapes)
 
-  const setLocation = parseLatLng(scope.getProperty("mapLocation"))
-  const setZoom = parseInt(scope.getProperty("mapZoom"))
+  const setLocation = parseLatLng(scope.getProperty("position"))
+  const setZoom = parseInt(scope.getProperty("zoom"))
 
   const google = useGoogleApi()
   const mapId = useId()
@@ -776,13 +776,13 @@ function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
 
   const inputNode = getNode(graph, inputsNodeId)
   const latLongInputIndex = inputNode.children.findIndex((c) =>
-    getNode(graph, c).value.startsWith("mapLocation:")
+    getNode(graph, c).value.startsWith("position:")
   )
   const zoomInputIndex = inputNode.children.findIndex((c) =>
-    getNode(graph, c).value.startsWith("mapZoom:")
+    getNode(graph, c).value.startsWith("zoom:")
   )
 
-  const latLongValue = `mapLocation: ${center!.lat()}, ${center!.lng()}`
+  const latLongValue = `position: ${center!.lat()}, ${center!.lng()}`
 
   if (latLongInputIndex > -1) {
     getNode(graph, inputNode.children[latLongInputIndex]).value = latLongValue
@@ -795,7 +795,7 @@ function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
     graph[inputsNodeId].isCollapsed = true // start this node collapsed by default
   }
 
-  const zoomValue = `mapZoom: ${zoom}`
+  const zoomValue = `zoom: ${zoom}`
 
   if (zoomInputIndex > -1) {
     const zoomPropertyNode = getNode(graph, inputNode.children[zoomInputIndex])

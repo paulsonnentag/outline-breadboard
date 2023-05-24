@@ -247,12 +247,46 @@ export function NodeContextMenu({
               <button
                 className={classNames(
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                  isMap ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+                  {"map": isMap, "table": isTable, "calendar": isCalendar}[view.id] ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
                 )}
-                onMouseOver={(e) => setIsHoveringOverButton(view.id)}
-                onMouseLeave={(e) =>
+                onMouseEnter={() => {
+                  setIsHoveringOverButton(view.id)
+
+                  // todo: awful hack, create temporary node in graph that's not persisted in automerge
+                  graph[suggestionNodeId] = {
+                    children: [],
+                    computedProps: {},
+                    expandedResultsByIndex: {},
+                    isSelected: false,
+                    key: "",
+                    paneWidth: 0,
+                    value: `view: ${view.id}`,
+                    view: "",
+                    computations: [],
+                    id: suggestionNodeId,
+                    isCollapsed: false,
+                    type: "value",
+                    isTemporary: true,
+                  }
+
+                  computationSuggestionUpdated?.()
+
+                  const tempScope = new Scope(graph, suggestionNodeId, scope)
+                  scope.childScopes.push(tempScope)
+                  scope.eval()
+                }}
+                onMouseLeave={() => {
                   isHoveringOverButton === view.id && setIsHoveringOverButton(undefined)
-                }
+
+                  const index = scope.childScopes.findIndex(
+                    (scope) => scope.id === suggestionNodeId
+                  )
+                  if (index !== -1) {
+                    scope.childScopes.splice(index, 1)
+                  }
+
+                  computationSuggestionUpdated?.()
+                }}
                 onMouseDown={(e) => {
                   e.stopPropagation()
                   e.preventDefault()

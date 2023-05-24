@@ -1,5 +1,12 @@
 import { DocumentId } from "automerge-repo"
-import { MouseEventHandler, useEffect, useMemo, useState } from "react"
+import {
+  MouseEvent as ReactMouseEvent,
+  MouseEventHandler,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import {
   createGraphDoc,
   createValueNode,
@@ -9,6 +16,7 @@ import {
   GraphContextProps,
   GraphDoc,
   registerGraphHandle,
+  useGraph,
   TemporaryMapObjects,
   ValueNode,
 } from "./graph"
@@ -19,10 +27,11 @@ import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { downloadTextFile, downloadUint8Array, isString } from "./utils"
 import { useRootScope } from "./language/scopes"
-import { useDocument, useHandle, useRepo } from "automerge-repo-react-hooks"
+import { useDocument, useRepo } from "automerge-repo-react-hooks"
 import { importGraph, ProfileDoc } from "./profile"
 import fileDialog from "file-dialog"
 import Logo from "./Logo"
+import { PopoverOutlineView } from "./views/MapNodeView"
 
 interface RootProps {
   profileDocId: DocumentId
@@ -405,7 +414,7 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
                   <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
                 </div>
               )}
-              <RootOutlineEditor
+              <RootOutlineEditorWithPopOver
                 index={0}
                 nodeId={rootId}
                 path={[]}
@@ -487,4 +496,82 @@ export function RootOutlineEditor(props: RootOutlineEditorProps) {
   }
 
   return <OutlineEditor scope={scope} {...props} />
+}
+
+function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
+  const graphContext = useGraph()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [activeTooltip, setActiveTooltip] = useState<
+    { x: number; y: number; rootId: string } | undefined
+  >()
+
+  const onClick = (evt: ReactMouseEvent) => {
+    const currentContainer = containerRef.current
+    if (!currentContainer) {
+      return
+    }
+
+    const target = evt.target as HTMLDivElement
+    const rootId = target.dataset.refIdTokenId
+
+    if (rootId) {
+      const containerRect = currentContainer.getBoundingClientRect()
+      const tokenRect = target.getBoundingClientRect()
+
+      setActiveTooltip({
+        x: tokenRect.x - containerRect.x,
+        y: tokenRect.y - containerRect.y + tokenRect.height,
+        rootId,
+      })
+
+      evt.stopPropagation()
+      evt.preventDefault()
+    }
+  }
+
+  // close tooltip on click outside
+  useEffect(() => {
+    const onClick = (evt: MouseEvent) => {
+      setActiveTooltip(undefined)
+    }
+
+    document.addEventListener("click", onClick)
+
+    return () => {
+      document.removeEventListener("click", onClick)
+    }
+  }, [])
+
+  return (
+    <div onClick={onClick} className="relative" ref={containerRef}>
+      <RootOutlineEditor {...props} />
+      {activeTooltip && (
+        <div
+          ref={tooltipRef}
+          className="absolute pt-2"
+          style={{
+            top: `${activeTooltip.y}px`,
+            left: `${activeTooltip.x}px`,
+          }}
+        >
+          <div
+            className="relative tooltip flex flex-col"
+            onClick={(evt) => {
+              evt.stopPropagation()
+            }}
+          >
+            <PopoverOutlineView
+              rootId={activeTooltip.rootId}
+              graphContext={graphContext}
+              onOpenNodeInNewPane={() => {
+                setActiveTooltip(undefined)
+                props.onOpenNodeInNewPane(activeTooltip.rootId)
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

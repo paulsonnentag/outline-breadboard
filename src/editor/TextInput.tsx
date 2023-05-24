@@ -13,8 +13,14 @@ import {
   isTab,
   isUp,
 } from "../keyboardEvents"
-import { getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
-import { nodeIdFacet, scopeCompartment, scopeFacet } from "./plugins/state"
+import { cursorTooltipField, getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
+import {
+  graphContextCompartment,
+  graphContextFacet,
+  nodeIdFacet,
+  scopeCompartment,
+  scopeFacet,
+} from "./plugins/state"
 import { DataWithProvenance, Scope } from "../language/scopes"
 import classNames from "classnames"
 import {
@@ -99,7 +105,8 @@ export function TextInput({
   setIsHoveringOverId,
   onChangeIsMenuOpen,
 }: TextInputProps) {
-  const { graph, changeGraph, setTemporaryMapObjects } = useGraph()
+  const graphContext = useGraph()
+  const { graph, changeGraph, setTemporaryMapObjects } = graphContext
   const containerRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>()
   const [activeAutocompleteMenu, setActiveAutocompleteMenu] = useState<
@@ -138,9 +145,11 @@ export function TextInput({
         expressionResultsDecorations,
         expressionHighlightPlugin,
         scopeCompartment.of(scopeFacet.of(scope)),
+        graphContextCompartment.of(graphContextFacet.of(graphContext)),
         placeholder(isRoot ? "Untitled" : ""),
         closeBrackets(),
         imagePlugin,
+        cursorTooltipField,
       ],
       parent: containerRef.current,
       dispatch(transaction) {
@@ -153,9 +162,9 @@ export function TextInput({
       },
     }))
 
-    if (isFocused && !view.hasFocus) {
+    /*if (isFocused && !view.hasFocus) {
       view.focus()
-    }
+    }*/
 
     return () => {
       view.destroy()
@@ -218,8 +227,21 @@ export function TextInput({
     })
   }, [scope && scope.value, editorViewRef.current])
 
-  // set focus
+  // update graph context
 
+  useEffect(() => {
+    const currentEditorView = editorViewRef.current
+
+    if (!currentEditorView) {
+      return
+    }
+
+    currentEditorView.dispatch({
+      effects: graphContextCompartment.reconfigure(graphContextFacet.of(graphContext)),
+    })
+  }, [graphContext])
+
+  // set focus
   useEffect(() => {
     const currentEditorView = editorViewRef.current
 

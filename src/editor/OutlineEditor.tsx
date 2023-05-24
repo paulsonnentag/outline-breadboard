@@ -61,6 +61,7 @@ export function OutlineEditor({
   const [isHovered, setIsHovered] = useState(false)
   const [computationSuggestionUpdate, setComputationSuggestionUpdate] = useState(0) // hack: allow context menu to trigger rerender by setting isComputationSuggestionHovered
   const node = getNode(graph, nodeId)
+
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
   const grandParentId = parentIds[parentIds.length - 2]

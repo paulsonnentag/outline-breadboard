@@ -261,7 +261,14 @@ export function MapNodeView({
       currentPopOver.rootId = placeId
       currentPopOver.show()
       currentPopOver.draw()
-      currentPopOver.render({ graphContext, onOpenNodeInNewPane })
+      currentPopOver.render({
+        graphContext,
+        onOpenNodeInNewPane: (nodeId) => {
+          currentPopOver.hide()
+          currentPopOver.position = undefined
+          onOpenNodeInNewPane(nodeId)
+        },
+      })
     })
   })
 
@@ -389,7 +396,16 @@ export function MapNodeView({
           popOverRef.current.rootId = rootId
           popOverRef.current.show()
           popOverRef.current.draw()
-          popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
+          popOverRef.current.render({
+            graphContext,
+            onOpenNodeInNewPane: (nodeId) => {
+              if (popOverRef.current) {
+                popOverRef.current.hide()
+                popOverRef.current.position = undefined
+              }
+              onOpenNodeInNewPane(nodeId)
+            },
+          })
         }
 
         // mapRef.current?.panTo(marker.data.position)
@@ -475,7 +491,16 @@ export function MapNodeView({
 
   useEffect(() => {
     if (popOverRef.current) {
-      popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
+      popOverRef.current.render({
+        graphContext,
+        onOpenNodeInNewPane: (nodeId) => {
+          if (popOverRef.current) {
+            popOverRef.current.hide()
+            popOverRef.current.position = undefined
+          }
+          onOpenNodeInNewPane(nodeId)
+        },
+      })
     }
   }, [Math.random()])
 
@@ -674,33 +699,70 @@ interface PopoverOutlineViewProps {
   graphContext: GraphContextProps
   rootId: string
   onOpenNodeInNewPane: (nodeId: string) => void
+  onChangeIsFocused?: (isFocused: boolean) => void
 }
 
-function PopoverOutlineView({
+export function PopoverOutlineView({
   graphContext,
   rootId,
   onOpenNodeInNewPane,
+  onChangeIsFocused,
 }: PopoverOutlineViewProps) {
-  const [selectedPath, setSelectedPath] = useState<number[] | undefined>([])
+  const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
+
+  const onSelectPath = (newPath: number[] | undefined) => {
+    setSelectedPath(newPath)
+
+    if (!onChangeIsFocused) {
+      return
+    }
+
+    const wasPreviouslyFocused = selectedPath !== undefined
+    const isNowFocused = newPath !== undefined
+
+    if (wasPreviouslyFocused !== isNowFocused) {
+      onChangeIsFocused(isNowFocused)
+    }
+  }
+
   return (
     <GraphContext.Provider value={graphContext}>
-      <RootOutlineEditor
-        focusOffset={focusOffset}
-        nodeId={rootId}
-        index={0}
-        path={[]}
-        parentIds={[]}
-        selectedPath={selectedPath}
-        onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
-          setSelectedPath(newSelectedPath)
-          setFocusOffset(newFocusOffset)
-        }}
-        onOpenNodeInNewPane={onOpenNodeInNewPane}
-        isHoveringOverId={undefined} /* TODO */
-        setIsHoveringOverId={() => {}} /* TODO */
-        disableCustomViews={false}
-      />
+      <div className="relative tooltip flex flex-col">
+        <div
+          className="relative overflow-auto"
+          onClick={(evt) => {
+            evt.stopPropagation()
+          }}
+        >
+          <RootOutlineEditor
+            focusOffset={focusOffset}
+            nodeId={rootId}
+            index={0}
+            path={[]}
+            parentIds={[]}
+            selectedPath={selectedPath}
+            onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
+              onSelectPath(newSelectedPath)
+              setFocusOffset(newFocusOffset)
+            }}
+            onOpenNodeInNewPane={onOpenNodeInNewPane}
+            isHoveringOverId={undefined} /* TODO */
+            setIsHoveringOverId={() => {}} /* TODO */
+            disableCustomViews={false}
+          />
+        </div>
+        <div className="border-t border-t-gray-200 p-1 flex justify-end bg-gray-50">
+          <button
+            className="flex gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 hover:bg-gray-200 rounded-md items-center"
+            onClick={() => {
+              onOpenNodeInNewPane(rootId)
+            }}
+          >
+            open
+          </button>
+        </div>
+      </div>
     </GraphContext.Provider>
   )
 }

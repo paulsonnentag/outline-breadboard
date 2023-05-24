@@ -3,17 +3,21 @@ import {
   DecorationSet,
   EditorView,
   MatchDecorator,
+  showTooltip,
+  Tooltip,
   ViewPlugin,
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view"
 import { getGraph, getLabelOfNode, getNode } from "../../graph"
-import { triggerSelect } from "../../selectionHandler"
 import { scopeFacet } from "./state"
+import { StateEffect, StateField } from "@codemirror/state"
 
 class RefIdWidget extends WidgetType {
   constructor(
+    readonly view: EditorView,
     readonly id: string,
+    readonly position: number,
     readonly setIsHoveringOverId: (nodeId: string | undefined) => void
   ) {
     super()
@@ -29,21 +33,21 @@ class RefIdWidget extends WidgetType {
 
     const refIdElement = document.createElement("span")
     refIdElement.setAttribute("aria-hidden", "true")
-    refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded`
+    refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded hover:bg-blue-200 cursor-pointer`
     refIdElement.innerText = `${getLabelOfNode(node)}`
 
+    refIdElement.dataset.refIdTokenId = this.id
+
     refIdElement.addEventListener("click", () => {
-      triggerSelect(this.id)
+      // triggerSelect(this.id)
     })
 
     refIdElement.addEventListener("mouseenter", () => {
-      refIdElement.classList.add("bg-blue-200")
       this.setIsHoveringOverId(this.id)
     })
 
     refIdElement.addEventListener("mouseleave", () => {
-      refIdElement.classList.remove("bg-blue-200")
-      this.setIsHoveringOverId(this.id)
+      this.setIsHoveringOverId(undefined)
     })
 
     return refIdElement
@@ -66,7 +70,7 @@ export function getRefIdTokenPlugin(setIsHoveringOverId: (nodeId: string | undef
         from,
         to,
         Decoration.replace({
-          widget: new RefIdWidget(id, setIsHoveringOverId),
+          widget: new RefIdWidget(view, id, from, setIsHoveringOverId),
         })
       )
     },
@@ -93,3 +97,24 @@ export function getRefIdTokenPlugin(setIsHoveringOverId: (nodeId: string | undef
     }
   )
 }
+
+export const cursorTooltipField = StateField.define<readonly Tooltip[]>({
+  create: () => [],
+
+  update(tooltips, tr) {
+    for (let e of tr.effects) {
+      if (e.is(setCursorTooltipField)) {
+        console.log("update")
+        return e.value
+      }
+    }
+
+    if (tr.docChanged) return []
+
+    return tooltips
+  },
+
+  provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
+})
+
+const setCursorTooltipField = StateEffect.define<readonly Tooltip[]>()

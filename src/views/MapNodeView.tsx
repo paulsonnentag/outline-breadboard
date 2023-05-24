@@ -261,7 +261,14 @@ export function MapNodeView({
       currentPopOver.rootId = placeId
       currentPopOver.show()
       currentPopOver.draw()
-      currentPopOver.render({ graphContext, onOpenNodeInNewPane })
+      currentPopOver.render({
+        graphContext,
+        onOpenNodeInNewPane: (nodeId) => {
+          currentPopOver.hide()
+          currentPopOver.position = undefined
+          onOpenNodeInNewPane(nodeId)
+        },
+      })
     })
   })
 
@@ -389,7 +396,16 @@ export function MapNodeView({
           popOverRef.current.rootId = rootId
           popOverRef.current.show()
           popOverRef.current.draw()
-          popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
+          popOverRef.current.render({
+            graphContext,
+            onOpenNodeInNewPane: (nodeId) => {
+              if (popOverRef.current) {
+                popOverRef.current.hide()
+                popOverRef.current.position = undefined
+              }
+              onOpenNodeInNewPane(nodeId)
+            },
+          })
         }
 
         // mapRef.current?.panTo(marker.data.position)
@@ -475,7 +491,16 @@ export function MapNodeView({
 
   useEffect(() => {
     if (popOverRef.current) {
-      popOverRef.current.render({ graphContext, onOpenNodeInNewPane })
+      popOverRef.current.render({
+        graphContext,
+        onOpenNodeInNewPane: (nodeId) => {
+          if (popOverRef.current) {
+            popOverRef.current.hide()
+            popOverRef.current.position = undefined
+          }
+          onOpenNodeInNewPane(nodeId)
+        },
+      })
     }
   }, [Math.random()])
 
@@ -703,23 +728,40 @@ export function PopoverOutlineView({
 
   return (
     <GraphContext.Provider value={graphContext}>
-      <div>
-        <RootOutlineEditor
-          focusOffset={focusOffset}
-          nodeId={rootId}
-          index={0}
-          path={[]}
-          parentIds={[]}
-          selectedPath={selectedPath}
-          onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
-            onSelectPath(newSelectedPath)
-            setFocusOffset(newFocusOffset)
+      <div className="relative tooltip flex flex-col">
+        <div
+          className="relative overflow-auto"
+          onClick={(evt) => {
+            evt.stopPropagation()
           }}
-          onOpenNodeInNewPane={onOpenNodeInNewPane}
-          isHoveringOverId={undefined} /* TODO */
-          setIsHoveringOverId={() => {}} /* TODO */
-          disableCustomViews={false}
-        />
+        >
+          <RootOutlineEditor
+            focusOffset={focusOffset}
+            nodeId={rootId}
+            index={0}
+            path={[]}
+            parentIds={[]}
+            selectedPath={selectedPath}
+            onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
+              onSelectPath(newSelectedPath)
+              setFocusOffset(newFocusOffset)
+            }}
+            onOpenNodeInNewPane={onOpenNodeInNewPane}
+            isHoveringOverId={undefined} /* TODO */
+            setIsHoveringOverId={() => {}} /* TODO */
+            disableCustomViews={false}
+          />
+        </div>
+        <div className="border-t border-t-gray-200 p-1 flex justify-end bg-gray-50">
+          <button
+            className="flex gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 hover:bg-gray-200 rounded-md items-center"
+            onClick={() => {
+              onOpenNodeInNewPane(rootId)
+            }}
+          >
+            open
+          </button>
+        </div>
       </div>
     </GraphContext.Provider>
   )

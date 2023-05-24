@@ -555,30 +555,20 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
             left: `${activeTooltip.x}px`,
           }}
         >
-          <div className="relative tooltip flex flex-col">
-            <div
-              className="relative overflow-auto"
-              onClick={(evt) => {
-                evt.stopPropagation()
+          <div
+            className="relative tooltip flex flex-col"
+            onClick={(evt) => {
+              evt.stopPropagation()
+            }}
+          >
+            <PopoverOutlineView
+              rootId={activeTooltip.rootId}
+              graphContext={graphContext}
+              onOpenNodeInNewPane={() => {
+                setActiveTooltip(undefined)
+                props.onOpenNodeInNewPane(activeTooltip.rootId)
               }}
-            >
-              <PopoverOutlineView
-                rootId={activeTooltip.rootId}
-                graphContext={graphContext}
-                onOpenNodeInNewPane={props.onOpenNodeInNewPane}
-              />
-            </div>
-            <div className="border-t border-t-gray-200 p-1 flex justify-end bg-gray-50">
-              <button
-                className="flex gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 hover:bg-gray-200 rounded-md items-center"
-                onClick={() => {
-                  setActiveTooltip(undefined)
-                  props.onOpenNodeInNewPane(activeTooltip.rootId)
-                }}
-              >
-                open
-              </button>
-            </div>
+            />
           </div>
         </div>
       )}

@@ -44,9 +44,9 @@ export function NodeContextMenu({
   const [isHovering, setIsHovering] = useState(false)
   const [isHoveringOverButton, setIsHoveringOverButton] = useState<string | undefined>(undefined)
   const nodeId = node.id
-  const isMap = node.view === "map"
-  const isTable = node.view === "table"
-  const isCalendar = node.view === "calendar"
+  const isMap = scope.getProperty("view") === "map"
+  const isTable = scope.getProperty("view") === "table"
+  const isCalendar = scope.getProperty("view") === "calendar"
 
   const suggestedFunctions = getGroupedSuggestedFunctions(scope)
 
@@ -126,18 +126,6 @@ export function NodeContextMenu({
     // bit of an ugly hack to compare suggestedFunctions by value rather than identity,
     // but seems to work fine...
   }, [JSON.stringify(suggestedFunctions)])
-
-  const onToggleView = (view: string) => {
-    changeGraph((graph) => {
-      const node = graph[nodeId]
-
-      if (node.view === view) {
-        delete node.view
-      } else {
-        node.view = view
-      }
-    })
-  }
 
   const onPopoutView = (view: string) => {
     // Create new node with refId = nodeId, view = view, add it to the root doc
@@ -224,6 +212,84 @@ export function NodeContextMenu({
     resetPendingInsertions()
   }
 
+  const showPreview = (suggestionValue: string, suggestionKey: string | undefined = undefined) => {
+    const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
+    
+    /*const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
+    
+    if (existingNodeId) {
+      // todo
+      return
+    }*/
+
+    // todo: awful hack, create temporary node in graph that's not persisted in automerge
+    graph[suggestionNodeId] = {
+      children: [],
+      computedProps: {},
+      expandedResultsByIndex: {},
+      isSelected: false,
+      key: "",
+      paneWidth: 0,
+      value: suggestion,
+      view: "",
+      computations: [],
+      id: suggestionNodeId,
+      isCollapsed: false,
+      type: "value",
+      isTemporary: true,
+    }
+
+    computationSuggestionUpdated?.()
+
+    const tempScope = new Scope(graph, suggestionNodeId, scope)
+    scope.childScopes.push(tempScope)
+    scope.eval()
+  }
+
+  const closePreview = (suggestionValue: string, suggestionKey: string | undefined = undefined) => {
+    /*const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
+    const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
+
+    if (existingNodeId) {
+      // todo
+      return
+    }*/
+
+    const index = scope.childScopes.findIndex(
+      (scope) => scope.id === suggestionNodeId
+    )
+    if (index !== -1) {
+      scope.childScopes.splice(index, 1)
+    }
+
+    computationSuggestionUpdated?.()
+  }
+
+  const savePreview = (suggestionValue: string, suggestionKey: string | undefined = undefined, toggle: boolean = false) => {
+    const suggestion = suggestionKey ? `${suggestionKey}: ${suggestionValue}` : suggestionValue
+    const existingNodeId = suggestionKey && scope.props[suggestionKey]?.id !== suggestionNodeId ? scope.props[suggestionKey]?.id : undefined
+
+    if (existingNodeId) {
+      changeGraph(graph => {
+        let node = graph[existingNodeId] as ValueNode
+
+        if (toggle && node.value === suggestion) {
+          let index = (graph[nodeId] as ValueNode).children.indexOf(node.id)
+
+          if (index !== -1) {
+            (graph[nodeId] as ValueNode).children.splice(index, 1)
+          }
+        }
+        else {
+          node.value = suggestion
+        }
+      })
+    }
+    else {
+      scope.insertChildNode(suggestion)
+    }
+  }
+
   return (
     <div
       className="absolute right-1 flex flex-col gap-1"
@@ -249,52 +315,22 @@ export function NodeContextMenu({
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
                   {"map": isMap, "table": isTable, "calendar": isCalendar}[view.id] ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
                 )}
-                onMouseEnter={() => {
+                onMouseEnter={evt => {
                   setIsHoveringOverButton(view.id)
-
-                  // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                  graph[suggestionNodeId] = {
-                    children: [],
-                    computedProps: {},
-                    expandedResultsByIndex: {},
-                    isSelected: false,
-                    key: "",
-                    paneWidth: 0,
-                    value: `view: ${view.id}`,
-                    view: "",
-                    computations: [],
-                    id: suggestionNodeId,
-                    isCollapsed: false,
-                    type: "value",
-                    isTemporary: true,
-                  }
-
-                  computationSuggestionUpdated?.()
-
-                  const tempScope = new Scope(graph, suggestionNodeId, scope)
-                  scope.childScopes.push(tempScope)
-                  scope.eval()
+                  showPreview(view.id, "view")
                 }}
-                onMouseLeave={() => {
+                onMouseLeave={evt => {
                   isHoveringOverButton === view.id && setIsHoveringOverButton(undefined)
-
-                  const index = scope.childScopes.findIndex(
-                    (scope) => scope.id === suggestionNodeId
-                  )
-                  if (index !== -1) {
-                    scope.childScopes.splice(index, 1)
-                  }
-
-                  computationSuggestionUpdated?.()
+                  closePreview(view.id, "view")
                 }}
-                onMouseDown={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
+                onMouseDown={evt => {
+                  evt.stopPropagation()
+                  evt.preventDefault()
 
-                  if (e.metaKey) {
+                  if (evt.metaKey) {
                     onPopoutView(view.id)
                   } else {
-                    onToggleView(view.id)
+                    savePreview(view.id, "view", true)
                   }
                 }}
               >
@@ -320,48 +356,14 @@ export function NodeContextMenu({
                 className={classNames(
                   "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
                 )}
-                onMouseDown={(evt) => {
-                  if (!suggestion) {
-                    return
+                onMouseEnter={evt => showPreview(suggestion)}
+                onMouseLeave={evt => closePreview(suggestion)}
+                onMouseDown={evt => {
+                  if (suggestion) {
+                    evt.stopPropagation()
+                    evt.preventDefault()
+                    savePreview(suggestion)
                   }
-
-                  evt.stopPropagation()
-                  evt.preventDefault()
-                  scope.insertChildNode(suggestion)
-                }}
-                onMouseEnter={() => {
-                  // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                  graph[suggestionNodeId] = {
-                    children: [],
-                    computedProps: {},
-                    expandedResultsByIndex: {},
-                    isSelected: false,
-                    key: "",
-                    paneWidth: 0,
-                    value: suggestion,
-                    view: "",
-                    computations: [],
-                    id: suggestionNodeId,
-                    isCollapsed: false,
-                    type: "value",
-                    isTemporary: true,
-                  }
-
-                  computationSuggestionUpdated?.()
-
-                  const tempScope = new Scope(graph, suggestionNodeId, scope)
-                  scope.childScopes.push(tempScope)
-                  scope.eval()
-                }}
-                onMouseLeave={() => {
-                  const index = scope.childScopes.findIndex(
-                    (scope) => scope.id === suggestionNodeId
-                  )
-                  if (index !== -1) {
-                    scope.childScopes.splice(index, 1)
-                  }
-
-                  computationSuggestionUpdated?.()
                 }}
               >
                 {icon}
@@ -379,8 +381,6 @@ export function NodeContextMenu({
           <div className="absolute z-50 right-0 pr-8">
             <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
               {Object.keys(colors.allColors).map((key) => {
-                const suggestion = `color: ${key}`
-
                 return (
                   <button
                     key={key}
@@ -388,47 +388,12 @@ export function NodeContextMenu({
                       "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
                     )}
                     style={{ background: colors.getColors(key)[500] }}
-                    onMouseDown={(evt) => {
-                      if (!suggestion) {
-                        return
-                      }
+                    onMouseEnter={evt => showPreview(key, "color")}
+                    onMouseLeave={evt => closePreview(key, "color")}
+                    onMouseDown={evt => {
                       evt.stopPropagation()
                       evt.preventDefault()
-                      scope.insertChildNode(suggestion)
-                    }}
-                    onMouseEnter={() => {
-                      // todo: awful hack, create temporary node in graph that's not persisted in automerge
-                      graph[suggestionNodeId] = {
-                        children: [],
-                        computedProps: {},
-                        expandedResultsByIndex: {},
-                        isSelected: false,
-                        key: "",
-                        paneWidth: 0,
-                        value: suggestion,
-                        view: "",
-                        computations: [],
-                        id: suggestionNodeId,
-                        isCollapsed: false,
-                        type: "value",
-                        isTemporary: true,
-                      }
-
-                      computationSuggestionUpdated?.()
-
-                      const tempScope = new Scope(graph, suggestionNodeId, scope)
-                      scope.childScopes.push(tempScope)
-                      scope.eval()
-                    }}
-                    onMouseLeave={() => {
-                      const index = scope.childScopes.findIndex(
-                        (scope) => scope.id === suggestionNodeId
-                      )
-                      if (index !== -1) {
-                        scope.childScopes.splice(index, 1)
-                      }
-
-                      computationSuggestionUpdated?.()
+                      savePreview(key, "color")
                     }}
                   ></button>
                 )

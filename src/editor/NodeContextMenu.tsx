@@ -26,7 +26,7 @@ export interface NodeContextMenuProps {
   isHoveredOnNode: boolean
   hideFunctionButtons: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
-  onChangeIsComputationSuggestionHovered?: (hasSuggestion: boolean) => void
+  computationSuggestionUpdated?: () => void
 }
 
 export function NodeContextMenu({
@@ -37,7 +37,7 @@ export function NodeContextMenu({
   isHoveredOnNode,
   hideFunctionButtons,
   onOpenNodeInNewPane,
-  onChangeIsComputationSuggestionHovered,
+  computationSuggestionUpdated,
 }: NodeContextMenuProps) {
   const suggestionNodeId = `TEMP_SUGGESTION_${useId()}`
   const { graph, changeGraph } = useGraph()
@@ -313,9 +313,7 @@ export function NodeContextMenu({
                     isTemporary: true,
                   }
 
-                  if (onChangeIsComputationSuggestionHovered) {
-                    onChangeIsComputationSuggestionHovered(true)
-                  }
+                  computationSuggestionUpdated?.()
 
                   const tempScope = new Scope(graph, suggestionNodeId, scope)
                   scope.childScopes.push(tempScope)
@@ -329,9 +327,7 @@ export function NodeContextMenu({
                     scope.childScopes.splice(index, 1)
                   }
 
-                  if (onChangeIsComputationSuggestionHovered) {
-                    onChangeIsComputationSuggestionHovered(false)
-                  }
+                  computationSuggestionUpdated?.()
                 }}
               >
                 {icon}
@@ -347,7 +343,7 @@ export function NodeContextMenu({
       >
         {isHoveringOverButton === "color" ? (
           <div className="absolute z-50 right-0 pr-8">
-            <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center gap-0.5 bg-white px-1 cursor-pointer">
+            <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
               {Object.keys(colors.allColors).map((key) => {
                 const suggestion = `color: ${key}`
 
@@ -384,9 +380,7 @@ export function NodeContextMenu({
                         isTemporary: true,
                       }
 
-                      if (onChangeIsComputationSuggestionHovered) {
-                        onChangeIsComputationSuggestionHovered(true)
-                      }
+                      computationSuggestionUpdated?.()
 
                       const tempScope = new Scope(graph, suggestionNodeId, scope)
                       scope.childScopes.push(tempScope)
@@ -400,9 +394,7 @@ export function NodeContextMenu({
                         scope.childScopes.splice(index, 1)
                       }
 
-                      if (onChangeIsComputationSuggestionHovered) {
-                        onChangeIsComputationSuggestionHovered(false)
-                      }
+                      computationSuggestionUpdated?.()
                     }}
                   ></button>
                 )

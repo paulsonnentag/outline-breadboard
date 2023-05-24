@@ -59,7 +59,7 @@ export function OutlineEditor({
   const [isBeingDragged, setIsBeingDragged] = useState(false)
   const [isDraggedOver, setIsDraggedOver] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isComputationSuggestionHovered, setIsComputationSuggestionHovered] = useState(false) // hack: allow context menu to trigger rerender by setting isComputationSuggestionHovered
+  const [computationSuggestionUpdate, setComputationSuggestionUpdate] = useState(0) // hack: allow context menu to trigger rerender by setting isComputationSuggestionHovered
   const node = getNode(graph, nodeId)
   const isFocused = (selectedPath && arePathsEqual(selectedPath, path)) ?? false
   const parentId = last(parentIds)
@@ -576,7 +576,7 @@ export function OutlineEditor({
             {!disableCustomViews && isFocused && (
               <NodeContextMenu
                 hideFunctionButtons={isMenuOpen}
-                onChangeIsComputationSuggestionHovered={setIsComputationSuggestionHovered}
+                computationSuggestionUpdated={() => setComputationSuggestionUpdate(computationSuggestionUpdate + 1)}
                 node={node}
                 scope={scope}
                 isFocusedOnNode={isFocused}

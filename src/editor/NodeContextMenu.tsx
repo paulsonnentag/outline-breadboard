@@ -317,11 +317,11 @@ export function NodeContextMenu({
                 )}
                 onMouseEnter={evt => {
                   setIsHoveringOverButton(view.id)
-                  showPreview(view.id, "view")
+                  // showPreview(view.id, "view")
                 }}
                 onMouseLeave={evt => {
                   isHoveringOverButton === view.id && setIsHoveringOverButton(undefined)
-                  closePreview(view.id, "view")
+                  // closePreview(view.id, "view")
                 }}
                 onMouseDown={evt => {
                   evt.stopPropagation()

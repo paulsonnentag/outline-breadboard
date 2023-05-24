@@ -111,7 +111,7 @@ export class Scope {
 
   // if value is not resolved yet undefined is returned
   getProperty(name: string, index: number = 0): any {
-    return this.getChildScope(name)?.valueOf(index) || this.getAliasedProperty(name, index)
+    return this.getChildScope(name)?.valueOf(index) || this.getAliasedProperty(name, index) || this.props["view"]?.getChildScope(name)?.valueOf(index)
   }
 
   getAliasedProperty(name: string, index: number = 0): any {
@@ -123,7 +123,7 @@ export class Scope {
   }
 
   async getPropertyAsync(name: string): Promise<any> {
-    return this.getChildScope(name)?.valueOfAsync() || this.getAliasedPropertyAsync(name)
+    return this.getChildScope(name)?.valueOfAsync() || this.getAliasedPropertyAsync(name) || this.props["view"]?.getChildScope(name)?.valueOfAsync()
   }
 
   async getAliasedPropertyAsync(name: string): Promise<any> {

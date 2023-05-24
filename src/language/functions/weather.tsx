@@ -101,7 +101,7 @@ export interface WeatherInformation {
   weatherCode?: number
 }
 
-const OFFLINE = true
+const OFFLINE = false
 
 async function getWeatherInformation(
   date: Date,

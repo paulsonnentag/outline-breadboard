@@ -674,15 +674,32 @@ interface PopoverOutlineViewProps {
   graphContext: GraphContextProps
   rootId: string
   onOpenNodeInNewPane: (nodeId: string) => void
+  onChangeIsFocused?: (isFocused: boolean) => void
 }
 
 export function PopoverOutlineView({
   graphContext,
   rootId,
   onOpenNodeInNewPane,
+  onChangeIsFocused,
 }: PopoverOutlineViewProps) {
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
+
+  const onSelectPath = (newPath: number[] | undefined) => {
+    setSelectedPath(newPath)
+
+    if (!onChangeIsFocused) {
+      return
+    }
+
+    const wasPreviouslyFocused = selectedPath !== undefined
+    const isNowFocused = newPath !== undefined
+
+    if (wasPreviouslyFocused !== isNowFocused) {
+      onChangeIsFocused(isNowFocused)
+    }
+  }
 
   return (
     <GraphContext.Provider value={graphContext}>
@@ -695,7 +712,7 @@ export function PopoverOutlineView({
           parentIds={[]}
           selectedPath={selectedPath}
           onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
-            setSelectedPath(newSelectedPath)
+            onSelectPath(newSelectedPath)
             setFocusOffset(newFocusOffset)
           }}
           onOpenNodeInNewPane={onOpenNodeInNewPane}

@@ -1,5 +1,12 @@
 import { DocumentId } from "automerge-repo"
-import { MouseEventHandler, useEffect, useMemo, useState } from "react"
+import {
+  MouseEvent as ReactMouseEvent,
+  MouseEventHandler,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import {
   createGraphDoc,
   createValueNode,
@@ -9,6 +16,7 @@ import {
   GraphContextProps,
   GraphDoc,
   registerGraphHandle,
+  useGraph,
   TemporaryMapObjects,
   ValueNode,
 } from "./graph"
@@ -19,10 +27,11 @@ import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { downloadTextFile, downloadUint8Array, isString } from "./utils"
 import { useRootScope } from "./language/scopes"
-import { useDocument, useHandle, useRepo } from "automerge-repo-react-hooks"
+import { useDocument, useRepo } from "automerge-repo-react-hooks"
 import { importGraph, ProfileDoc } from "./profile"
 import fileDialog from "file-dialog"
 import Logo from "./Logo"
+import { PopoverOutlineView } from "./views/MapNodeView"
 
 interface RootProps {
   profileDocId: DocumentId
@@ -405,7 +414,7 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
                   <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
                 </div>
               )}
-              <RootOutlineEditor
+              <RootOutlineEditorWithPopOver
                 index={0}
                 nodeId={rootId}
                 path={[]}
@@ -487,4 +496,124 @@ export function RootOutlineEditor(props: RootOutlineEditorProps) {
   }
 
   return <OutlineEditor scope={scope} {...props} />
+}
+
+const OPEN_ON_HOVER_DELAY = 500
+
+function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
+  const timeoutRef = useRef<number | undefined>()
+  const isHoveringTooltipRef = useRef(false)
+  const graphContext = useGraph()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [activeTooltip, setActiveTooltip] = useState<
+    { x: number; y: number; rootId: string } | undefined
+  >()
+
+  const [isTooltipOutlineFocused, setIsTooltipOutlineFocused] = useState(false)
+
+  const onGlobalMouseOver = (evt: ReactMouseEvent) => {
+    timeoutRef.current = setTimeout(() => {
+      const currentContainer = containerRef.current
+      if (!currentContainer) {
+        return
+      }
+
+      const target = evt.target as HTMLDivElement
+      const rootId = target.dataset.refIdTokenId
+
+      if (rootId) {
+        const containerRect = currentContainer.getBoundingClientRect()
+        const tokenRect = target.getBoundingClientRect()
+
+        setActiveTooltip({
+          x: tokenRect.x - containerRect.x,
+          y: tokenRect.y - containerRect.y + tokenRect.height,
+          rootId,
+        })
+      }
+    }, OPEN_ON_HOVER_DELAY) as unknown as number
+  }
+
+  const onGlobalMouseOut = (evt: ReactMouseEvent) => {
+    const target = evt.target as HTMLDivElement
+    const rootId = target.dataset.refIdTokenId
+
+    clearTimeout(timeoutRef.current)
+
+    // wait until next frame so onTooltipMouseEnter can override hiding of active tooltip
+    setTimeout(() => {
+      if (
+        activeTooltip &&
+        !isHoveringTooltipRef.current &&
+        !isTooltipOutlineFocused &&
+        rootId === activeTooltip.rootId
+      ) {
+        setActiveTooltip(undefined)
+      }
+    })
+  }
+
+  const onTooltipMouseEnter = (evt: ReactMouseEvent) => {
+    isHoveringTooltipRef.current = true
+  }
+
+  const onTooltipMouseLeave = (evt: ReactMouseEvent) => {
+    isHoveringTooltipRef.current = false
+
+    if (!isTooltipOutlineFocused) {
+      setActiveTooltip(undefined)
+    }
+  }
+
+  // close tooltip on click outside
+  useEffect(() => {
+    const onClick = (evt: MouseEvent) => {
+      setActiveTooltip(undefined)
+      setIsTooltipOutlineFocused(false)
+    }
+
+    document.addEventListener("click", onClick)
+
+    return () => {
+      document.removeEventListener("click", onClick)
+    }
+  }, [])
+
+  return (
+    <div
+      onMouseOver={onGlobalMouseOver}
+      onMouseOut={onGlobalMouseOut}
+      className="relative"
+      ref={containerRef}
+    >
+      <RootOutlineEditor {...props} />
+      {activeTooltip && (
+        <div
+          ref={tooltipRef}
+          className="absolute pt-2"
+          style={{
+            top: `${activeTooltip.y}px`,
+            left: `${activeTooltip.x}px`,
+          }}
+          onMouseEnter={onTooltipMouseEnter}
+          onMouseLeave={onTooltipMouseLeave}
+        >
+          <div
+            className="tooltip"
+            onClick={(evt) => {
+              evt.stopPropagation()
+            }}
+          >
+            <PopoverOutlineView
+              rootId={activeTooltip.rootId}
+              graphContext={graphContext}
+              onOpenNodeInNewPane={props.onOpenNodeInNewPane}
+              onChangeIsFocused={(isFocused) => setIsTooltipOutlineFocused(isFocused)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

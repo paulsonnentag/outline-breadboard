@@ -5,6 +5,7 @@ import {
   MatchDecorator,
   showTooltip,
   Tooltip,
+  TooltipView,
   ViewPlugin,
   ViewUpdate,
   WidgetType,
@@ -37,122 +38,21 @@ class RefIdWidget extends WidgetType {
 
     const refIdElement = document.createElement("span")
     refIdElement.setAttribute("aria-hidden", "true")
-    refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded`
+    refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded hover:bg-blue-200`
     refIdElement.innerText = `${getLabelOfNode(node)}`
 
-    let timeout: any
-    let isMouseOverTooltip = false
-    let isMouseOverToken = false
+    refIdElement.dataset.refIdTokenId = this.id
 
     refIdElement.addEventListener("click", () => {
       // triggerSelect(this.id)
     })
 
     refIdElement.addEventListener("mouseenter", () => {
-      isMouseOverToken = true
-
-      timeout = setTimeout(() => {
-        this.view.dispatch({
-          effects: setCursorTooltipField.of([
-            {
-              pos: this.position,
-              create: () => {
-                const dom = document.createElement("div")
-
-                dom.addEventListener("keydown", (evt) => {
-                  console.log("key down!!!")
-                  evt.stopPropagation()
-                  evt.preventDefault()
-                })
-                dom.addEventListener("keyup", (evt) => {
-                  console.log("key down!!!")
-                  evt.stopPropagation()
-                  evt.preventDefault()
-                })
-
-                dom.addEventListener("keypress", (evt) => {
-                  console.log("key down!!!")
-                  evt.stopPropagation()
-                  evt.preventDefault()
-                })
-
-                const innerTooltip = document.createElement("div")
-                innerTooltip.classList.add("inner-tooltip")
-                dom.appendChild(innerTooltip)
-
-                const container = document.createElement("div")
-                innerTooltip.appendChild(container)
-
-                const root = createRoot(container)
-
-                dom.addEventListener("mouseenter", (evt) => {
-                  isMouseOverTooltip = true
-                  evt.stopPropagation()
-                  evt.preventDefault()
-                })
-
-                dom.addEventListener("mouseleave", () => {
-                  isMouseOverTooltip = false
-
-                  // defer so mouseenter event so token can override the mouseleave event
-                  setTimeout(() => {
-                    if (isMouseOverToken) {
-                      return false
-                    }
-
-                    this.view.dispatch({
-                      effects: setCursorTooltipField.of([]),
-                    })
-                  })
-                })
-
-                const graphContext = this.view.state.facet(graphContextFacet)
-
-                console.log("render")
-
-                root.render(
-                  <PopoverOutlineView
-                    key={Math.random()}
-                    graphContext={graphContext}
-                    rootId={this.id}
-                    onOpenNodeInNewPane={() => {}}
-                  />
-                )
-
-                container.innerText = "foobar"
-                return { dom }
-              },
-            },
-          ]),
-        })
-      }, OPEN_ON_HOVER_DELAY)
-
-      refIdElement.classList.add("bg-blue-200")
       this.setIsHoveringOverId(this.id)
     })
 
     refIdElement.addEventListener("mouseleave", () => {
-      isMouseOverToken = false
-
-      // defer mouseenter event so tooltip can override the mouseleave event
-      setTimeout(() => {
-        refIdElement.classList.remove("bg-blue-200")
-        this.setIsHoveringOverId(this.id)
-
-        if (isMouseOverTooltip) {
-          return
-        }
-
-        isMouseOverTooltip = false
-
-        if (timeout) {
-          clearTimeout(timeout)
-        }
-
-        this.view.dispatch({
-          effects: setCursorTooltipField.of([]),
-        })
-      })
+      this.setIsHoveringOverId(undefined)
     })
 
     return refIdElement

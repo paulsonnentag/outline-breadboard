@@ -5,18 +5,13 @@ import {
   MatchDecorator,
   showTooltip,
   Tooltip,
-  TooltipView,
   ViewPlugin,
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view"
-import { getGraph, getLabelOfNode, getNode, GraphContext, GraphContextProps } from "../../graph"
-import { graphContextFacet, scopeFacet } from "./state"
+import { getGraph, getLabelOfNode, getNode } from "../../graph"
+import { scopeFacet } from "./state"
 import { StateEffect, StateField } from "@codemirror/state"
-import { createRoot } from "react-dom/client"
-import { PopoverOutlineView } from "../../views/MapNodeView"
-
-const OPEN_ON_HOVER_DELAY = 500
 
 class RefIdWidget extends WidgetType {
   constructor(
@@ -38,7 +33,7 @@ class RefIdWidget extends WidgetType {
 
     const refIdElement = document.createElement("span")
     refIdElement.setAttribute("aria-hidden", "true")
-    refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded hover:bg-blue-200`
+    refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded hover:bg-blue-200 cursor-pointer`
     refIdElement.innerText = `${getLabelOfNode(node)}`
 
     refIdElement.dataset.refIdTokenId = this.id

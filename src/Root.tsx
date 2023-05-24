@@ -498,11 +498,7 @@ export function RootOutlineEditor(props: RootOutlineEditorProps) {
   return <OutlineEditor scope={scope} {...props} />
 }
 
-const OPEN_ON_HOVER_DELAY = 500
-
 function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
-  const timeoutRef = useRef<number | undefined>()
-  const isHoveringTooltipRef = useRef(false)
   const graphContext = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
@@ -510,59 +506,27 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
     { x: number; y: number; rootId: string } | undefined
   >()
 
-  const [isTooltipOutlineFocused, setIsTooltipOutlineFocused] = useState(false)
+  const onClick = (evt: ReactMouseEvent) => {
+    const currentContainer = containerRef.current
+    if (!currentContainer) {
+      return
+    }
 
-  const onGlobalMouseOver = (evt: ReactMouseEvent) => {
-    timeoutRef.current = setTimeout(() => {
-      const currentContainer = containerRef.current
-      if (!currentContainer) {
-        return
-      }
-
-      const target = evt.target as HTMLDivElement
-      const rootId = target.dataset.refIdTokenId
-
-      if (rootId) {
-        const containerRect = currentContainer.getBoundingClientRect()
-        const tokenRect = target.getBoundingClientRect()
-
-        setActiveTooltip({
-          x: tokenRect.x - containerRect.x,
-          y: tokenRect.y - containerRect.y + tokenRect.height,
-          rootId,
-        })
-      }
-    }, OPEN_ON_HOVER_DELAY) as unknown as number
-  }
-
-  const onGlobalMouseOut = (evt: ReactMouseEvent) => {
     const target = evt.target as HTMLDivElement
     const rootId = target.dataset.refIdTokenId
 
-    clearTimeout(timeoutRef.current)
+    if (rootId) {
+      const containerRect = currentContainer.getBoundingClientRect()
+      const tokenRect = target.getBoundingClientRect()
 
-    // wait until next frame so onTooltipMouseEnter can override hiding of active tooltip
-    setTimeout(() => {
-      if (
-        activeTooltip &&
-        !isHoveringTooltipRef.current &&
-        !isTooltipOutlineFocused &&
-        rootId === activeTooltip.rootId
-      ) {
-        setActiveTooltip(undefined)
-      }
-    })
-  }
+      setActiveTooltip({
+        x: tokenRect.x - containerRect.x,
+        y: tokenRect.y - containerRect.y + tokenRect.height,
+        rootId,
+      })
 
-  const onTooltipMouseEnter = (evt: ReactMouseEvent) => {
-    isHoveringTooltipRef.current = true
-  }
-
-  const onTooltipMouseLeave = (evt: ReactMouseEvent) => {
-    isHoveringTooltipRef.current = false
-
-    if (!isTooltipOutlineFocused) {
-      setActiveTooltip(undefined)
+      evt.stopPropagation()
+      evt.preventDefault()
     }
   }
 
@@ -570,7 +534,6 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
   useEffect(() => {
     const onClick = (evt: MouseEvent) => {
       setActiveTooltip(undefined)
-      setIsTooltipOutlineFocused(false)
     }
 
     document.addEventListener("click", onClick)
@@ -581,12 +544,7 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
   }, [])
 
   return (
-    <div
-      onMouseOver={onGlobalMouseOver}
-      onMouseOut={onGlobalMouseOut}
-      className="relative"
-      ref={containerRef}
-    >
+    <div onClick={onClick} className="relative" ref={containerRef}>
       <RootOutlineEditor {...props} />
       {activeTooltip && (
         <div
@@ -596,21 +554,31 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
             top: `${activeTooltip.y}px`,
             left: `${activeTooltip.x}px`,
           }}
-          onMouseEnter={onTooltipMouseEnter}
-          onMouseLeave={onTooltipMouseLeave}
         >
-          <div
-            className="tooltip"
-            onClick={(evt) => {
-              evt.stopPropagation()
-            }}
-          >
-            <PopoverOutlineView
-              rootId={activeTooltip.rootId}
-              graphContext={graphContext}
-              onOpenNodeInNewPane={props.onOpenNodeInNewPane}
-              onChangeIsFocused={(isFocused) => setIsTooltipOutlineFocused(isFocused)}
-            />
+          <div className="relative tooltip flex flex-col">
+            <div
+              className="relative overflow-auto"
+              onClick={(evt) => {
+                evt.stopPropagation()
+              }}
+            >
+              <PopoverOutlineView
+                rootId={activeTooltip.rootId}
+                graphContext={graphContext}
+                onOpenNodeInNewPane={props.onOpenNodeInNewPane}
+              />
+            </div>
+            <div className="border-t border-t-gray-200 p-1 flex justify-end bg-gray-50">
+              <button
+                className="flex gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 hover:bg-gray-200 rounded-md items-center"
+                onClick={() => {
+                  setActiveTooltip(undefined)
+                  props.onOpenNodeInNewPane(activeTooltip.rootId)
+                }}
+              >
+                open
+              </button>
+            </div>
           </div>
         </div>
       )}

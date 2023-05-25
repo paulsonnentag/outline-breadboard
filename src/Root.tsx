@@ -597,15 +597,15 @@ export function RootOutlineEditor(props: RootOutlineEditorProps) {
 
   return (
     <PopOverContext.Provider value={popOverContext}>
-      <div className="relative" ref={containerRef}>
+      <div ref={containerRef}>
         <OutlineEditor scope={scope} {...props} />
         {activePopOver && (
           <div
             ref={tooltipRef}
             className="absolute pt-2"
             style={{
-              top: `${activePopOver.y}px`,
-              left: `${activePopOver.x}px`,
+              top: `${activePopOver.y + 24}px`,
+              left: `${activePopOver.x + 24}px`,
             }}
           >
             <div

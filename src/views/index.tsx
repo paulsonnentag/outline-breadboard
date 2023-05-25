@@ -39,7 +39,7 @@ export function NodeView(props: NodeViewProps) {
 
   return (
     <>
-      {view && <div className="pt-2 mr-4">{view}</div>}
+      {view && <div className="pt-2">{view}</div>}
     </>
   )
 }

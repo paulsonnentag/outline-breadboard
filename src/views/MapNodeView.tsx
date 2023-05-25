@@ -81,7 +81,8 @@ export function MapNodeView({
   const markers = scope
     .extractDataInScope<Marker>((scope) => {
       const color = scope.getProperty("color") ?? scope.lookupValue("color")
-      const icon = getFirstEmoji(scope.getProperty("icon") ?? scope.lookupValue("icon"))
+      const icon =
+        getFirstEmoji(scope.getProperty("icon") ?? scope.lookupValue("icon")) ?? undefined
 
       const markers: Marker[] = []
 
@@ -332,8 +333,8 @@ export function MapNodeView({
       const marker = markers[i]
 
       const isHovering =
-        isHoveringOverId && (marker.scope.isInScope(isHoveringOverId) ||
-        marker.data.customId === isHoveringOverId)
+        isHoveringOverId &&
+        (marker.scope.isInScope(isHoveringOverId) || marker.data.customId === isHoveringOverId)
 
       const icon = marker.data.icon
       const colorPalette = colors.getColors(marker.data.color)
@@ -367,9 +368,9 @@ export function MapNodeView({
         }
 
         markerContent.style.backgroundColor = "transparent"
-      }
-      else {
-        markerContent.className = "w-[16px] h-[16px] rounded-full cursor-pointer border border-white"
+      } else {
+        markerContent.className =
+          "w-[16px] h-[16px] rounded-full cursor-pointer border border-white"
 
         if (isHovering) {
           markerContent.style.backgroundColor = colorPalette[600]
@@ -916,13 +917,13 @@ function getFirstEmoji(str: string | undefined) {
   if (!str) {
     return undefined
   }
-  
-  const emojiRegex = /\p{Emoji}/u; // Unicode property escapes for matching emojis
 
-  const matches = str.match(emojiRegex);
+  const emojiRegex = /\p{Emoji}/u // Unicode property escapes for matching emojis
+
+  const matches = str.match(emojiRegex)
   if (matches && matches.length > 0) {
-    return matches[0];
+    return matches[0]
   }
 
-  return null; // No emoji found
+  return null // No emoji found
 }

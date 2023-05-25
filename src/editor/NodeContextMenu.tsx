@@ -43,7 +43,7 @@ export function NodeContextMenu({
   const { graph, changeGraph } = useGraph()
   const [isHovering, setIsHovering] = useState(false)
   const [isHoveringOverButton, setIsHoveringOverButton] = useState<string | undefined>(undefined)
-  const isHoveringOverButtonRef = useRef(isHoveringOverButton);
+  const isHoveringOverButtonRef = useRef(isHoveringOverButton)
   isHoveringOverButtonRef.current = isHoveringOverButton
   const nodeId = node.id
   const isMap = scope.getProperty("view") === "map"

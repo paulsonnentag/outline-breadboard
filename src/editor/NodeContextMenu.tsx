@@ -470,7 +470,7 @@ export function NodeContextMenu({
             <div
               className={classNames(
                 "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-                isHoveringOverButton === "map" ? "opacity-100" : "opacity-50"
+                isHoveringOverButton === "delete" ? "opacity-100" : "opacity-50"
               )}
             >
               Delete
@@ -481,6 +481,12 @@ export function NodeContextMenu({
               "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white bg-transparent text-gray-600",
               { "opacity-0 pointer-events-none": !isFocusedOnNode && !isHovering }
             )}
+            onMouseEnter={(evt) => {
+              setIsHoveringOverButton("delete")
+            }}
+            onMouseLeave={(evt) => {
+              isHoveringOverButton === "delete" && setIsHoveringOverButton(undefined)
+            }}
             onMouseDown={(evt) => {
               evt.preventDefault()
               onDelete()

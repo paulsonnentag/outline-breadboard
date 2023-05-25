@@ -31,6 +31,7 @@ export interface Suggestion {
   value: SuggestionValue
   icon?: string
   beforeInsert?: (graph: Graph, changeGraph: (fn: (graph: Graph) => void) => void) => Promise<void>
+  rank?: number
 }
 
 interface SuggestionArgument {
@@ -182,6 +183,8 @@ function SuggestionRow({
       >
         {suggestion.icon || "data_object"}
       </span>
+
+      {suggestion.rank}
 
       {suggestion.value.type === "mention" && (
         <MentionSuggestionValueView value={suggestion.value} />

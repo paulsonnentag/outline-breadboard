@@ -1,13 +1,14 @@
 import { createValueNode, getGraph, getGraphDocHandle, getNode, Graph, Node } from "../graph"
 import { ALIAS_REGEX, KEYWORD_REGEX } from "../language"
 import { REF_ID_REGEX } from "./plugins/refIdTokenPlugin"
-import { fuzzyMatch, isString } from "../utils"
+import { fuzzyMatch, isString, rankedFuzzyMatch } from "../utils"
 import { placesAutocompleteApi } from "../google"
 import { createPlaceNode } from "../views/MapNodeView"
 import { createFlightNode } from "../flights"
 import { Scope } from "../language/scopes"
-import { MentionSuggestionValue, Suggestion } from "./SuggestionMenu"
+import { Suggestion } from "./SuggestionMenu"
 import { getParametersSorted } from "../language/function-suggestions"
+import { sortBy } from "lodash"
 
 // @ts-ignore
 const AIRLABS_API_KEY = __APP_ENV__.AIRLABS_API_KEY
@@ -41,6 +42,9 @@ function getNodeIdMapOfScope(scope: Scope): { [id: string]: boolean } {
 function addNodeIdsOfScopeToMap(scope: Scope, nodeIdMap: { [id: string]: boolean }) {
   nodeIdMap[scope.id] = true
   scope.childScopes.forEach((childScope) => addNodeIdsOfScopeToMap(childScope, nodeIdMap))
+  Object.values(scope.transcludedScopes).forEach((transcludedScope: Scope) =>
+    addNodeIdsOfScopeToMap(transcludedScope, nodeIdMap)
+  )
 }
 
 export async function getSuggestedMentions(scope: Scope, search: string): Promise<Suggestion[]> {
@@ -57,21 +61,31 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
 
   const timeOptions = getTimesAutocompletion(graph, scope, search)
   const dateOptions = getDatesAutocompletion(graph, scope, search)
+  const nodeOptions = getNodeAutocompletion(graph, scope, search)
+
+  return dateOptions.concat(timeOptions).concat(flightsOptions).concat(nodeOptions)
+}
+
+function getNodeAutocompletion(graph: Graph, scope: Scope, search: string): Suggestion[] {
+  if (search === "") {
+    return []
+  }
+
+  const isNodeInDoc = getNodeIdMapOfScope(scope.getRootScope())
 
   const nodeOptions: Suggestion[] = []
-
-  const isNodeIdInDoc = getNodeIdMapOfScope(scope.getRootScope())
 
   Object.values(graph).forEach((node: Node) => {
     if (
       scope.isInScope(node.id) || // avoid circular references
       node.type !== "value" ||
       !isString(node.value) ||
-      node.value === "" ||
-      (search === "" && !isNodeIdInDoc[node.id]) // don't suggest nodes that are not part of the doc if the search is empty
+      node.value === ""
     ) {
       return
     }
+
+    const isInDocBonus = isNodeInDoc[node.id] ? -1 : 0
 
     // alias
     if (node.value.match(ALIAS_REGEX)) {
@@ -81,6 +95,7 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
           name: node.value.match(KEYWORD_REGEX)![1],
           expression: `#[${node.id}]`,
         },
+        rank: isInDocBonus,
       })
     }
 
@@ -99,8 +114,9 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
 
     if (shortAddress) {
       const value = `${node.value}, ${shortAddress}`
+      const match = rankedFuzzyMatch(node.value.toLowerCase(), search.toLowerCase())
 
-      if (fuzzyMatch(value.toLowerCase(), search.toLowerCase())) {
+      if (match !== -1) {
         nodeOptions.push({
           icon: "location_on",
           value: {
@@ -108,13 +124,15 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
             name: value,
             expression: `#[${node.id}]`,
           },
+          rank: match + isInDocBonus,
         })
       }
       return
     }
 
     // regular nodes
-    if (fuzzyMatch(node.value.toLowerCase(), search.toLowerCase())) {
+    const match = rankedFuzzyMatch(node.value.toLowerCase(), search.toLowerCase())
+    if (match !== -1) {
       // regular node
       return nodeOptions.push({
         value: {
@@ -122,11 +140,12 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
           name: node.value,
           expression: `#[${node.id}]`,
         },
+        rank: match + isInDocBonus,
       })
     }
   })
 
-  return dateOptions.concat(timeOptions).concat(flightsOptions).concat(nodeOptions)
+  return sortBy(nodeOptions, (option) => (option.rank !== undefined ? option.rank : Infinity))
 }
 
 async function loadGooglePlacesSuggestions(

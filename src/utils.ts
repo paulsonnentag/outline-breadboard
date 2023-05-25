@@ -145,6 +145,13 @@ export function downloadUint8Array(
 }
 
 export function fuzzyMatch(str: string, pattern: string): boolean {
+  return rankedFuzzyMatch(str, pattern) !== -1
+}
+
+// returns a number that indicates the quality of the match, -1 means no match otherwise lower number is better
+export function rankedFuzzyMatch(str: string, pattern: string): number {
+  let missMatchCount = 0
+
   // Initialize the pattern pointer
   let patternIdx = 0
 
@@ -154,7 +161,7 @@ export function fuzzyMatch(str: string, pattern: string): boolean {
   // Iterate over the characters in the input string
   for (let i = 0; i < str.length; i++) {
     if (isStrict && str[i] !== " " && str[i] !== pattern[patternIdx]) {
-      return false
+      return -1
     }
 
     // If the character in the string matches the current character in the pattern,
@@ -166,14 +173,16 @@ export function fuzzyMatch(str: string, pattern: string): boolean {
       }
 
       patternIdx++
+    } else {
+      missMatchCount++
     }
 
     // If all characters in the pattern have been matched, return true
     if (patternIdx === pattern.length) {
-      return true
+      return missMatchCount
     }
   }
 
   // If not all characters in the pattern have been matched, return false
-  return false
+  return -1
 }

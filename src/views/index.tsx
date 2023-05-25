@@ -31,7 +31,7 @@ export function NodeView(props: NodeViewProps) {
       setViewId(viewId)
     }
     fetchProp()
-  }, [])
+  }, [props])
 
   let view
 
@@ -69,7 +69,7 @@ export function SummaryView(props: SummaryViewProps) {
       setProperties(properties)
     }
     fetchProp()
-  }, [])
+  }, [props])
 
   return (
     <div className="text-sm italic flex gap-2">

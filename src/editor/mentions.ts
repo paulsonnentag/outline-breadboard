@@ -1,81 +1,141 @@
-import { createValueNode, getGraph, getGraphDocHandle, Graph, Node } from "../graph"
+import { createValueNode, getGraph, getGraphDocHandle, getNode, Graph, Node } from "../graph"
 import { ALIAS_REGEX, KEYWORD_REGEX } from "../language"
 import { REF_ID_REGEX } from "./plugins/refIdTokenPlugin"
-import { isString } from "../utils"
+import { fuzzyMatch, isString } from "../utils"
 import { placesAutocompleteApi } from "../google"
 import { createPlaceNode } from "../views/MapNodeView"
 import { createFlightNode } from "../flights"
 import { Scope } from "../language/scopes"
-import { Suggestion } from "./SuggestionMenu"
+import { MentionSuggestionValue, Suggestion } from "./SuggestionMenu"
 import { getParametersSorted } from "../language/function-suggestions"
 
 // @ts-ignore
 const AIRLABS_API_KEY = __APP_ENV__.AIRLABS_API_KEY
 
+const ADDRESS_REGEX = /^shortAddress: (.*)$/
+function getShortAddressOfNode(graph: Graph, nodeId: string): string | undefined {
+  if (!graph[nodeId]) {
+    return undefined
+  }
+
+  const node = getNode(graph, nodeId)
+  for (const childId of node.children) {
+    const childNode = getNode(graph, childId)
+
+    const match = childNode.value.match(ADDRESS_REGEX)
+
+    if (match) {
+      return match[1]
+    }
+  }
+}
+
+function getNodeIdMapOfScope(scope: Scope): { [id: string]: boolean } {
+  const nodeIdMap: { [id: string]: boolean } = {}
+
+  addNodeIdsOfScopeToMap(scope, nodeIdMap)
+
+  return nodeIdMap
+}
+
+function addNodeIdsOfScopeToMap(scope: Scope, nodeIdMap: { [id: string]: boolean }) {
+  nodeIdMap[scope.id] = true
+  scope.childScopes.forEach((childScope) => addNodeIdsOfScopeToMap(childScope, nodeIdMap))
+}
+
 export async function getSuggestedMentions(scope: Scope, search: string): Promise<Suggestion[]> {
-  const graph = getGraph()
-  const placesOptions = await getPlacesAutocompletion(graph, scope, search)
+  let graph = getGraph()
+
+  scope.getRootScope()
+
+  await loadGooglePlacesSuggestions(graph, scope, search)
+
+  // need to update graph because loadGooglePlacesSuggestions creates new nodes
+  graph = getGraph()
+
   const flightsOptions = await getFlightsAutocompletion(graph, scope, search)
 
   const timeOptions = getTimesAutocompletion(graph, scope, search)
   const dateOptions = getDatesAutocompletion(graph, scope, search)
 
-  const nodeOptions: Suggestion[] = Object.values(graph).flatMap((node: Node) => {
+  const nodeOptions: Suggestion[] = []
+
+  const isNodeIdInDoc = getNodeIdMapOfScope(scope.getRootScope())
+
+  Object.values(graph).forEach((node: Node) => {
     if (
       scope.isInScope(node.id) || // avoid circular references
       node.type !== "value" ||
       !isString(node.value) ||
       node.value === "" ||
-      node.value.startsWith("=") ||
-      !node.value.toLowerCase().includes(search.toLowerCase())
+      (search === "" && !isNodeIdInDoc[node.id]) // don't suggest nodes that are not part of the doc if the search is empty
     ) {
-      return []
+      return
     }
 
+    // alias
     if (node.value.match(ALIAS_REGEX)) {
-      return [{
+      return nodeOptions.push({
         value: {
           type: "mention",
           name: node.value.match(KEYWORD_REGEX)![1],
           expression: `#[${node.id}]`,
-        }
-      }]
+        },
+      })
     }
 
+    // excluded things like nodes with keywords, transclusions or expressions
+    // only if they are not an alias
     if (
       node.value.match(KEYWORD_REGEX) || // don't suggest nodes that are a property
       node.value.match(REF_ID_REGEX) || // don't suggest nodes that are transclusions
-      node.children.length == 0 || // don't suggest nodes that have no children
       node.value.includes("{") // don't suggest nodes that contain an expression
     ) {
-      return []
+      return
     }
 
-    return [
-      {
+    // POI
+    const shortAddress = getShortAddressOfNode(graph, node.id)
+
+    if (shortAddress) {
+      const value = `${node.value}, ${shortAddress}`
+
+      if (fuzzyMatch(value.toLowerCase(), search.toLowerCase())) {
+        nodeOptions.push({
+          icon: "location_on",
+          value: {
+            type: "mention",
+            name: value,
+            expression: `#[${node.id}]`,
+          },
+        })
+      }
+      return
+    }
+
+    // regular nodes
+    if (fuzzyMatch(node.value.toLowerCase(), search.toLowerCase())) {
+      // regular node
+      return nodeOptions.push({
         value: {
           type: "mention",
           name: node.value,
           expression: `#[${node.id}]`,
         },
-      },
-    ]
+      })
+    }
   })
 
-  return dateOptions
-    .concat(timeOptions)
-    .concat(nodeOptions)
-    .concat(flightsOptions)
-    .concat(placesOptions)
+  return dateOptions.concat(timeOptions).concat(flightsOptions).concat(nodeOptions)
 }
 
-async function getPlacesAutocompletion(
+async function loadGooglePlacesSuggestions(
   graph: Graph,
   scope: Scope,
   search: string
-): Promise<Suggestion[]> {
+): Promise<void> {
   if (search === "") {
-    return []
+    return
   }
 
   // bias search result to show results near closest location in document
@@ -103,26 +163,13 @@ async function getPlacesAutocompletion(
     handle.change((doc) => fn(doc.graph))
   }
 
-  return (
-    await Promise.all(
-      result.predictions.map(async (prediction): Promise<Suggestion | undefined> => {
-        if (graph[prediction.place_id]) {
-          return undefined
-        }
-
+  await Promise.all(
+    result.predictions.map(async (prediction): Promise<void> => {
+      if (!graph[prediction.place_id]) {
         await createPlaceNode(changeGraph, prediction.place_id)
-
-        return {
-          icon: "location_on",
-          value: {
-            type: "mention",
-            name: prediction.description,
-            expression: `#[${prediction.place_id}]`,
-          },
-        }
-      })
-    )
-  ).filter((v) => v !== undefined) as Suggestion[]
+      }
+    })
+  )
 }
 
 const FLIGHTS_REGEX = /[A-Z\d]{2}\d{1,4}/

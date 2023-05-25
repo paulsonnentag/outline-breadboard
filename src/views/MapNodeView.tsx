@@ -797,6 +797,7 @@ export async function createPlaceNode(
             "website",
             "formatted_phone_number",
             "formatted_address",
+            "address_components",
             "geometry",
           ],
         },
@@ -809,6 +810,11 @@ export async function createPlaceNode(
           const position = result?.geometry?.location
           const photo = result?.photos ? result.photos[0].getUrl() : undefined
 
+          const shortAddress =
+            name && result?.address_components
+              ? getShortAddress(name, result?.address_components)
+              : ""
+
           changeGraph((graph) => {
             const placeNode = createRecordNode(graph, {
               id: placeId,
@@ -817,18 +823,38 @@ export async function createPlaceNode(
                 ["image", `![${photo}]`],
                 ["rating", rating],
                 ["address", address],
+                ["shortAddress", shortAddress],
                 ["phone", phone],
                 ["website", website],
                 ["position", position ? `${position.lat()}, ${position.lng()}` : undefined],
               ],
             })
 
-            resolve(placeNode)
+            setTimeout(() => {
+              resolve(placeNode)
+            })
           })
         }
       )
     })
   })
+}
+
+function getShortAddress(name: string, components: any[]): string {
+  const parts = components
+    .map((part: any) => {
+      if (part.types.includes("route") || part.types.includes("locality")) {
+        return part.long_name
+      }
+
+      if (part.types.includes("administrative_area_level_1") || part.types.includes("country")) {
+        return part.short_name
+      }
+    })
+    .filter((part) => part !== undefined)
+
+  // drop first part if it is the name of the place
+  return parts[0].startsWith(name) ? parts.slice(1).join(", ") : parts.join(", ")
 }
 
 function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBounds {
@@ -867,7 +893,7 @@ function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
       value: latLongValue,
     })
     inputNode.children.push(latLngPropertyNode.id)
-    
+
     graph[inputsNodeId].isCollapsed = true // start this node collapsed by default
   }
 

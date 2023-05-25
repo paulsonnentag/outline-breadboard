@@ -354,6 +354,11 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
     setInitializedGraphId(undefined)
 
     const handle = repo.find<GraphDoc>(graphId)
+
+    // hack: delete nodes with isTemporary = true
+    // this is a workaround to reset isTemporary nodes if they are not properly removed
+    handle.change((doc) => deleteTemporaryNodesInGraphDoc(doc))
+
     registerGraphHandle(handle).then(() => {
       setInitializedGraphId(handle.documentId)
     })
@@ -456,6 +461,36 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
       })}
     </GraphContext.Provider>
   )
+}
+
+// expects to be passed a mutable doc
+function deleteTemporaryNodesInGraphDoc(doc: GraphDoc) {
+  doc.rootNodeIds.forEach((nodeId) => {
+    deleteTemporaryNodesInNode(doc.graph, nodeId)
+  })
+}
+
+// expects to be passed a mutable graph
+function deleteTemporaryNodesInNode(graph: Graph, nodeId: string) {
+  const node = getNode(graph, nodeId)
+
+  if (node.isTemporary) {
+    // delete node from parents
+    Object.values(graph).forEach((node) => {
+      if (node.type === "value") {
+        const index = node.children.indexOf(nodeId)
+
+        if (index !== -1) {
+          node.children.splice(index, 1)
+        }
+      }
+    })
+
+    // delete node
+    delete graph[node.id]
+  }
+
+  node.children.forEach((childId) => deleteTemporaryNodesInNode(graph, childId))
 }
 
 interface WidthAdjustProps {

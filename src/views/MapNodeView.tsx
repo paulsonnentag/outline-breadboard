@@ -27,6 +27,7 @@ export interface Marker {
   color?: string
   position: LatLngLiteral
   customId?: string // allows id override to handle pseudo bullets like parking spots
+  icon?: string
 }
 
 export interface GeoJsonShape {
@@ -80,6 +81,7 @@ export function MapNodeView({
   const markers = scope
     .extractDataInScope<Marker>((scope) => {
       const color = scope.getProperty("color") ?? scope.lookupValue("color")
+      const icon = getFirstEmoji(scope.getProperty("icon") ?? scope.lookupValue("icon"))
 
       const markers: Marker[] = []
 
@@ -100,6 +102,7 @@ export function MapNodeView({
                   position: item.position,
                   color: itemColor ?? color,
                   customId: item.id,
+                  icon,
                 })
               }
             }
@@ -109,7 +112,7 @@ export function MapNodeView({
 
       const position = parseLatLng(scope.getProperty("position"))
       if (position) {
-        markers.push({ position, color })
+        markers.push({ position, color, icon })
       }
 
       return markers
@@ -329,9 +332,10 @@ export function MapNodeView({
       const marker = markers[i]
 
       const isHovering =
-        (isHoveringOverId && marker.scope.isInScope(isHoveringOverId)) ||
-        marker.data.customId === isHoveringOverId
+        (isHoveringOverId && marker.scope.isInScope(isHoveringOverId))// ||
+        // marker.data.customId === isHoveringOverId
 
+      const icon = marker.data.icon
       const colorPalette = colors.getColors(marker.data.color)
 
       let mapsMarker = prevMarkers[i] // reuse existing markers, if it already exists
@@ -353,18 +357,30 @@ export function MapNodeView({
 
       const markerContent = mapsMarker.content as HTMLDivElement
 
-      markerContent.className = classNames(
-        `w-[16px] h-[16px] rounded-full cursor-pointer border border-white`
-        // hoveredItemId === poiResult.id ? "bg-lime-500 border-lime-700" : "bg-red-500 border-red-700"
-      )
+      if (icon) {
+        console.log(icon);
+        
+        markerContent.innerHTML = icon
+
+        if (isHovering) {
+          markerContent.className = "text-2xl"
+        } else {
+          markerContent.className = "text-lg"
+        }
+
+        markerContent.style.backgroundColor = "transparent"
+      }
+      else {
+        markerContent.className = "w-[16px] h-[16px] rounded-full cursor-pointer border border-white"
+
+        if (isHovering) {
+          markerContent.style.backgroundColor = colorPalette[600]
+        } else {
+          markerContent.style.backgroundColor = colorPalette[400]
+        }
+      }
 
       markerContent.style.transform = `translate(0, 8px)`
-
-      if (isHovering) {
-        markerContent.style.backgroundColor = colorPalette[600]
-      } else {
-        markerContent.style.backgroundColor = colorPalette[400]
-      }
 
       // new version of google maps, but types haven't been updates
       ;(mapsMarker as any).__onclick = async () => {
@@ -870,4 +886,19 @@ function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
     })
     inputNode.children.push(zoomPropertyNode.id)
   }
+}
+
+function getFirstEmoji(str: string | undefined) {
+  if (!str) {
+    return undefined
+  }
+  
+  const emojiRegex = /\p{Emoji}/u; // Unicode property escapes for matching emojis
+
+  const matches = str.match(emojiRegex);
+  if (matches && matches.length > 0) {
+    return matches[0];
+  }
+
+  return null; // No emoji found
 }

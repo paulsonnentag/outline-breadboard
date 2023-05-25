@@ -358,8 +358,6 @@ export function MapNodeView({
       const markerContent = mapsMarker.content as HTMLDivElement
 
       if (icon) {
-        console.log(icon);
-        
         markerContent.innerHTML = icon
 
         if (isHovering) {

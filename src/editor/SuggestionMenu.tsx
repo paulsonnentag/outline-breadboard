@@ -184,8 +184,6 @@ function SuggestionRow({
         {suggestion.icon || "data_object"}
       </span>
 
-      {suggestion.rank}
-
       {suggestion.value.type === "mention" && (
         <MentionSuggestionValueView value={suggestion.value} />
       )}

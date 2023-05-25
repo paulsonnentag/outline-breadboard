@@ -52,7 +52,7 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
 
   scope.getRootScope()
 
-  await loadGooglePlacesSuggestions(graph, scope, search)
+  const isGooglePlaceSuggestion = await loadGooglePlacesSuggestions(graph, scope, search)
 
   // need to update graph because loadGooglePlacesSuggestions creates new nodes
   graph = getGraph()
@@ -61,12 +61,17 @@ export async function getSuggestedMentions(scope: Scope, search: string): Promis
 
   const timeOptions = getTimesAutocompletion(graph, scope, search)
   const dateOptions = getDatesAutocompletion(graph, scope, search)
-  const nodeOptions = getNodeAutocompletion(graph, scope, search)
+  const nodeOptions = getNodeAutocompletion(graph, scope, search, isGooglePlaceSuggestion)
 
   return dateOptions.concat(timeOptions).concat(flightsOptions).concat(nodeOptions)
 }
 
-function getNodeAutocompletion(graph: Graph, scope: Scope, search: string): Suggestion[] {
+function getNodeAutocompletion(
+  graph: Graph,
+  scope: Scope,
+  search: string,
+  isGooglePlaceSuggestion: { [nodeId: string]: boolean }
+): Suggestion[] {
   if (search === "") {
     return []
   }
@@ -112,9 +117,11 @@ function getNodeAutocompletion(graph: Graph, scope: Scope, search: string): Sugg
     // POI
     const shortAddress = getShortAddressOfNode(graph, node.id)
 
-    if (shortAddress) {
+    if (shortAddress || isGooglePlaceSuggestion[node.id]) {
       const value = `${node.value}, ${shortAddress}`
-      const match = rankedFuzzyMatch(node.value.toLowerCase(), search.toLowerCase())
+      const match = isGooglePlaceSuggestion[node.id]
+        ? 0
+        : rankedFuzzyMatch(node.value.toLowerCase(), search.toLowerCase())
 
       if (match !== -1) {
         nodeOptions.push({
@@ -152,9 +159,11 @@ async function loadGooglePlacesSuggestions(
   graph: Graph,
   scope: Scope,
   search: string
-): Promise<void> {
+): Promise<{ [id: string]: boolean }> {
+  const nodeIdMap: { [id: string]: boolean } = {}
+
   if (search === "") {
-    return
+    return nodeIdMap
   }
 
   // bias search result to show results near closest location in document
@@ -184,11 +193,14 @@ async function loadGooglePlacesSuggestions(
 
   await Promise.all(
     result.predictions.map(async (prediction): Promise<void> => {
+      nodeIdMap[prediction.place_id] = true
       if (!graph[prediction.place_id]) {
         await createPlaceNode(changeGraph, prediction.place_id)
       }
     })
   )
+
+  return nodeIdMap
 }
 
 const FLIGHTS_REGEX = /[A-Z\d]{2}\d{1,4}/

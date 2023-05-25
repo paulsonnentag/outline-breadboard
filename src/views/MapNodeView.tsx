@@ -332,8 +332,8 @@ export function MapNodeView({
       const marker = markers[i]
 
       const isHovering =
-        (isHoveringOverId && marker.scope.isInScope(isHoveringOverId))// ||
-        // marker.data.customId === isHoveringOverId
+        isHoveringOverId && (marker.scope.isInScope(isHoveringOverId) ||
+        marker.data.customId === isHoveringOverId)
 
       const icon = marker.data.icon
       const colorPalette = colors.getColors(marker.data.color)

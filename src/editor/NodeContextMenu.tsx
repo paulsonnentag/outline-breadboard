@@ -376,69 +376,81 @@ export function NodeContextMenu({
           )
         })}
 
-      <div
-        className="relative"
-        onMouseOver={(e) => setIsHoveringOverButton("color")}
-        onMouseLeave={(e) => isHoveringOverButton === "color" && setIsHoveringOverButton(undefined)}
-      >
-        {isHoveringOverButton === "color" ? (
-          <div className="absolute z-50 right-0 pr-8">
-            <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
-              {Object.keys(colors.allColors).map((key) => {
-                return (
-                  <button
-                    key={key}
-                    className={classNames(
-                      "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
-                    )}
-                    style={{ background: colors.getColors(key)[500] }}
-                    onMouseEnter={(evt) => showPreview(key, "color")}
-                    onMouseLeave={(evt) => closePreview(key, "color")}
-                    onMouseDown={(evt) => {
-                      evt.stopPropagation()
-                      evt.preventDefault()
-                      savePreview(key, "color")
-                    }}
-                  ></button>
-                )
-              })}
+      {pendingInsertions?.length === 0 &&
+        <div
+          className="relative"
+          onMouseOver={(e) => setIsHoveringOverButton("color")}
+          onMouseLeave={(e) => isHoveringOverButton === "color" && setIsHoveringOverButton(undefined)}
+        >
+          {isHoveringOverButton === "color" ? (
+            <div className="absolute z-50 right-0 pr-8">
+              <div className="opacity-80 hover:opacity-100 rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
+                {Object.keys(colors.allColors).map((key) => {
+                  return (
+                    <button
+                      key={key}
+                      className={classNames(
+                        "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
+                      )}
+                      style={{ background: colors.getColors(key)[500] }}
+                      onMouseEnter={(evt) => showPreview(key, "color")}
+                      onMouseLeave={(evt) => closePreview(key, "color")}
+                      onMouseDown={(evt) => {
+                        evt.stopPropagation()
+                        evt.preventDefault()
+                        savePreview(key, "color")
+                      }}
+                    ></button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        ) : (
-          isHovering && (
-            <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
-              Color picker
-            </div>
-          )
-        )}
-
-        <button
-          className={classNames(
-            "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
+          ) : (
+            isHovering && (
+              <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1 cursor-pointer">
+                Color picker
+              </div>
+            )
           )}
-          style={{ background: colorPalette[500] }}
-        ></button>
-      </div>
+
+          <button
+            className={classNames(
+              "rounded-full w-[22px] h-[22px] px-1 border-2 border-gray-100 hover:border-gray-500"
+            )}
+            style={{ background: colorPalette[500] }}
+          ></button>
+        </div>
+      }
 
       {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
-        <button
-          className={classNames(
-            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-500 hover:text-white"
-          )}
-          ref={repeatButtonRef}
-          onMouseEnter={onMouseEnterRepeat}
-        >
-          <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
-            repeat
-          </span>
-        </button>
+        <div className="relative">
+          {isHovering && 
+            <div className={classNames(
+              "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+              isHoveringOverButton === "repeat" ? "opacity-100" : "opacity-50"
+            )}>Repeat</div>
+          }
+          <button
+            className={classNames(
+              "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-500 hover:text-white"
+            )}
+            ref={repeatButtonRef}
+            onMouseEnter={(evt) => {
+              setIsHoveringOverButton("repeat")
+              onMouseEnterRepeat()
+            }}
+          >
+            <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+              repeat
+            </span>
+          </button>
+        </div>
       )}
 
       {repeatButtonPosition &&
         createPortal(
           <div
             style={{
-              overflow: "hidden",
               position: "absolute",
               top: `${repeatButtonPosition.y}px`,
               left: `${repeatButtonPosition.x}px`,
@@ -446,6 +458,11 @@ export function NodeContextMenu({
             onMouseEnter={(evt) => evt.stopPropagation()}
             onClick={onRepeat}
           >
+            <div className="relative">
+              <div className={classNames(
+                "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1"
+              )}>Repeat</div>
+            </div>
             <button
               className={classNames(
                 "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-500 hover:text-white"
@@ -454,7 +471,10 @@ export function NodeContextMenu({
                 evt.preventDefault()
                 onRepeat()
               }}
-              onMouseLeave={onMouseLeaveRepeat}
+              onMouseLeave={(evt) => {
+                isHoveringOverButton === "repeat" && setIsHoveringOverButton(undefined)
+                onMouseLeaveRepeat()
+              }}
             >
               <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
                 repeat

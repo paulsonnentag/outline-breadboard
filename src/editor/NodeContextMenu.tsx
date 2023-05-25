@@ -423,8 +423,7 @@ export function NodeContextMenu({
       {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
         <button
           className={classNames(
-            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-            isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+            "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-500 hover:text-white"
           )}
           ref={repeatButtonRef}
           onMouseEnter={onMouseEnterRepeat}
@@ -449,8 +448,7 @@ export function NodeContextMenu({
           >
             <button
               className={classNames(
-                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
-                isCalendar ? "bg-gray-500 text-white" : "bg-transparent text-gray-600"
+                "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-500 hover:text-white"
               )}
               onMouseDown={(evt) => {
                 evt.preventDefault()

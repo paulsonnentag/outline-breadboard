@@ -360,6 +360,7 @@ export function MapNodeView({
 
       if (icon) {
         markerContent.innerHTML = icon
+        markerContent.style.textShadow = "0 0 2px black"
 
         if (isHovering) {
           markerContent.className = "text-2xl"

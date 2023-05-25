@@ -154,6 +154,20 @@ export class Scope {
     return props
   }
 
+  async getAllPropertiesAsync(): Promise<{ [name: string]: any }> {
+    const props: { [name: string]: any } = {}
+
+    for (const [name, scope] of Object.entries(this.props)) {
+      const value = await scope.valueOfAsync()
+
+      if (value !== undefined) {
+        props[name] = value
+      }
+    }
+
+    return props
+  }
+
   // if value is not resolved yet undefined is returned
   valueOf(index: number = 0) {
     return this.value instanceof Promise ? undefined : this.value[index]

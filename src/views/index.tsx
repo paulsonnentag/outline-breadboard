@@ -65,7 +65,7 @@ export function SummaryView(props: SummaryViewProps) {
 
   useEffect(() => {
     const fetchProp = async () => {
-      const properties = await props.scope.getAllProperties()
+      const properties = await props.scope.getAllPropertiesAsync()
       setProperties(properties)
     }
     fetchProp()

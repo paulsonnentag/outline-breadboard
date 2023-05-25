@@ -6,11 +6,13 @@ import { DataWithProvenance, Scope } from "../scopes"
 import { FunctionDefs } from "./function-def"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
 import { computationResultCache } from "../../cache"
+import { PopoverComputationResult } from "../../Root"
 
 export const ROUTE_FN: FunctionDefs = {
   Drive: {
     icon: "directions_car",
     summaryView: (value) => (value ? `🚗 ${value.duration}, ${value.distance}` : `🚗`),
+    expandedView: expandedView("DRIVING" as any),
     autocomplete: {
       icon: "directions_car",
       name: "Drive",
@@ -36,6 +38,7 @@ export const ROUTE_FN: FunctionDefs = {
   Bike: {
     icon: "directions_bike",
     summaryView: (value) => (value ? `🚴‍♀️ ${value.duration}, ${value.distance}` : `🚴‍♀️`),
+    expandedView: expandedView("BICYCLING" as any),
     autocomplete: {
       icon: "directions_bike",
       name: "Bike",
@@ -61,6 +64,7 @@ export const ROUTE_FN: FunctionDefs = {
   Transit: {
     icon: "directions_subway",
     summaryView: (value) => (value ? `🚊️ ${value.duration}, ${value.distance}` : `🚊️`),
+    expandedView: expandedView("TRANSIT" as any),
     autocomplete: {
       icon: "directions_subway",
       name: "Transit",
@@ -86,6 +90,7 @@ export const ROUTE_FN: FunctionDefs = {
   Walk: {
     icon: "directions_walk",
     summaryView: (value) => (value ? `🚶‍♀️ ${value.duration}, ${value.distance}` : `🚶‍♀️`),
+    expandedView: expandedView("WALKING" as any),
     autocomplete: {
       icon: "directions_walk",
       name: "Walk",
@@ -146,6 +151,34 @@ function suggestionsFn(name: string, icon: string) {
     }
 
     return suggestions
+  }
+}
+
+function expandedView(mode: google.maps.TravelMode) {
+  return (value: any) => {
+    const url = [
+      "https://www.google.com/maps/dir/?api=1",
+      `&origin=${encodeURIComponent(value.fromAddress)}`,
+      `&destination=${encodeURIComponent(value.toAddress)}`,
+      `&travelmode=${mode.toLowerCase()}`,
+    ].join("")
+
+    return (
+      <div className="relative flex flex-col h-[250px]">
+        <div className="flex-1 overflow-auto flex-shrink">
+          <PopoverComputationResult value={value} />
+        </div>
+        <div className="border-t border-t-gray-200 p-1 flex justify-end bg-gray-50 flex-shrink-0">
+          <a
+            className="flex gap-1 text-gray-400 hover:text-gray-600 px-2 py-1 hover:bg-gray-200 rounded-md items-center"
+            href={url}
+            target="_blank"
+          >
+            open in Google Maps
+          </a>
+        </div>
+      </div>
+    )
   }
 }
 
@@ -287,6 +320,8 @@ interface RouteInformation {
   distance: string
   duration: string
   geoJson: object
+  fromAddress: string
+  toAddress: string
 }
 
 const directionsServiceApi = googleApi.then((google) => {
@@ -321,5 +356,7 @@ function directionsResultToRoute(
         coordinates: route.overview_path.map(({ lat, lng }) => [lng, lat]),
       },
     },
+    fromAddress: route.legs[0].start_address,
+    toAddress: route.legs[0].end_address,
   }
 }

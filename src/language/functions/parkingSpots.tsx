@@ -33,7 +33,7 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
       return suggestions
     },
     summaryView: (value) => `🅿️ ${value.length} spots`,
-    expandedView: (parkingSpots) => {
+    expandedView: (parkingSpots, color) => {
       if (!parkingSpots) {
         return null
       }
@@ -63,19 +63,21 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
       }
 
       return (
-        <div className="w-[300px] p-2">
-          {parkingSpots.map((parkingSpot: any, index: number) => (
-            <div
-              key={index}
-              className="flex"
-              draggable
-              onDragStart={(evt) => onDragStart(evt, parkingSpot)}
-            >
-              <div className="bullet flex-shrink-0"></div>
-              {parkingSpot.title}
-            </div>
-          ))}
-        </div>
+        <pre className={`bg-${color}-200 text-${color}-600 rounded p-1 overflow-auto`}>
+          <div className="w-[300px] p-2">
+            {parkingSpots.map((parkingSpot: any, index: number) => (
+              <div
+                key={index}
+                className="flex"
+                draggable
+                onDragStart={(evt) => onDragStart(evt, parkingSpot)}
+              >
+                <div className="bullet flex-shrink-0"></div>
+                {parkingSpot.title}
+              </div>
+            ))}
+          </div>
+        </pre>
       )
     },
     autocomplete: {

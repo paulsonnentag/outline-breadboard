@@ -609,20 +609,24 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
 }
 
 interface PopoverComputationResultProps {
-  name: string
+  name?: string
   value: any
 }
 
 export function PopoverComputationResult({ value, name }: PopoverComputationResultProps) {
   const computationColor = "purple"
 
-  const customView = FUNCTIONS[name].expandedView
+  const customView = name ? FUNCTIONS[name].expandedView : undefined
+
+  if (customView) {
+    return customView(value, computationColor)
+  }
 
   return (
     <pre
       className={`bg-${computationColor}-200 text-${computationColor}-600 rounded p-1 overflow-auto`}
     >
-      {customView ? customView(value) : safeJsonStringify(value)}
+      {safeJsonStringify(value)}
     </pre>
   )
 }

@@ -10,7 +10,7 @@ export interface FunctionDef {
   function: (positionalArgs: any[], namedArgs: NamedArgs, scope: Scope) => any
   autocomplete?: FunctionSuggestion
   summaryView?: (value: any) => string
-  expandedView?: (value: any) => ReactElement | null
+  expandedView?: (value: any, color: string) => ReactElement | null
   suggestions?: (parameters: Parameter[]) => FunctionSuggestion[]
   icon?: string
   parameters?: { [name: string]: ParameterType }

@@ -419,7 +419,7 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
                   <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
                 </div>
               )}
-              <RootOutlineEditorWithPopOver
+              <RootOutlineEditor
                 index={0}
                 nodeId={rootId}
                 path={[]}
@@ -492,17 +492,6 @@ export function WidthAdjust(props: WidthAdjustProps) {
 
 type RootOutlineEditorProps = Omit<OutlineEditorProps, "scope">
 
-export function RootOutlineEditor(props: RootOutlineEditorProps) {
-  const { nodeId } = props
-  const scope = useRootScope(nodeId)
-
-  if (!scope) {
-    return null
-  }
-
-  return <OutlineEditor scope={scope} {...props} />
-}
-
 export type PopOverValue =
   | { type: "node"; id: string }
   | { type: "computationResult"; name: string; value: any }
@@ -522,7 +511,7 @@ export const useOpenPopOver = () => {
   return context.onOpenPopOver
 }
 
-function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
+export function RootOutlineEditor(props: RootOutlineEditorProps) {
   const graphContext = useGraph()
   const containerRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
@@ -564,10 +553,17 @@ function RootOutlineEditorWithPopOver(props: RootOutlineEditorProps) {
     }
   }, [])
 
+  const { nodeId } = props
+  const scope = useRootScope(nodeId)
+
+  if (!scope) {
+    return null
+  }
+
   return (
     <PopOverContext.Provider value={popOverContext}>
       <div className="relative" ref={containerRef}>
-        <RootOutlineEditor {...props} />
+        <OutlineEditor scope={scope} {...props} />
         {activePopOver && (
           <div
             ref={tooltipRef}

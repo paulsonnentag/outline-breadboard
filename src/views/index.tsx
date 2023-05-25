@@ -3,6 +3,7 @@ import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { CalendarNodeView } from "./CalendarNodeView"
 import { Scope } from "../language/scopes"
+import { useEffect, useState } from "react"
 
 export const ViewDefinitions = [
   {id: "map", title: "Map", icon: "map"},
@@ -22,10 +23,19 @@ export interface NodeViewProps {
 
 export function NodeView(props: NodeViewProps) {
   const { node, scope } = props
+  const [ viewId, setViewId ] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    const fetchProp = async () => {
+      const viewId = await scope.getPropertyAsync("view")
+      setViewId(viewId)
+    }
+    fetchProp()
+  }, [])
 
   let view
-  
-  switch (node.view || scope.getProperty("view")) {
+
+  switch (node.view || viewId) {
     case "map":
       view = <MapNodeView {...props} />
       break
@@ -49,11 +59,21 @@ interface SummaryViewProps {
 }
 
 export function SummaryView(props: SummaryViewProps) {
-  const properties = props.scope.getAllProperties()
+  const [ properties, setProperties ] = useState<{
+    [name: string]: any;
+} | undefined>(undefined)
+
+  useEffect(() => {
+    const fetchProp = async () => {
+      const properties = await props.scope.getAllProperties()
+      setProperties(properties)
+    }
+    fetchProp()
+  }, [])
 
   return (
     <div className="text-sm italic flex gap-2">
-      {Object.entries(properties).map(([key, value]) => (
+      {properties && Object.entries(properties).map(([key, value]) => (
         <p key={key}>
           <span className="text-gray-400">{key}:</span> {value}
         </p>

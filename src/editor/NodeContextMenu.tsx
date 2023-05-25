@@ -43,6 +43,8 @@ export function NodeContextMenu({
   const { graph, changeGraph } = useGraph()
   const [isHovering, setIsHovering] = useState(false)
   const [isHoveringOverButton, setIsHoveringOverButton] = useState<string | undefined>(undefined)
+  const isHoveringOverButtonRef = useRef(isHoveringOverButton);
+  isHoveringOverButtonRef.current = isHoveringOverButton
   const nodeId = node.id
   const isMap = scope.getProperty("view") === "map"
   const isTable = scope.getProperty("view") === "table"
@@ -199,9 +201,11 @@ export function NodeContextMenu({
     }
 
     setTimeout(() => {
-      changeGraph((graph) => {
-        setPendingInsertions(repeatFormula(graph, scope))
-      })
+      if (isHoveringOverButtonRef.current == "repeat") {
+        changeGraph((graph) => {
+          setPendingInsertions(repeatFormula(graph, scope))
+        })
+      }
     }, 200)
 
     const { x, y } = repeatButtonRef.current?.getBoundingClientRect()

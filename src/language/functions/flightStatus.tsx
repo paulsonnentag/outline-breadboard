@@ -45,6 +45,8 @@ export const FLIGHT_STATUS_FN: FunctionDefs = {
         ? await namedArgs.of.getPropertyAsync("flightNumber")
         : undefined
 
+      console.log({ flightNumber })
+
       if (namedArgs.of) {
         return flightNumber ? await getFlightStatus(flightNumber) : undefined
       }
@@ -52,7 +54,7 @@ export const FLIGHT_STATUS_FN: FunctionDefs = {
   },
 }
 
-const getFlightStatus = async (flightNumber: string): Promise<FlightStatus | undefined> => {
+export const getFlightStatus = async (flightNumber: string): Promise<FlightStatus | undefined> => {
   const response = await fetch(
     [
       "https://airlabs.co/api/v9/flight",
@@ -67,5 +69,15 @@ const getFlightStatus = async (flightNumber: string): Promise<FlightStatus | und
 }
 
 const getFlightStatusSummary = (status: FlightStatus): string => {
-  return status.status
+  const depTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(status.dep_time))
+  const arrTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(status.arr_time))
+  return `${status.status} | ${status.dep_iata} @ ${depTime} ✈️ ${status.arr_iata} @ ${arrTime}`
 }

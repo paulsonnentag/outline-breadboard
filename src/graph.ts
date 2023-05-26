@@ -287,7 +287,7 @@ export function getLabelOfNode(node: ValueNode): string {
       return "Tomorrow"
     }
 
-    if (isAfter(addDays(startOfToday(), 7), date)) {
+    if (isBefore(date, addDays(startOfToday(), 7)) && isAfter(date, startOfToday())) {
       return getWeekdayName(date)
     }
   }

@@ -1,6 +1,6 @@
 import { Prop } from "@automerge/automerge"
 import { getNode, Graph } from "./graph"
-import { format, subYears } from "date-fns"
+import { addDays, format, subYears } from "date-fns"
 
 export function last<T>(arr: T[]) {
   return arr[arr.length - 1]
@@ -64,6 +64,19 @@ export function promisify<T>(value: T): Promise<T> {
 
 export function formatDate(date: Date): string {
   return format(date, "MM/dd/yyyy")
+}
+
+export function getWeekdaysFrom(date: Date): Date[] {
+  const dates: Date[] = []
+
+  for (let i = 0; i < 7; i++) {
+    dates.push(addDays(date, i))
+  }
+  return dates
+}
+
+export function getWeekdayName(date: Date): string {
+  return format(date, "EEEE")
 }
 
 export function safeJsonStringify(obj: any): string {

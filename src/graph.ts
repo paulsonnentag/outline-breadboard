@@ -6,6 +6,9 @@ import { Change, useRepo } from "automerge-repo-react-hooks"
 import { DataWithProvenance } from "./language/scopes"
 import { GeoJsonShape, Marker } from "./views/MapNodeView"
 import { ALIAS_REGEX } from "./language"
+import { parseDate } from "./properties"
+import { addDays, isAfter, isBefore, isToday, isTomorrow, startOfToday } from "date-fns"
+import { getWeekdayName } from "./utils"
 
 export interface GraphDoc {
   rootNodeIds: string[]
@@ -267,6 +270,21 @@ export function getLabelOfNode(node: ValueNode): string {
   let aliasMatch = node.value.match(ALIAS_REGEX)
   if (aliasMatch) {
     return aliasMatch[1]
+  }
+
+  const date = parseDate(node.value)
+  if (date) {
+    if (isToday(date)) {
+      return "Today"
+    }
+
+    if (isTomorrow(date)) {
+      return "Tomorrow"
+    }
+
+    if (isAfter(addDays(startOfToday(), 7), date)) {
+      return getWeekdayName(date)
+    }
   }
 
   return node.value

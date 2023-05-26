@@ -1,7 +1,14 @@
 import { createValueNode, getGraph, getGraphDocHandle, getNode, Graph, Node } from "../graph"
 import { ALIAS_REGEX, KEYWORD_REGEX } from "../language"
 import { REF_ID_REGEX } from "./plugins/refIdTokenPlugin"
-import { fuzzyMatch, isString, rankedFuzzyMatch } from "../utils"
+import {
+  formatDate,
+  fuzzyMatch,
+  getWeekdayName,
+  getWeekdaysFrom,
+  isString,
+  rankedFuzzyMatch,
+} from "../utils"
 import { placesAutocompleteApi } from "../google"
 import { createPlaceNode } from "../views/MapNodeView"
 import { createFlightNode } from "../flights"
@@ -9,6 +16,7 @@ import { Scope } from "../language/scopes"
 import { Suggestion } from "./SuggestionMenu"
 import { getParametersSorted } from "../language/function-suggestions"
 import { sortBy } from "lodash"
+import { startOfToday, startOfTomorrow, addDays, format } from "date-fns"
 
 // @ts-ignore
 const AIRLABS_API_KEY = __APP_ENV__.AIRLABS_API_KEY
@@ -325,14 +333,57 @@ function getTimesAutocompletion(graph: Graph, scope: Scope, search: string): Sug
   return []
 }
 
-const DATE_REGEX = /^([0-9]{1,2})\/([0-9]{1,2})(\/([0-9]{2}|[0-9]{4}))?$/
+const DATE_REGEX = /^([0-9]{1,2})\/([0-9]{1,2})(\/([0-9]{2}|[0-9]{4})?)?$/
+
+function getDateSuggestion(name: string, date: string): Suggestion {
+  return {
+    icon: "calendar_month",
+    value: {
+      type: "mention",
+      name: name,
+      expression: `#[${date}]`,
+    },
+
+    beforeInsert: async (graph, changeGraph) => {
+      if (!graph[date]) {
+        changeGraph((graph) => {
+          const node = createValueNode(graph, { id: date, value: date })
+          const attribute = createValueNode(graph, { value: `date: ${date}` })
+          node.children.push(attribute.id)
+        })
+      }
+    },
+  }
+}
 
 function getDatesAutocompletion(graph: Graph, scope: Scope, search: string): Suggestion[] {
   const match = search.match(DATE_REGEX)
 
   if (!match) {
-    return []
+    // named days
+
+    if (search === "") {
+      return []
+    }
+
+    const todayDate = startOfToday()
+    const tomorrowDate = startOfTomorrow()
+
+    const namedDateSuggestions = [
+      getDateSuggestion(`Today (${formatDate(todayDate)})`, formatDate(todayDate)),
+      getDateSuggestion(`Tomorrow (${formatDate(tomorrowDate)})`, formatDate(tomorrowDate)),
+    ].concat(
+      getWeekdaysFrom(todayDate).map((date) =>
+        getDateSuggestion(`${getWeekdayName(date)} (${formatDate(date)})`, formatDate(date))
+      )
+    )
+
+    return namedDateSuggestions.filter((suggestion) =>
+      suggestion.value.name.toLowerCase().startsWith(search.toLowerCase())
+    )
   }
+
+  // literals MM/DD/YYYY:
 
   // where going here with the peculiar convention where month comes before day
   const yearString = match[4]
@@ -352,24 +403,5 @@ function getDatesAutocompletion(graph: Graph, scope: Scope, search: string): Sug
     return []
   }
 
-  return [
-    {
-      icon: "calendar_month",
-      value: {
-        type: "mention",
-        name: date,
-        expression: `#[${date}]`,
-      },
-
-      beforeInsert: async (graph, changeGraph) => {
-        if (!graph[date]) {
-          changeGraph((graph) => {
-            const node = createValueNode(graph, { id: date, value: date })
-            const attribute = createValueNode(graph, { value: `date: ${date}` })
-            node.children.push(attribute.id)
-          })
-        }
-      },
-    },
-  ]
+  return [getDateSuggestion(date, date)]
 }

@@ -80,6 +80,10 @@ export function MapNodeView({
 
   const markers = scope
     .extractDataInScope<Marker>((scope) => {
+      if (scope.getProperty("showMarker") === "false") {
+        return []
+      }
+
       const color = scope.getProperty("color") ?? scope.lookupValue("color")
       const icon =
         getFirstEmoji(scope.getProperty("icon") ?? scope.lookupValue("icon")) ?? undefined
@@ -895,8 +899,6 @@ function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
       value: latLongValue,
     })
     inputNode.children.push(latLngPropertyNode.id)
-
-    graph[inputsNodeId].isCollapsed = true // start this node collapsed by default
   }
 
   const zoomValue = `zoom: ${zoom}`
@@ -911,6 +913,13 @@ function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
       value: zoomValue,
     })
     inputNode.children.push(zoomPropertyNode.id)
+
+    graph[inputsNodeId].isCollapsed = true // start this node collapsed by default
+
+    const hideMarker = createValueNode(graph, {
+      value: "showMarker: false",
+    })
+    inputNode.children.push(hideMarker.id)
   }
 }
 

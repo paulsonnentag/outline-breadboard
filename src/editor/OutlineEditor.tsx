@@ -154,7 +154,7 @@ export function OutlineEditor({
       const parent = getNode(graph, parentId)
       const prevSibling = getNode(graph, parent.children[index - 1])
 
-      const lastChildPath = getLastChildPath(graph, prevSibling.id)
+      const lastChildPath = prevSibling.isCollapsed ? [] : getLastChildPath(graph, prevSibling.id)
       const prevNode = getNodeAt(graph, prevSibling.id, lastChildPath)
 
       if (!prevNode) {

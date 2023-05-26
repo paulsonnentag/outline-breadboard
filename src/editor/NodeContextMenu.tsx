@@ -75,7 +75,6 @@ export function NodeContextMenu({
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
   useEffect(() => {
-    console.log("rerun suggested functions")
     ;(async () => {
       const newSuggestedFunctionButtons = []
       for (const [name, suggestions] of Object.entries(suggestedFunctions)) {

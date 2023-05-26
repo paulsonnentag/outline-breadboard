@@ -5,6 +5,8 @@ import { Scope } from "../scopes"
 import { createRecordNode, Graph, ValueNode } from "../../graph"
 import { DragEvent } from "react"
 import LatLngLiteral = google.maps.LatLngLiteral
+import turfDistance from "@turf/distance"
+import { point as turfPoint } from "@turf/helpers"
 
 export const PARKING_SPOTS_FN: FunctionDefs = {
   ParkingSpots: {
@@ -24,6 +26,11 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
               label: "near",
               expression: location.value.expression,
               value: location.value.value,
+            },
+            {
+              label: "maxDistance",
+              expression: "2",
+              value: 5,
             },
           ],
           rank,
@@ -90,7 +97,7 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
       ],
     },
     function: async ([node], namedArgs, scope) => {
-      const { near } = namedArgs
+      const { near, maxDistance } = namedArgs
 
       if (!near) {
         return undefined
@@ -105,9 +112,20 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
         return undefined
       }
 
+      const unit = (await scope.lookupValueAsync("lengthUnit")) ?? "kilometers"
       const result = await getParkingSpots(position.lat, position.lng)
 
-      return result
+      return result.filter((parkingSpot: ParkingSpot) => {
+        return (
+          turfDistance(
+            turfPoint([position.lng, position.lat]),
+            turfPoint([parkingSpot.position.lng, parkingSpot.position.lat]),
+            {
+              units: unit as any,
+            }
+          ) <= maxDistance
+        )
+      })
     },
   },
 }
@@ -211,6 +229,7 @@ export async function createParkingSpotNode(
           ],
           ["description", parkingSpot.description],
           ["position", `${parkingSpot.position.lat},${parkingSpot.position.lng}`],
+          ["icon", "🅿️"],
         ],
       })
 

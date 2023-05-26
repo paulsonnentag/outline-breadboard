@@ -107,7 +107,7 @@ export function MapNodeView({
                   position: item.position,
                   color: itemColor ?? color,
                   customId: item.id,
-                  icon,
+                  icon: "🅿️",
                 })
               }
             }

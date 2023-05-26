@@ -53,6 +53,24 @@ function getColorOfNode(graph: Graph, nodeId: string): string | undefined {
   }
 }
 
+const ICON_REGEX = /^icon: (.*)$/
+function getIconOfNode(graph: Graph, nodeId: string): string | undefined {
+  if (!graph[nodeId]) {
+    return undefined
+  }
+
+  const node = getNode(graph, nodeId)
+  for (const childId of node.children) {
+    const childNode = getNode(graph, childId)
+
+    const match = childNode.value.match(ICON_REGEX)
+
+    if (match) {
+      return match[1]
+    }
+  }
+}
+
 export function MapNodeView({
   node,
   scope,
@@ -102,12 +120,13 @@ export function MapNodeView({
               ) {
                 // hack to make custom colors work
                 const itemColor = getColorOfNode(graph, item.id)
+                const itemIcon = getIconOfNode(graph, item.id)
 
                 markers.push({
                   position: item.position,
                   color: itemColor ?? color,
                   customId: item.id,
-                  icon: "🅿️",
+                  icon: itemIcon ?? "🅿️",
                 })
               }
             }
@@ -360,7 +379,7 @@ export function MapNodeView({
       const markerContent = mapsMarker.content as HTMLDivElement
 
       if (icon) {
-        markerContent.innerHTML = icon
+        markerContent.innerHTML = `${icon}&#xFE0F;` // control character to force rendering char as emoji
         markerContent.style.textShadow = "0 0 2px black"
 
         if (isHovering) {

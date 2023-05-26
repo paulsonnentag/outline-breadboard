@@ -1,9 +1,10 @@
-import { ValueNode } from "../graph"
+import { ValueNode, useGraph } from "../graph"
 import { MapNodeView } from "./MapNodeView"
 import { TableNodeView } from "./TableNodeView"
 import { CalendarNodeView } from "./CalendarNodeView"
 import { Scope } from "../language/scopes"
 import { useEffect, useState } from "react"
+import classNames from "classnames"
 
 export const ViewDefinitions = [
   {id: "map", title: "Map", icon: "map"},
@@ -12,6 +13,7 @@ export const ViewDefinitions = [
 ]
 
 export interface NodeViewProps {
+  refNodeId?: string
   node: ValueNode
   scope: Scope
   isFocused: boolean
@@ -23,7 +25,9 @@ export interface NodeViewProps {
 
 export function NodeView(props: NodeViewProps) {
   const { node, scope } = props
+  const { graph, changeGraph } = useGraph()
   const [ viewId, setViewId ] = useState<string | undefined>(undefined)
+  const [ isHoveringOverButton, setIsHoveringOverButton ] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const fetchProp = async () => {
@@ -60,6 +64,48 @@ export function NodeView(props: NodeViewProps) {
 
   return (
     <>
+      {props.fullpane && 
+        <div className="flex gap-2">
+          <div className="flex rounded bg-gray-100">
+            {ViewDefinitions.map((view) => (
+              <div key={view.id}>
+                <button
+                  className={classNames(
+                    "rounded text-sm w-[24px] h-[24px] flex items-center justify-center hover:bg-gray-500 hover:text-white",
+                    (node.view || viewId) == view.id
+                      ? "bg-gray-500 text-white"
+                      : "bg-transparent text-gray-600"
+                  )}
+                  onMouseEnter={(evt) => {
+                    setIsHoveringOverButton(view.id)
+                  }}
+                  onMouseLeave={(evt) => {
+                    isHoveringOverButton === view.id && setIsHoveringOverButton(undefined)
+                  }}
+                  onMouseDown={(evt) => {
+                    evt.stopPropagation()
+                    evt.preventDefault()
+
+                    if (props.refNodeId) {
+                      changeGraph(g => {
+                        g[props.refNodeId!].view = view.id
+                      })
+                    }
+                  }}
+                >
+                  <span className="material-icons-outlined" style={{ fontSize: "16px" }}>
+                    {view.icon}
+                  </span>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">
+            {ViewDefinitions.find(v => v.id === (node.view || viewId))?.title ?? ""}
+          </div>
+        </div>
+      }
       {view && <div className="pt-2">{view}</div>}
     </>
   )

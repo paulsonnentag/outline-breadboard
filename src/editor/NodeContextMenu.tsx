@@ -25,6 +25,7 @@ export interface NodeContextMenuProps {
   isAnotherFocused: boolean
   isHoveredOnNode: boolean
   hideFunctionButtons: boolean
+  horizontal?: boolean
   onOpenNodeInNewPane: (nodeId: string) => void
   computationSuggestionUpdated?: () => void
 }

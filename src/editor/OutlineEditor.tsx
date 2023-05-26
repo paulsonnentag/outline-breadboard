@@ -439,16 +439,8 @@ export function OutlineEditor({
     >
       {isReferenceView ? (
         <>
-          <NodeContextMenu
-            hideFunctionButtons={isMenuOpen}
-            scope={scope}
-            node={graph[nodeId] as ValueNode}
-            isFocusedOnNode={true} // should this just be "showControls"?
-            isAnotherFocused={false}
-            isHoveredOnNode={false}
-            onOpenNodeInNewPane={() => {}} // should just replace current pane in this situation; ignore meta key?
-          />
           <NodeView
+            refNodeId={nodeId}
             scope={scope}
             node={{ ...node, view: graph[nodeId].view }}
             isFocused={isFocused}

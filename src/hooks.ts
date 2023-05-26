@@ -20,3 +20,18 @@ export function useStaticCallback<T extends (...args: any[]) => any>(callback: T
 
   return useCallback((...args: any[]) => cb.current(...args), []) as T
 }
+
+// adapted from: https://usehooks-ts.com/react-hook/use-debounce
+export function useDebounce<T>(value: T, delay?: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay || 500)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}

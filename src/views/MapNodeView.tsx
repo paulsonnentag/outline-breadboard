@@ -11,7 +11,7 @@ import {
   ValueNode,
 } from "../graph"
 import classNames from "classnames"
-import { useStaticCallback } from "../hooks"
+import { useDebounce, useStaticCallback } from "../hooks"
 import { createRoot } from "react-dom/client"
 import { debounce } from "lodash"
 import { parseLatLng, readLatLng } from "../properties"
@@ -123,9 +123,6 @@ export function MapNodeView({
       return markers
     })
     .concat(temporaryMarkers)
-
-  // todo: replace when complex computed results are also represented as scopes
-  // const [geoJsonShapes, setGeoJsonShapes] = useState<DataWithProvenance<GeoJsonShape>[]>([])
 
   const geoJsonShapes = scope
     .extractDataInScope<GeoJsonShape>((scope) => {
@@ -448,6 +445,8 @@ export function MapNodeView({
     renderMarkers()
   }, [markers, mapRef.current, isHoveringOverId])
 
+  const debouncedGeoJsonShapes = useDebounce(geoJsonShapes, 100)
+
   // render geoJson shapes on map
   useEffect(() => {
     if (!google) {
@@ -491,7 +490,7 @@ export function MapNodeView({
         data: dataLayer,
       })
     }
-  }, [google, geoJsonShapes, mapRef])
+  }, [google, debouncedGeoJsonShapes, mapRef])
 
   // update color of geoJson on hover
   useEffect(() => {

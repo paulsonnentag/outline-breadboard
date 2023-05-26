@@ -75,6 +75,7 @@ export function NodeContextMenu({
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
   useEffect(() => {
+    console.log("rerun suggested functions")
     ;(async () => {
       const newSuggestedFunctionButtons = []
       for (const [name, suggestions] of Object.entries(suggestedFunctions)) {
@@ -381,11 +382,13 @@ export function NodeContextMenu({
           )
         })}
 
-      {pendingInsertions?.length === 0 &&
+      {pendingInsertions?.length === 0 && (
         <div
           className="relative"
           onMouseOver={(e) => setIsHoveringOverButton("color")}
-          onMouseLeave={(e) => isHoveringOverButton === "color" && setIsHoveringOverButton(undefined)}
+          onMouseLeave={(e) =>
+            isHoveringOverButton === "color" && setIsHoveringOverButton(undefined)
+          }
         >
           {isHoveringOverButton === "color" ? (
             <div className="absolute z-50 right-0 pr-8">
@@ -425,16 +428,20 @@ export function NodeContextMenu({
             style={{ background: colorPalette[500] }}
           ></button>
         </div>
-      }
+      )}
 
       {pendingInsertions?.length === 0 && canFormulaBeRepeated(scope) && (
         <div className="relative">
-          {isHovering && 
-            <div className={classNames(
-              "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
-              isHoveringOverButton === "repeat" ? "opacity-100" : "opacity-50"
-            )}>Repeat</div>
-          }
+          {isHovering && (
+            <div
+              className={classNames(
+                "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1",
+                isHoveringOverButton === "repeat" ? "opacity-100" : "opacity-50"
+              )}
+            >
+              Repeat
+            </div>
+          )}
           <button
             className={classNames(
               "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-transparent text-gray-600 hover:bg-gray-500 hover:text-white"
@@ -464,9 +471,13 @@ export function NodeContextMenu({
             onClick={onRepeat}
           >
             <div className="relative">
-              <div className={classNames(
-                "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1"
-              )}>Repeat</div>
+              <div
+                className={classNames(
+                  "absolute z-50 right-8 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1"
+                )}
+              >
+                Repeat
+              </div>
             </div>
             <button
               className={classNames(

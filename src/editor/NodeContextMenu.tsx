@@ -17,6 +17,7 @@ import { valueToString } from "./plugins/expressionResultPlugin"
 import { createPortal } from "react-dom"
 import colors, { allColors } from "../colors"
 import { ViewDefinitions } from "../views"
+import { useDebounce } from "../hooks"
 
 export interface NodeContextMenuProps {
   node: ValueNode
@@ -72,6 +73,10 @@ export function NodeContextMenu({
 
   const colorPalette = colors.getColors(scope.getProperty("color") || scope.lookupValue("color"))
 
+  // bit of an ugly hack to compare suggestedFunctions by value rather than identity,
+  // but seems to work fine...
+  const suggestedFunctionsKey = useDebounce(JSON.stringify(suggestedFunctions))
+
   // When the suggested functions change, recompute results for the suggestions
   // to populate the buttons. (In an effect because computation is async)
   useEffect(() => {
@@ -126,9 +131,7 @@ export function NodeContextMenu({
 
       setSuggestedFunctionButtons(newSuggestedFunctionButtons)
     })()
-    // bit of an ugly hack to compare suggestedFunctions by value rather than identity,
-    // but seems to work fine...
-  }, [JSON.stringify(suggestedFunctions)])
+  }, [suggestedFunctionsKey])
 
   const onPopoutView = (view: string) => {
     // Create new node with refId = nodeId, view = view, add it to the root doc
@@ -352,35 +355,6 @@ export function NodeContextMenu({
         </div>
       )}
 
-      {showFunctionButtons &&
-        suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
-          return (
-            <div key={name} className="relative">
-              {isHovering && (
-                <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">
-                  {result}
-                </div>
-              )}
-              <button
-                className={classNames(
-                  "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
-                )}
-                onMouseEnter={(evt) => showPreview(suggestion)}
-                onMouseLeave={(evt) => closePreview(suggestion)}
-                onMouseDown={(evt) => {
-                  if (suggestion) {
-                    evt.stopPropagation()
-                    evt.preventDefault()
-                    savePreview(suggestion)
-                  }
-                }}
-              >
-                {icon}
-              </button>
-            </div>
-          )
-        })}
-
       {pendingInsertions?.length === 0 && (
         <div
           className="relative"
@@ -533,6 +507,35 @@ export function NodeContextMenu({
           </button>
         </div>
       )}
+
+      {showFunctionButtons &&
+        suggestedFunctionButtons.map(({ name, suggestion, result, icon }) => {
+          return (
+            <div key={name} className="relative">
+              {isHovering && (
+                <div className="absolute z-50 right-8 opacity-80 pointer-events-none rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">
+                  {result}
+                </div>
+              )}
+              <button
+                className={classNames(
+                  "rounded text-sm w-[24px] h-[24px] flex items-center justify-center bg-gray-100 hover:bg-gray-500 hover:text-white px-1"
+                )}
+                onMouseEnter={(evt) => showPreview(suggestion)}
+                onMouseLeave={(evt) => closePreview(suggestion)}
+                onMouseDown={(evt) => {
+                  if (suggestion) {
+                    evt.stopPropagation()
+                    evt.preventDefault()
+                    savePreview(suggestion)
+                  }
+                }}
+              >
+                {icon}
+              </button>
+            </div>
+          )
+        })}
     </div>
   )
 }

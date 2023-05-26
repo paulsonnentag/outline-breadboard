@@ -125,7 +125,7 @@ export function MapNodeView({
 
   const geoJsonShapes = scope
     .extractDataInScope<GeoJsonShape>((scope) => {
-      const color = scope.lookupValue("color")
+      const color = scope.getProperty("color") ?? scope.lookupValue("color")
       const values = scope.value instanceof Promise ? [] : scope.value
 
       return values.flatMap((value: any) => {
@@ -492,7 +492,7 @@ export function MapNodeView({
   // update color of geoJson on hover
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
-      const color = dataLayerValue.scope.lookupValue("color")
+      const color = dataLayerValue.scope.getProperty("color") ?? dataLayerValue.scope.lookupValue("color")
       const colorPalette = colors.getColors(color)
       const isHovering = isHoveringOverId && dataLayerValue.scope.isInScope(isHoveringOverId)
 

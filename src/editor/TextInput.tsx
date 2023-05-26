@@ -13,7 +13,11 @@ import {
   isTab,
   isUp,
 } from "../keyboardEvents"
-import { cursorTooltipField, getRefIdTokenPlugin } from "./plugins/refIdTokenPlugin"
+import {
+  cursorTooltipField,
+  getRefIdTokenPlugin,
+  updateHoveredRefIdWidget,
+} from "./plugins/refIdTokenPlugin"
 import {
   graphContextCompartment,
   graphContextFacet,
@@ -174,6 +178,11 @@ export function TextInput({
       view.destroy()
     }
   }, [])
+
+  // update hover state of refIdTokens
+  useEffect(() => {
+    updateHoveredRefIdWidget(isHoveringOverId)
+  }, [isHoveringOverId])
 
   // update values
   useEffect(() => {

@@ -14,7 +14,17 @@ import { scopeFacet } from "./state"
 import { StateEffect, StateField } from "@codemirror/state"
 import { PopOverValue } from "../../Root"
 
+// hack: hover state should be recomputed based on dependencies and not manually update like this
+const ACTIVE_REF_ID_WIDGETS: RefIdWidget[] = []
+export function updateHoveredRefIdWidget(id: string | undefined) {
+  ACTIVE_REF_ID_WIDGETS.forEach((widget) => {
+    widget.onChangeIsHoveringOverId(id)
+  })
+}
+
 class RefIdWidget extends WidgetType {
+  private refIdElement: HTMLSpanElement
+
   constructor(
     readonly view: EditorView,
     readonly id: string,
@@ -23,17 +33,10 @@ class RefIdWidget extends WidgetType {
     readonly onOpenPopOver: (x: number, y: number, value: PopOverValue) => void
   ) {
     super()
-  }
-
-  eq(other: RefIdWidget) {
-    return false
-  }
-
-  toDOM() {
     const graph = getGraph()
     const node = getNode(graph, this.id)
 
-    const refIdElement = document.createElement("span")
+    const refIdElement = (this.refIdElement = document.createElement("span"))
     refIdElement.setAttribute("aria-hidden", "true")
     refIdElement.className = `-ml-1 px-1 text-blue-500 font-medium rounded hover:bg-blue-200 cursor-pointer`
     refIdElement.innerText = `${getLabelOfNode(node)}`
@@ -56,7 +59,33 @@ class RefIdWidget extends WidgetType {
       this.setIsHoveringOverId(undefined)
     })
 
-    return refIdElement
+    ACTIVE_REF_ID_WIDGETS.push(this)
+  }
+
+  eq(other: RefIdWidget) {
+    return false
+  }
+
+  toDOM() {
+    return this.refIdElement
+  }
+
+  onChangeIsHoveringOverId(hoveringId: string | undefined) {
+    if (this.id === hoveringId) {
+      this.refIdElement.classList.add("bg-blue-200")
+    } else {
+      this.refIdElement.classList.remove("bg-blue-200")
+    }
+  }
+
+  destroy(dom: HTMLElement) {
+    const deleteIndex = ACTIVE_REF_ID_WIDGETS.findIndex((w) => w === this)
+
+    if (deleteIndex !== -1) {
+      ACTIVE_REF_ID_WIDGETS.splice(deleteIndex, 1)
+    }
+
+    super.destroy(dom)
   }
 
   ignoreEvent() {

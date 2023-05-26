@@ -7,9 +7,9 @@ import { useEffect, useState } from "react"
 import classNames from "classnames"
 
 export const ViewDefinitions = [
-  {id: "map", title: "Map", icon: "map"},
-  {id: "table", title: "Table", icon: "table_chart"},
-  {id: "calendar", title: "Calendar", icon: "calendar_month"},
+  { id: "map", title: "Map", icon: "map" },
+  { id: "table", title: "Table", icon: "table_chart" },
+  { id: "calendar", title: "Calendar", icon: "calendar_month" },
 ]
 
 export interface NodeViewProps {
@@ -26,8 +26,8 @@ export interface NodeViewProps {
 export function NodeView(props: NodeViewProps) {
   const { node, scope } = props
   const { graph, changeGraph } = useGraph()
-  const [ viewId, setViewId ] = useState<string | undefined>(undefined)
-  const [ isHoveringOverButton, setIsHoveringOverButton ] = useState<string | undefined>(undefined)
+  const [viewId, setViewId] = useState<string | undefined>(undefined)
+  const [isHoveringOverButton, setIsHoveringOverButton] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const fetchProp = async () => {
@@ -38,7 +38,7 @@ export function NodeView(props: NodeViewProps) {
   }, [props])
 
   // this is a goofy workaround for items in the map view disappearing because properties haven't resolved yet; works by triggering re-render once all props in entire subtree have resolved
-  const [data, setData] = useState<any>(undefined);
+  const [data, setData] = useState<any>(undefined)
 
   useEffect(() => {
     const checkData = async () => {
@@ -46,7 +46,7 @@ export function NodeView(props: NodeViewProps) {
       setData(data)
     }
     checkData()
-  }, [props]);
+  }, [props])
 
   let view
 
@@ -64,9 +64,15 @@ export function NodeView(props: NodeViewProps) {
 
   return (
     <>
-      {props.fullpane && 
-        <div className="flex gap-2">
+      {props.fullpane && (
+        <div className="flex gap-2 justify-between items-center">
+          <div className="is-root">{node.value}</div>
+
           <div className="flex rounded bg-gray-100">
+            <div className="rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">
+              {ViewDefinitions.find((v) => v.id === (node.view || viewId))?.title ?? ""}
+            </div>
+
             {ViewDefinitions.map((view) => (
               <div key={view.id}>
                 <button
@@ -87,7 +93,7 @@ export function NodeView(props: NodeViewProps) {
                     evt.preventDefault()
 
                     if (props.refNodeId) {
-                      changeGraph(g => {
+                      changeGraph((g) => {
                         g[props.refNodeId!].view = view.id
                       })
                     }
@@ -100,12 +106,8 @@ export function NodeView(props: NodeViewProps) {
               </div>
             ))}
           </div>
-
-          <div className="rounded text-xs h-[24px] whitespace-nowrap flex items-center justify-center bg-white px-1">
-            {ViewDefinitions.find(v => v.id === (node.view || viewId))?.title ?? ""}
-          </div>
         </div>
-      }
+      )}
       {view && <div className="pt-2">{view}</div>}
     </>
   )
@@ -116,9 +118,12 @@ interface SummaryViewProps {
 }
 
 export function SummaryView(props: SummaryViewProps) {
-  const [ properties, setProperties ] = useState<{
-    [name: string]: any;
-} | undefined>(undefined)
+  const [properties, setProperties] = useState<
+    | {
+        [name: string]: any
+      }
+    | undefined
+  >(undefined)
 
   useEffect(() => {
     const fetchProp = async () => {
@@ -130,17 +135,18 @@ export function SummaryView(props: SummaryViewProps) {
 
   return (
     <div className="text-sm italic flex gap-2">
-      {properties && Object.entries(properties).map(([key, value]) => (
-        <p key={key}>
-          <span className="text-gray-400">{key}:</span> {value}
-        </p>
-      ))}
+      {properties &&
+        Object.entries(properties).map(([key, value]) => (
+          <p key={key}>
+            <span className="text-gray-400">{key}:</span> {value}
+          </p>
+        ))}
     </div>
   )
 }
 
 async function waitForProps(scope: Scope): Promise<any> {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     let props = await scope.getAllPropertiesAsync()
 
     for (const childScope of scope.childScopes) {

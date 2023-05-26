@@ -9,19 +9,16 @@ import {
   Node,
   RecordDef,
   useGraph,
-  ValueNode,
 } from "../graph"
 import { DragEvent, MouseEvent, useCallback, useState } from "react"
 import classNames from "classnames"
-import { getIsHovering, isString, last, safeJsonStringify } from "../utils"
+import { getIsHovering, isString, last } from "../utils"
 import { NodeView, SummaryView } from "../views"
 import { NodeContextMenu } from "./NodeContextMenu"
 import { TextInput } from "./TextInput"
 import { useStaticCallback } from "../hooks"
-import colors from "../colors"
 import { Scope } from "../language/scopes"
-import { ComputationResultsSummaryView, FUNCTIONS } from "../language/functions"
-import { FnNode, InlineExprNode } from "../language/ast"
+import { ComputationResultsSummaryView } from "../language/functions"
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
 
 export interface OutlineEditorProps {

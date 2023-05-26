@@ -3,10 +3,11 @@ import { FUNCTIONS } from "./functions"
 import { sortBy } from "lodash"
 import { FnNode, IdRefNode, InlineExprNode } from "./ast"
 import { createValueNode, getNode, Graph } from "../graph"
+import { REF_ID_REGEX } from "../editor/plugins/refIdTokenPlugin"
 
 export interface FunctionSuggestion {
   name: string
-  arguments: { label: string; expression?: string; value?: any }[]
+  arguments: { label: string; expression?: string; value?: any; hidden?: boolean }[]
   icon?: string
   rank?: number // lower number is better
 }
@@ -54,10 +55,12 @@ export function getSuggestedFunctions(scope: Scope, graph: Graph): FunctionSugge
             if (!arg.expression) {
               return `${arg.label}: `
             }
-            // assume value is a id ref like `#[....]
-            const id = arg.expression.slice(2, -1)
-            return `${arg.label}: ${getNode(graph, id).value}`
+
+            const match = arg.expression.match(REF_ID_REGEX)
+            const value = match ? getNode(graph, arg.expression.slice(2, -1)).value : arg.expression
+            return `${arg.label}: ${value}`
           })
+          .filter((v) => v !== undefined)
           .join(", ")}`
 
         return { ...suggestion, text: functionText } as FunctionSuggestionWithText

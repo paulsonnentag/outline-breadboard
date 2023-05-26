@@ -8,7 +8,7 @@ import { valueToString } from "./plugins/expressionResultPlugin"
 import { HAS_MISSING_ARGUMENTS_VALUE } from "../language/functions/function-def"
 import { IdRefNode } from "../language/ast"
 import { FUNCTIONS } from "../language/functions"
-import { getSuggestedFunctions } from "../language/function-suggestions"
+import { FunctionSuggestionWithText, getSuggestedFunctions } from "../language/function-suggestions"
 import { getSuggestedMentions } from "./mentions"
 import { fuzzyMatch } from "../utils"
 
@@ -37,6 +37,7 @@ export interface Suggestion {
 interface SuggestionArgument {
   label: string
   expression?: string
+  hidden?: boolean
   // color?: string // todo
 }
 
@@ -123,7 +124,7 @@ async function getSuggestions(
       return getSuggestedFunctions(scope, graph)
         .filter((suggestion) => fuzzyMatch(suggestion.text.toLowerCase(), search.toLowerCase()))
         .slice(0, MAX_SUGGESTIONS)
-        .map((suggestion) => {
+        .map((suggestion: FunctionSuggestionWithText) => {
           return {
             value: {
               type: "function",
@@ -263,7 +264,8 @@ function FunctionSuggestionValueView({
 
       {value.arguments?.map(
         (a, i) =>
-          a.expression !== undefined && (
+          a.expression !== undefined &&
+          !a.hidden && (
             <p key={i}>
               <span className="text-gray-500 inline-block mr-1">{a.label}</span>
               <ArgumentValue

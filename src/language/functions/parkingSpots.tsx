@@ -31,6 +31,7 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
               label: "maxDistance",
               expression: "2",
               value: 5,
+              hidden: true,
             },
           ],
           rank,

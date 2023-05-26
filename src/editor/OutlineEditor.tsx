@@ -185,7 +185,7 @@ export function OutlineEditor({
 
       node.value = (node.value as string).slice(0, splitIndex)
 
-      if (node.children.length === 0 && parentId) {
+      if ((node.children.length === 0 || node.isCollapsed) && parentId) {
         const parent = getNode(graph, parentId)
         parent.children.splice(index + 1, 0, newNode.id)
         onChangeSelectedPath(path.slice(0, -1).concat(index + 1))

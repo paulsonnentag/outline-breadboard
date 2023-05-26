@@ -38,6 +38,7 @@ export interface OutlineEditorProps {
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
   disableCustomViews?: boolean
+  showRootBullet?: boolean
 }
 
 export function OutlineEditor({
@@ -54,6 +55,7 @@ export function OutlineEditor({
   isHoveringOverId,
   setIsHoveringOverId,
   disableCustomViews = false,
+  showRootBullet = false,
 }: OutlineEditorProps) {
   const { graph, changeGraph } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
@@ -290,7 +292,12 @@ export function OutlineEditor({
     evt.dataTransfer.setDragImage(elem, -10, -10)
     evt.dataTransfer.setData(
       "application/node",
-      JSON.stringify({ type: "move", id: nodeId, parentId, index })
+      isRoot
+        ? JSON.stringify({
+            type: "create",
+            nodeId,
+          })
+        : JSON.stringify({ type: "move", id: nodeId, parentId, index })
     )
     setIsBeingDragged(true)
   }
@@ -480,7 +487,7 @@ export function OutlineEditor({
               </div>
             )}
 
-            {!isRoot && (
+            {(!isRoot || showRootBullet) && (
               <div
                 className={classNames("bullet", {
                   "is-transcluded": isReferenceNode,
@@ -491,6 +498,7 @@ export function OutlineEditor({
                     node.key === undefined &&
                     node.view === undefined &&
                     node.children.length === 0,
+                  "pt-3 pl-2": showRootBullet && isRoot,
                 })}
                 onClick={(evt) => {
                   evt.stopPropagation()
@@ -583,7 +591,7 @@ export function OutlineEditor({
           {!isCollapsed && (
             <div
               className={classNames("w-full", {
-                "pl-4": !isRoot,
+                "pl-4": !isRoot || showRootBullet,
               })}
             >
               {scope.childScopes.map((childScope, index) =>

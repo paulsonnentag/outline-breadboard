@@ -770,6 +770,7 @@ export function PopoverOutlineView({
             isHoveringOverId={undefined} /* TODO */
             setIsHoveringOverId={() => {}} /* TODO */
             disableCustomViews={false}
+            showRootBullet={true}
           />
         </div>
         <div className="border-t border-t-gray-200 p-1 flex justify-end bg-gray-50">

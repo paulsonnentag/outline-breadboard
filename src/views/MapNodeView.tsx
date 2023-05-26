@@ -1,5 +1,5 @@
 import { NodeViewProps } from "./index"
-import { createContext, useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import {
   createRecordNode,
   createValueNode,
@@ -10,7 +10,6 @@ import {
   useGraph,
   ValueNode,
 } from "../graph"
-import classNames from "classnames"
 import { useDebounce, useStaticCallback } from "../hooks"
 import { createRoot } from "react-dom/client"
 import { debounce } from "lodash"
@@ -460,9 +459,11 @@ export function MapNodeView({
     }
   }
 
+  const debouncedMarkers = useDebounce(markers, 100)
+
   useEffect(() => {
     renderMarkers()
-  }, [markers, mapRef.current, isHoveringOverId])
+  }, [debouncedMarkers, mapRef.current, isHoveringOverId])
 
   const debouncedGeoJsonShapes = useDebounce(geoJsonShapes, 100)
 

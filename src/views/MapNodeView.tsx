@@ -496,7 +496,8 @@ export function MapNodeView({
   // update color of geoJson on hover
   useEffect(() => {
     for (const dataLayerValue of dataLayersRef.current) {
-      const color = dataLayerValue.scope.getProperty("color") ?? dataLayerValue.scope.lookupValue("color")
+      const color =
+        dataLayerValue.scope.getProperty("color") ?? dataLayerValue.scope.lookupValue("color")
       const colorPalette = colors.getColors(color)
       const isHovering = isHoveringOverId && dataLayerValue.scope.isInScope(isHoveringOverId)
 
@@ -790,7 +791,7 @@ export function PopoverOutlineView({
 export async function createPlaceNode(
   changeGraph: (fn: (graph: Graph) => void) => void,
   placeId: string
-): Promise<ValueNode> {
+): Promise<ValueNode | undefined> {
   return new Promise((resolve) => {
     placesServiceApi.then((placesService) => {
       placesService.getDetails(
@@ -807,7 +808,13 @@ export async function createPlaceNode(
             "geometry",
           ],
         },
-        (result) => {
+        (result, status) => {
+          if (result === null) {
+            console.log(status)
+            resolve(undefined)
+            return
+          }
+
           const name = result?.name ?? "Unnamed"
           const website = result?.website
           const address = result?.formatted_address
@@ -815,6 +822,10 @@ export async function createPlaceNode(
           const rating = result?.rating?.toString()
           const position = result?.geometry?.location
           const photo = result?.photos ? result.photos[0].getUrl() : undefined
+
+          if (name === "Unnamed") {
+            debugger
+          }
 
           const shortAddress =
             name && result?.address_components
@@ -826,7 +837,7 @@ export async function createPlaceNode(
               id: placeId,
               name,
               props: [
-                ["image", `![${photo}]`],
+                ["image", photo ? `![${photo}]` : undefined],
                 ["rating", rating],
                 ["address", address],
                 ["shortAddress", shortAddress],
@@ -860,7 +871,7 @@ function getShortAddress(name: string, components: any[]): string {
     .filter((part) => part !== undefined)
 
   // drop first part if it is the name of the place
-  return parts[0].startsWith(name) ? parts.slice(1).join(", ") : parts.join(", ")
+  return parts[0] && name.startsWith(parts[0]) ? parts.slice(1).join(", ") : parts.join(", ")
 }
 
 function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBounds {

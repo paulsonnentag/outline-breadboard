@@ -193,9 +193,13 @@ async function loadGooglePlacesSuggestions(
 
   await Promise.all(
     result.predictions.map(async (prediction): Promise<void> => {
-      nodeIdMap[prediction.place_id] = true
       if (!graph[prediction.place_id]) {
-        await createPlaceNode(changeGraph, prediction.place_id)
+        const node = await createPlaceNode(changeGraph, prediction.place_id)
+        if (node) {
+          nodeIdMap[prediction.place_id] = true
+        }
+      } else {
+        nodeIdMap[prediction.place_id] = true
       }
     })
   )

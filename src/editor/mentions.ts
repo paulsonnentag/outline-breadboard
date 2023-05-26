@@ -101,7 +101,10 @@ function getNodeAutocompletion(
     const isInDocBonus = isNodeInDoc[node.id] ? -1 : 0
 
     // alias
-    if (node.value.match(ALIAS_REGEX)) {
+    if (
+      node.value.match(ALIAS_REGEX) &&
+      node.value.split(":")[0].toLowerCase().startsWith(search)
+    ) {
       return nodeOptions.push({
         value: {
           type: "mention",

@@ -33,6 +33,17 @@ export function NodeView(props: NodeViewProps) {
     fetchProp()
   }, [props])
 
+  // this is a goofy workaround for items in the map view disappearing because properties haven't resolved yet; works by triggering re-render once all props in entire subtree have resolved
+  const [data, setData] = useState<any>(undefined);
+
+  useEffect(() => {
+    const checkData = async () => {
+      const data = await waitForProps(scope)
+      setData(data)
+    }
+    checkData()
+  }, [props]);
+
   let view
 
   switch (node.view || viewId) {
@@ -80,4 +91,16 @@ export function SummaryView(props: SummaryViewProps) {
       ))}
     </div>
   )
+}
+
+async function waitForProps(scope: Scope): Promise<any> {
+  return new Promise(async resolve => {
+    let props = await scope.getAllPropertiesAsync()
+
+    for (const childScope of scope.childScopes) {
+      await waitForProps(childScope)
+    }
+
+    resolve(props)
+  })
 }

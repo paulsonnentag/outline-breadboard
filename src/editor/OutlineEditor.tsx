@@ -187,10 +187,25 @@ export function OutlineEditor({
 
       node.value = (node.value as string).slice(0, splitIndex)
 
-      if ((node.children.length === 0 || node.isCollapsed) && parentId) {
+      if ((node.children.length === 0 || node.isCollapsed || splitIndex === 0) && parentId) {
         const parent = getNode(graph, parentId)
         parent.children.splice(index + 1, 0, newNode.id)
         onChangeSelectedPath(path.slice(0, -1).concat(index + 1))
+
+        // copy children over to new node
+        if (!node.isCollapsed || splitIndex == 0) {
+          newNode.children = []
+          for (const childId of node.children) {
+            newNode.children.push(childId)
+          }
+
+          if (node.isCollapsed) {
+            node.isCollapsed = false
+            newNode.isCollapsed = true
+          }
+
+          node.children = []
+        }
       } else {
         node.children.unshift(newNode.id)
         onChangeSelectedPath(path.concat(0))
@@ -476,7 +491,7 @@ export function OutlineEditor({
             {!isRoot && (
               <div
                 className={classNames("material-icons cursor-pointer text-gray-500", {
-                  invisible: !isHovered || !isCollapsable,
+                  invisible: (!isHovered && !isCollapsed) || !isCollapsable,
                 })}
                 style={{
                   transform: isCollapsed ? "" : "rotate(90deg)",

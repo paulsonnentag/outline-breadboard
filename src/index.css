@@ -90,8 +90,8 @@
 
 
 .bullet.is-collapsed:after {
-  border: 1px solid #e5e7eb;
-  background: #e5e7eb;
+  border: 1px solid #bbb;
+  background: #bbb;
 }
 
 .bullet.is-transcluded {

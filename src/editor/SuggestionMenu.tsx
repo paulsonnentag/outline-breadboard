@@ -277,7 +277,7 @@ function FunctionSuggestionValueView({
           )
       )}
 
-      {result && <p className="italic text-purple-600">= {summaryView(result)}</p>}
+      {result !== undefined && <p className="italic text-purple-600">= {summaryView(result)}</p>}
     </>
   )
 }

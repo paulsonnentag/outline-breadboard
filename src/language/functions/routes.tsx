@@ -63,7 +63,16 @@ export const ROUTE_FN: FunctionDefs = {
   },
   Transit: {
     icon: "directions_subway",
-    summaryView: (value) => (value ? `🚊️ ${value.duration}, ${value.distance}` : `🚊️`),
+    summaryView: (value) => {
+      // special case where no route was found
+      if (value === null) {
+        return `🚊️ no route found`
+      }
+
+      console.log("transit", value)
+
+      return value ? `🚊️ ${value.duration}, ${value.distance}` : `🚊️`
+    },
     expandedView: expandedView("TRANSIT" as any),
     autocomplete: {
       icon: "directions_subway",
@@ -282,7 +291,7 @@ async function getRouteInformation(
   to: google.maps.LatLngLiteral,
   mode: google.maps.TravelMode,
   unit: string
-): Promise<RouteInformation | undefined> {
+): Promise<RouteInformation | null> {
   const graphDocHandle = getGraphDocHandle()
 
   const key = JSON.stringify({ from, to, mode })
@@ -331,11 +340,11 @@ const directionsServiceApi = googleApi.then((google) => {
 function directionsResultToRoute(
   result: google.maps.DirectionsResult,
   distanceUnit: string
-): RouteInformation | undefined {
+): RouteInformation | null {
   const route: google.maps.DirectionsRoute = result.routes[0] // todo: just pick the first route for now
 
   if (!route) {
-    return undefined
+    return null
   }
 
   const duration = formatDuration(

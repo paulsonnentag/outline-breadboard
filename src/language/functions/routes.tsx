@@ -69,8 +69,6 @@ export const ROUTE_FN: FunctionDefs = {
         return `🚊️ no route found`
       }
 
-      console.log("transit", value)
-
       return value ? `🚊️ ${value.duration}, ${value.distance}` : `🚊️`
     },
     expandedView: expandedView("TRANSIT" as any),
@@ -298,7 +296,7 @@ async function getRouteInformation(
   const cachedResult = await computationResultCache.getItem<any>(key)
 
   if (cachedResult) {
-    return directionsResultToRoute(cachedResult, unit)
+    return directionsResultToRoute(mode, cachedResult, unit)
   }
 
   const directionsService = await directionsServiceApi
@@ -319,7 +317,7 @@ async function getRouteInformation(
 
         computationResultCache.setItem(key, plainResult)
 
-        resolve(directionsResultToRoute(plainResult, unit)) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
+        resolve(directionsResultToRoute(mode, plainResult, unit)) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
       }
     )
   })
@@ -329,6 +327,7 @@ interface RouteInformation {
   distance: string
   duration: string
   geoJson: object
+  mode: google.maps.TravelMode
   fromAddress: string
   toAddress: string
 }
@@ -338,6 +337,7 @@ const directionsServiceApi = googleApi.then((google) => {
 })
 
 function directionsResultToRoute(
+  mode: google.maps.TravelMode,
   result: google.maps.DirectionsResult,
   distanceUnit: string
 ): RouteInformation | null {
@@ -367,5 +367,6 @@ function directionsResultToRoute(
     },
     fromAddress: route.legs[0].start_address,
     toAddress: route.legs[0].end_address,
+    mode,
   }
 }

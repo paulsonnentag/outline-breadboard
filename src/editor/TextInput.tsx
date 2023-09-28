@@ -39,6 +39,7 @@ import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
 import { FunctionSuggestionValue, Suggestion, SuggestionMenu } from "./SuggestionMenu"
 import { FunctionSuggestion } from "../language/function-suggestions"
 import { imagePlugin } from "./plugins/imagePlugin"
+import { keywordHighlightPlugin } from "./plugins/keywordHighlightPlugin"
 import { parseLatLng } from "../properties"
 import { GeoJsonShape, Marker } from "../views/MapNodeView"
 import LatLngLiteral = google.maps.LatLngLiteral
@@ -158,6 +159,7 @@ export function TextInput({
         closeBrackets(),
         imagePlugin,
         cursorTooltipField,
+        keywordHighlightPlugin,
       ],
       parent: containerRef.current,
       dispatch(transaction) {

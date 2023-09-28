@@ -607,7 +607,7 @@ export function OutlineEditor({
               })}
             >
               {scope.childScopes.map((childScope, index) =>
-                scope ? (
+                scope && !childScope.source.startsWith("view:") ? (
                   <OutlineEditor
                     scope={childScope}
                     isParentDragged={isBeingDragged}

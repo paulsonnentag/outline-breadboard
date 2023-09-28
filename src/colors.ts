@@ -73,7 +73,7 @@ export function getColors(key: string | undefined) {
     case "rose":
       return allColors["rose"]
     default:
-      return allColors["slate"]
+      return allColors["blue"]
   }
 }
 

@@ -3,6 +3,7 @@ import { DateContents, isSameDay } from "./CalendarGrid"
 import { Scope } from "../language/scopes"
 import { Time } from "../properties"
 import { safeJsonStringify } from "../utils"
+import ColorScale from "color-scales"
 
 interface CalendarColsProps {
   dates: DateInfo[]
@@ -20,6 +21,8 @@ interface DateInfo {
     }
   }
 }
+
+let colorScale = new ColorScale(0, 1, ["#ffffff", "#bfdbfe"])
 
 export default function CalendarBlocks({
   dates,
@@ -47,7 +50,10 @@ export default function CalendarBlocks({
 
   const hoursOfDay = Array.from({ length: 24 }, (_, i) => i)
 
-  function otherDataFor(matchingDates: DateInfo[], hour: number): string[] {
+  function otherDataFor(
+    matchingDates: DateInfo[],
+    hour: number
+  ): { label: string; value: number }[] {
     return [
       ...new Set(
         matchingDates.flatMap((d) =>
@@ -60,22 +66,25 @@ export default function CalendarBlocks({
               .flatMap((data) => {
                 console.log(data)
 
-                let results = []
+                let results: { label: string; value: number }[] = []
 
                 // These should be defined by the user...
-
+                /*
                 if (data.windgusts_10m > 40) {
-                  results.push("High winds")
+                  results.push({ label: "High winds", value: 1 })
                 } else if (data.windspeed_10m > 20) {
-                  results.push("High winds")
-                }
+                  results.push({ label: "High winds", value: 1 })
+                }*/
 
                 if (data.precipitation_probability > 10) {
-                  results.push(`Precipitation ${data.precipitation_probability}%`)
+                  results.push({
+                    label: `Precipitation ${data.precipitation_probability}%`,
+                    value: data.precipitation_probability / 100,
+                  })
                 }
 
                 if (data.temperature_2m <= 0) {
-                  results.push("Freezing")
+                  results.push({ label: "Freezing", value: 1 })
                 }
 
                 return results
@@ -129,12 +138,13 @@ export default function CalendarBlocks({
                 return (
                   <td key={`${date}_${hour}`} className="border border-gray-300">
                     <div className="flex gap-2">
-                      {otherDataFor(matchingDates, hour).map((label) => (
+                      {otherDataFor(matchingDates, hour).map((entry) => (
                         <p
-                          className="my-1 px-1 rounded-sm bg-blue-200 text-blue-600 font-medium
+                          className="my-1 px-1 rounded-sm  text-blue-600 font-medium
                         text-sm"
+                          style={{ background: colorScale.getColor(entry.value).toHexString() }}
                         >
-                          {label}
+                          {entry.label}
                         </p>
                       ))}
                     </div>

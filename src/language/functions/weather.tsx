@@ -54,7 +54,7 @@ export const WEATHER_FN: FunctionDefs = {
 
       return suggestions
     },
-    summaryView: (value) => getWeatherSummary(value),
+    summaryView: (value) => (value ? getWeatherSummary(value) : ""),
     autocomplete: {
       icon: "light_mode",
       name: "Weather",
@@ -103,6 +103,316 @@ export interface WeatherInformation {
 
 const OFFLINE = false
 
+const HARD_CODED_RESULT_FRIDAY = {
+  min: 18,
+  max: 21,
+  //min: 16.5,
+  // max: 29.6,
+  mean: 23.7,
+  weatherCode: 3,
+  hourly: {
+    "00:00": {
+      temp: 23.4,
+      precipitation_probability: 0,
+      windspeed_10m: 7,
+      windgusts_10m: 18.4,
+    },
+    "01:00": {
+      temp: 23.2,
+      precipitation_probability: 0,
+      windspeed_10m: 5.5,
+      windgusts_10m: 17.3,
+    },
+    "02:00": {
+      temp: 23.1,
+      precipitation_probability: 0,
+      windspeed_10m: 4.9,
+      windgusts_10m: 16.2,
+    },
+    "03:00": {
+      temp: 23,
+      precipitation_probability: 0,
+      windspeed_10m: 5.2,
+      windgusts_10m: 18,
+    },
+    "04:00": {
+      temp: 23.1,
+      precipitation_probability: 0,
+      windspeed_10m: 7.1,
+      windgusts_10m: 19.8,
+    },
+    "05:00": {
+      temp: 22.9,
+      precipitation_probability: 0,
+      windspeed_10m: 9.4,
+      windgusts_10m: 21.6,
+    },
+    "06:00": {
+      temp: 22.1,
+      precipitation_probability: 0,
+      windspeed_10m: 11.9,
+      windgusts_10m: 28.8,
+    },
+    "07:00": {
+      temp: 21.1,
+      precipitation_probability: 0,
+      windspeed_10m: 14.8,
+      windgusts_10m: 35.6,
+    },
+    "08:00": {
+      temp: 20.6,
+      precipitation_probability: 0,
+      windspeed_10m: 16.2,
+      windgusts_10m: 42.8,
+    },
+    "09:00": {
+      temp: 20.9,
+      precipitation_probability: 0,
+      windspeed_10m: 16,
+      windgusts_10m: 40.3,
+    },
+    "10:00": {
+      temp: 21.6,
+      precipitation_probability: 0,
+      windspeed_10m: 14.9,
+      windgusts_10m: 38.2,
+    },
+    "11:00": {
+      temp: 22.5,
+      precipitation_probability: 10,
+      windspeed_10m: 15,
+      windgusts_10m: 35.6,
+    },
+    "12:00": {
+      temp: 23.6,
+      precipitation_probability: 20,
+      windspeed_10m: 16.6,
+      windgusts_10m: 39.2,
+    },
+    "13:00": {
+      temp: 24.8,
+      precipitation_probability: 23,
+      windspeed_10m: 18.3,
+      windgusts_10m: 42.5,
+    },
+    "14:00": {
+      temp: 25.4,
+      precipitation_probability: 25,
+      windspeed_10m: 19.4,
+      windgusts_10m: 46.1,
+    },
+    "15:00": {
+      temp: 24.9,
+      precipitation_probability: 30,
+      windspeed_10m: 19.2,
+      windgusts_10m: 47.9,
+    },
+    "16:00": {
+      temp: 23.8,
+      precipitation_probability: 40,
+      windspeed_10m: 19.3,
+      windgusts_10m: 0,
+    },
+    "17:00": {
+      temp: 23,
+      precipitation_probability: 39,
+      windspeed_10m: 18.8,
+      windgusts_10m: 0,
+    },
+    "18:00": {
+      temp: 29.4,
+      precipitation_probability: 27,
+      windspeed_10m: 9.1,
+      windgusts_10m: 23.8,
+    },
+    "19:00": {
+      temp: 29,
+      precipitation_probability: 28,
+      windspeed_10m: 8.2,
+      windgusts_10m: 21.6,
+    },
+    "20:00": {
+      temp: 28.3,
+      precipitation_probability: 29,
+      windspeed_10m: 7.4,
+      windgusts_10m: 19.4,
+    },
+    "21:00": {
+      temp: 26.9,
+      precipitation_probability: 30,
+      windspeed_10m: 7.4,
+      windgusts_10m: 19.4,
+    },
+    "22:00": {
+      temp: 25.3,
+      precipitation_probability: 31,
+      windspeed_10m: 7.9,
+      windgusts_10m: 19.4,
+    },
+    "23:00": {
+      temp: 24,
+      precipitation_probability: 32,
+      windspeed_10m: 7.7,
+      windgusts_10m: 19.4,
+    },
+  },
+}
+
+const HARD_CODED_RESULT_SATURDAY = {
+  min: 23,
+  max: 20,
+  //min: 16.5,
+  // max: 29.6,
+  mean: 23.7,
+  weatherCode: 80,
+  hourly: {
+    "00:00": {
+      temp: 23.4,
+      precipitation_probability: 0,
+      windspeed_10m: 7,
+      windgusts_10m: 18.4,
+    },
+    "01:00": {
+      temp: 23.2,
+      precipitation_probability: 0,
+      windspeed_10m: 5.5,
+      windgusts_10m: 17.3,
+    },
+    "02:00": {
+      temp: 23.1,
+      precipitation_probability: 0,
+      windspeed_10m: 4.9,
+      windgusts_10m: 16.2,
+    },
+    "03:00": {
+      temp: 23,
+      precipitation_probability: 0,
+      windspeed_10m: 5.2,
+      windgusts_10m: 18,
+    },
+    "04:00": {
+      temp: 23.1,
+      precipitation_probability: 0,
+      windspeed_10m: 7.1,
+      windgusts_10m: 19.8,
+    },
+    "05:00": {
+      temp: 22.9,
+      precipitation_probability: 0,
+      windspeed_10m: 9.4,
+      windgusts_10m: 21.6,
+    },
+    "06:00": {
+      temp: 22.1,
+      precipitation_probability: 0,
+      windspeed_10m: 11.9,
+      windgusts_10m: 28.8,
+    },
+    "07:00": {
+      temp: 21.1,
+      precipitation_probability: 0,
+      windspeed_10m: 14.8,
+      windgusts_10m: 35.6,
+    },
+    "08:00": {
+      temp: 20.6,
+      precipitation_probability: 0,
+      windspeed_10m: 16.2,
+      windgusts_10m: 42.8,
+    },
+    "09:00": {
+      temp: 20.9,
+      precipitation_probability: 0,
+      windspeed_10m: 16,
+      windgusts_10m: 40.3,
+    },
+    "10:00": {
+      temp: 21.6,
+      precipitation_probability: 0,
+      windspeed_10m: 14.9,
+      windgusts_10m: 38.2,
+    },
+    "11:00": {
+      temp: 22.5,
+      precipitation_probability: 10,
+      windspeed_10m: 15,
+      windgusts_10m: 35.6,
+    },
+    "12:00": {
+      temp: 23.6,
+      precipitation_probability: 20,
+      windspeed_10m: 16.6,
+      windgusts_10m: 39.2,
+    },
+    "13:00": {
+      temp: 24.8,
+      precipitation_probability: 23,
+      windspeed_10m: 18.3,
+      windgusts_10m: 42.5,
+    },
+    "14:00": {
+      temp: 25.4,
+      precipitation_probability: 25,
+      windspeed_10m: 19.4,
+      windgusts_10m: 46.1,
+    },
+    "15:00": {
+      temp: 24.9,
+      precipitation_probability: 30,
+      windspeed_10m: 19.2,
+      windgusts_10m: 47.9,
+    },
+    "16:00": {
+      temp: 23.8,
+      precipitation_probability: 40,
+      windspeed_10m: 19.3,
+      windgusts_10m: 0,
+    },
+    "17:00": {
+      temp: 23,
+      precipitation_probability: 39,
+      windspeed_10m: 18.8,
+      windgusts_10m: 0,
+    },
+    "18:00": {
+      temp: 29.4,
+      precipitation_probability: 27,
+      windspeed_10m: 9.1,
+      windgusts_10m: 23.8,
+    },
+    "19:00": {
+      temp: 29,
+      precipitation_probability: 28,
+      windspeed_10m: 8.2,
+      windgusts_10m: 21.6,
+    },
+    "20:00": {
+      temp: 28.3,
+      precipitation_probability: 29,
+      windspeed_10m: 7.4,
+      windgusts_10m: 19.4,
+    },
+    "21:00": {
+      temp: 26.9,
+      precipitation_probability: 30,
+      windspeed_10m: 7.4,
+      windgusts_10m: 19.4,
+    },
+    "22:00": {
+      temp: 25.3,
+      precipitation_probability: 31,
+      windspeed_10m: 7.9,
+      windgusts_10m: 19.4,
+    },
+    "23:00": {
+      temp: 24,
+      precipitation_probability: 32,
+      windspeed_10m: 7.7,
+      windgusts_10m: 19.4,
+    },
+  },
+}
+
 async function getWeatherInformation(
   date: Date,
   location: google.maps.LatLngLiteral,
@@ -114,6 +424,15 @@ async function getWeatherInformation(
         resolve({ min: 0, max: 20, mean: 10 })
       }, 1000)
     })
+  }
+
+  console.log(date.toString())
+
+  if (date.toString().startsWith("Sat Jul 15 2023")) {
+    console.log("hard coded")
+    return HARD_CODED_RESULT_SATURDAY
+  } else if (date.toString().startsWith("Fri Jul 15 2023")) {
+    return HARD_CODED_RESULT_FRIDAY
   }
 
   const alignedDate = startOfDay(date)

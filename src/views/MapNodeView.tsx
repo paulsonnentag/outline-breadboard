@@ -903,7 +903,10 @@ function getMinBounds(points: google.maps.LatLngLiteral[]): google.maps.LatLngBo
   return bounds
 }
 
+// disable write back for demo
 function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
+  return
+  /*
   const inputsNodeId = scope.props["view"]?.id
 
   if (!inputsNodeId) {
@@ -951,7 +954,7 @@ function writeBackMapState(graph: Graph, scope: Scope, map: google.maps.Map) {
       value: "showMarker: false",
     })
     inputNode.children.push(hideMarker.id)
-  }
+  } */
 }
 
 function getFirstEmoji(str: string | undefined) {

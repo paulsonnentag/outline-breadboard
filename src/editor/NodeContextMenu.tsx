@@ -300,11 +300,15 @@ export function NodeContextMenu({
     }
   }
 
+  // add this to make the context menu bottom aligned
+  //       style={{ transform: `translate(0, -250px)` }}
+
   return (
     <div
       className="absolute right-1 flex flex-col gap-1"
       onMouseOver={(e) => setIsHovering(true)}
       onMouseLeave={(e) => setIsHovering(false)}
+      //style={{ transform: `translate(0, -250px)` }}
     >
       {pendingInsertions?.length === 0 && (
         <div className="flex flex-col rounded bg-gray-100">

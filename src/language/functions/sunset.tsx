@@ -14,7 +14,7 @@ function getSolarFunctionDef(property: "sunrise" | "sunset"): FunctionDef {
 
   return {
     icon: "wb_twilight",
-    summaryView: (value) => `${emoji} ${value}`,
+    summaryView: (value) => (value ? `${emoji} ${value}` : emoji),
     suggestions: (parameters: Parameter[]) => {
       const dates = parameters.filter((p) => p.value.type === "date")
       const locations = parameters.filter((p) => p.value.type === "location")

@@ -108,6 +108,9 @@
 .is-root,
 .is-root .cm-line {
   font-size: 20px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cm-content {

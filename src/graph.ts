@@ -280,11 +280,13 @@ export function getLabelOfNode(node: ValueNode): string {
   const date = parseDate(node.value)
   if (date) {
     if (isToday(date)) {
-      return "Today"
+      return getWeekdayName(date)
+      //return "Today"
     }
 
     if (isTomorrow(date)) {
-      return "Tomorrow"
+      return getWeekdayName(date)
+      //return "Tomorrow"
     }
 
     if (isBefore(date, addDays(startOfToday(), 7)) && isAfter(date, startOfToday())) {

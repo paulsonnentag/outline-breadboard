@@ -1,8 +1,7 @@
 import { NodeViewProps } from "./index"
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   createRecordNode,
-  createValueNode,
   getNode,
   Graph,
   GraphContext,
@@ -35,6 +34,7 @@ export interface GeoJsonShape {
 }
 
 const COLOR_REGEX = /^color: (.*)$/
+
 function getColorOfNode(graph: Graph, nodeId: string): string | undefined {
   if (!graph[nodeId]) {
     return undefined
@@ -53,6 +53,9 @@ function getColorOfNode(graph: Graph, nodeId: string): string | undefined {
 }
 
 const ICON_REGEX = /^icon: (.*)$/
+
+const HIDE_COLOR_FOR_MARKER_WITH_ICON = true
+
 function getIconOfNode(graph: Graph, nodeId: string): string | undefined {
   if (!graph[nodeId]) {
     return undefined
@@ -166,7 +169,6 @@ export function MapNodeView({
   const setZoom = parseInt(scope.getProperty("zoom"))
 
   const google = useGoogleApi()
-  const mapId = useId()
   const mapRef = useRef<google.maps.Map>()
   const mapElementRef = useRef<HTMLDivElement>(null)
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
@@ -191,7 +193,7 @@ export function MapNodeView({
     }
 
     const currentMap = (mapRef.current = new google.maps.Map(currentMapElement, {
-      mapId,
+      mapId: "2cd8489491b7f1ab",
       zoom: setZoom || 11,
       center: setLocation || { lat: 50.775555, lng: 6.083611 },
       disableDefaultUI: true,
@@ -384,22 +386,24 @@ export function MapNodeView({
         if (isHovering) {
           markerContent.className = "text-2xl"
         } else {
-          markerContent.className = "text-lg"
+          markerContent.className = "text-xl"
         }
 
         markerContent.style.backgroundColor = "transparent"
       } else {
-        markerContent.className =
-          "w-[16px] h-[16px] rounded-full cursor-pointer border border-white"
+        markerContent.innerHTML = ""
+        markerContent.className = "w-[20px] h-[20px] rounded-full cursor-pointer border"
 
         if (isHovering) {
-          markerContent.style.backgroundColor = colorPalette[600]
+          markerContent.style.backgroundColor = colorPalette[500]
+          markerContent.style.borderColor = colorPalette[600]
         } else {
           markerContent.style.backgroundColor = colorPalette[400]
+          markerContent.style.borderColor = colorPalette[500]
         }
       }
 
-      markerContent.style.transform = `translate(0, 8px)`
+      markerContent.style.transform = `translate(0, 10px)`
 
       // new version of google maps, but types haven't been updates
       ;(mapsMarker as any).__onclick = async () => {
@@ -843,9 +847,9 @@ export async function createPlaceNode(
           const position = result?.geometry?.location
           const photo = result?.photos ? result.photos[0].getUrl() : undefined
 
-          if (name === "Unnamed") {
+          /*if (name === "Unnamed") {
             debugger
-          }
+          }*/
 
           const shortAddress =
             name && result?.address_components

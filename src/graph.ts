@@ -271,6 +271,8 @@ export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
   return graph[nodeId].isCollapsed
 }
 
+const SHOW_RELATIVE_DAY_NAMES = true
+
 export function getLabelOfNode(node: ValueNode): string {
   let aliasMatch = node.value.match(ALIAS_REGEX)
   if (aliasMatch) {
@@ -279,7 +281,7 @@ export function getLabelOfNode(node: ValueNode): string {
 
   const date = parseDate(node.value)
   if (date) {
-    if (isToday(date)) {
+    if (isToday(date) && SHOW_RELATIVE_DAY_NAMES) {
       return "Today"
     }
 

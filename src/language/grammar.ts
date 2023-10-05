@@ -28,7 +28,7 @@ Node {
     = "\\"" StringChar+ "\\""
 
   numberLiteral
-    = digit+
+     = digit+ ("." digit+)?
 
   IdRefChar
     = alnum | "_" | "-" | "/" 

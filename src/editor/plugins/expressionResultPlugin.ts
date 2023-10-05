@@ -6,6 +6,7 @@ import { getGraphDocHandle, getNode } from "../../graph"
 import { Scope } from "../../language/scopes"
 import { FnNode } from "../../language/ast"
 import { PopOverValue } from "../../Root"
+import { ROUTE_FN } from "../../language/functions/routes"
 
 //  listed here, so they will be included in the tailwind build
 const COLOR_CLASSES = [
@@ -93,8 +94,39 @@ class ExpressionResultWidget extends WidgetType {
       [`bg-${this.color}-200`]: this.isExpanded,
     })
 
-    const summaryElement = summaryView ? summaryView(this.value) : valueToString(this.value)
-    valueElement.append(summaryElement)
+    if (this.value instanceof Scope) {
+      this.value.valueOfAsync(0).then((value) => {
+        let result = ""
+
+        // special handling for routes
+        if (value && value.mode) {
+          console.log("get route", value)
+
+          switch (value.mode) {
+            case "BICYCLING":
+              result = (ROUTE_FN.Bike.summaryView as any)(value)
+              break
+            case "DRIVING":
+              result = (ROUTE_FN.Drive.summaryView as any)(value)
+              break
+            case "TRANSIT":
+              result = (ROUTE_FN.Transit.summaryView as any)(value)
+              break
+            case "WALKING":
+              result = (ROUTE_FN.Walk.summaryView as any)(value)
+              break
+          }
+        } else {
+          result = valueToString(value)
+        }
+
+        valueElement.append(result)
+      })
+    } else {
+      const summaryElement = summaryView ? summaryView(this.value) : valueToString(this.value)
+      valueElement.append(summaryElement)
+    }
+
     container.append(valueElement)
 
     return container

@@ -50,7 +50,9 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
     const to = _q2.source.endIdx
     return new StringNode(from, to, string.sourceString)
   },
-  numberLiteral: (num) => new NumberNode(num.source.startIdx, num.source.endIdx, num.sourceString),
+  numberLiteral: (num, _, __) => {
+    return new NumberNode(num.source.startIdx, num.source.endIdx, num.sourceString + _.sourceString)
+  },
   MulExp_times: (a, _, b) => {
     const from = a.source.startIdx
     const to = b.source.endIdx

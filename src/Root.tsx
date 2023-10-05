@@ -42,7 +42,7 @@ interface RootProps {
   profileDocId: DocumentId
 }
 
-const DEFAULT_WIDTH = 800
+const DEFAULT_WIDTH = 600
 
 // set in env.local to true to speed up page reloads during development, only the selected document will be loaded
 // @ts-ignore

@@ -63,7 +63,14 @@ export const ROUTE_FN: FunctionDefs = {
   },
   Transit: {
     icon: "directions_subway",
-    summaryView: (value) => (value ? `🚊️ ${value.duration}, ${value.distance}` : `🚊️`),
+    summaryView: (value) => {
+      // special case where no route was found
+      if (value === null) {
+        return `🚊️ no route found`
+      }
+
+      return value ? `🚊️ ${value.duration}, ${value.distance}` : `🚊️`
+    },
     expandedView: expandedView("TRANSIT" as any),
     autocomplete: {
       icon: "directions_subway",
@@ -282,14 +289,14 @@ async function getRouteInformation(
   to: google.maps.LatLngLiteral,
   mode: google.maps.TravelMode,
   unit: string
-): Promise<RouteInformation | undefined> {
+): Promise<RouteInformation | null> {
   const graphDocHandle = getGraphDocHandle()
 
   const key = JSON.stringify({ from, to, mode })
   const cachedResult = await computationResultCache.getItem<any>(key)
 
   if (cachedResult) {
-    return directionsResultToRoute(cachedResult, unit)
+    return directionsResultToRoute(mode, cachedResult, unit)
   }
 
   const directionsService = await directionsServiceApi
@@ -310,7 +317,7 @@ async function getRouteInformation(
 
         computationResultCache.setItem(key, plainResult)
 
-        resolve(directionsResultToRoute(plainResult, unit)) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
+        resolve(directionsResultToRoute(mode, plainResult, unit)) // turn result into plain object, to keep behaviour consistent to when it's accessed from cache
       }
     )
   })
@@ -320,6 +327,7 @@ interface RouteInformation {
   distance: string
   duration: string
   geoJson: object
+  mode: google.maps.TravelMode
   fromAddress: string
   toAddress: string
 }
@@ -329,13 +337,14 @@ const directionsServiceApi = googleApi.then((google) => {
 })
 
 function directionsResultToRoute(
+  mode: google.maps.TravelMode,
   result: google.maps.DirectionsResult,
   distanceUnit: string
-): RouteInformation | undefined {
+): RouteInformation | null {
   const route: google.maps.DirectionsRoute = result.routes[0] // todo: just pick the first route for now
 
   if (!route) {
-    return undefined
+    return null
   }
 
   const duration = formatDuration(
@@ -358,5 +367,6 @@ function directionsResultToRoute(
     },
     fromAddress: route.legs[0].start_address,
     toAddress: route.legs[0].end_address,
+    mode,
   }
 }

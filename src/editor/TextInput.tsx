@@ -39,6 +39,7 @@ import { expressionHighlightPlugin } from "./plugins/expressionHighlightPlugin"
 import { FunctionSuggestionValue, Suggestion, SuggestionMenu } from "./SuggestionMenu"
 import { FunctionSuggestion } from "../language/function-suggestions"
 import { imagePlugin } from "./plugins/imagePlugin"
+import { keywordHighlightPlugin } from "./plugins/keywordHighlightPlugin"
 import { parseLatLng } from "../properties"
 import { GeoJsonShape, Marker } from "../views/MapNodeView"
 import LatLngLiteral = google.maps.LatLngLiteral
@@ -158,6 +159,7 @@ export function TextInput({
         closeBrackets(),
         imagePlugin,
         cursorTooltipField,
+        keywordHighlightPlugin,
       ],
       parent: containerRef.current,
       dispatch(transaction) {
@@ -425,6 +427,23 @@ export function TextInput({
       }
     } else if (isSlash(evt)) {
       const cursorPos = currentEditorView.state.selection.main.head
+
+      // hacky way to figure out if we are inside a formula
+      let isInsideOfExpression = false
+
+      const chars = value.split("")
+      for (let i = 0; i < cursorPos; i++) {
+        const char = chars[i]
+        if (char === "{") {
+          isInsideOfExpression = true
+        } else if (char === "}") {
+          isInsideOfExpression = false
+        }
+      }
+      if (isInsideOfExpression) {
+        return
+      }
+
       const isCursorPosSeparatedBySpace =
         cursorPos === 0 || currentEditorView.state.sliceDoc(cursorPos - 1, cursorPos) === " "
 

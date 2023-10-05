@@ -30,7 +30,7 @@ export const FLIGHT_STATUS_FN: FunctionDefs = {
       // TODO: implement suggestions
       return []
     },
-    summaryView: (value) => getFlightStatusSummary(value),
+    summaryView: (value) => (value ? getFlightStatusSummary(value) : ""),
     autocomplete: {
       icon: "flight_takeoff",
       name: "FlightStatus",

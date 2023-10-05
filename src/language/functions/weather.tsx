@@ -103,6 +103,8 @@ export interface WeatherInformation {
 
 const OFFLINE = false
 
+const USE_HARD_CODED_RESULTS = false
+
 const HARD_CODED_RESULT_FRIDAY = {
   min: 18,
   max: 21,
@@ -428,10 +430,9 @@ async function getWeatherInformation(
 
   console.log(date.toString())
 
-  if (date.toString().startsWith("Sat Jul 15 2023")) {
-    console.log("hard coded")
+  if (date.toString().startsWith("Sat Jul 15 2023") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_SATURDAY
-  } else if (date.toString().startsWith("Fri Jul 15 2023")) {
+  } else if (date.toString().startsWith("Fri Jul 15 2023") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_FRIDAY
   }
 

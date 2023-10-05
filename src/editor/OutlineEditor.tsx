@@ -38,6 +38,8 @@ export interface OutlineEditorProps {
   showRootBullet?: boolean
 }
 
+const HIDE_VIEW_PROPERTY = false
+
 export function OutlineEditor({
   nodeId,
   path,
@@ -607,7 +609,7 @@ export function OutlineEditor({
               })}
             >
               {scope.childScopes.map((childScope, index) =>
-                scope && !childScope.source.startsWith("view:") ? (
+                scope && (!childScope.source.startsWith("view:") || !HIDE_VIEW_PROPERTY) ? (
                   <OutlineEditor
                     scope={childScope}
                     isParentDragged={isBeingDragged}

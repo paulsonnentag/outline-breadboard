@@ -130,6 +130,16 @@
   overflow: hidden;
 }
 
+.cm-number-highlight,
+.cm-number-highlight > .text-gray-300 {
+  color: rgb(156, 163, 175)!important;
+}
+
+.cm-name-highlight,
+.cm-name-highlight > .text-gray-300 {
+  color: rgb(156, 163, 175) !important;
+}
+
 /* inline expr */
 
 .inline-expr {
@@ -156,4 +166,5 @@
 .embedded-image {
   margin-bottom: -23px;
 }
+
 

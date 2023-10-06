@@ -23,32 +23,27 @@ export const expressionHighlightPlugin = ViewPlugin.fromClass(
 function getHighlightDecorations(view: EditorView): DecorationSet {
   const source = view.state.doc.toString()
 
-  console.log()
-
   // reparse instead of using scope, because scope can lag behind
   const decorations = parseBullet(source).value.flatMap((part, index) => {
     if (part instanceof InlineExprNode) {
       const decorations = [
         Decoration.mark({
           class: "text-gray-300",
-        }).range(part.from, part.from + 1),
+        }).range(part.from, part.to),
       ]
         .concat(
-          // only highlight functions that have autocomplete to avoid highlighting things like "1 + 1" which also use functions under the hood
-          part.expr instanceof FnNode &&
-            FUNCTIONS[part.expr.name] &&
-            FUNCTIONS[part.expr.name].autocomplete
-            ? [
-                Decoration.mark({
-                  class: "font-medium text-gray-400",
-                }).range(part.from + 1, part.from + 1 + part.expr.name.length),
-              ]
-            : []
+          matchNumbers(source.slice(part.from, part.to)).map(({ from, to }) =>
+            Decoration.mark({
+              class: "cm-number-highlight",
+            }).range(part.from + from, part.from + to)
+          )
         )
         .concat(
-          Decoration.mark({
-            class: "text-gray-300",
-          }).range(part.to - 1, part.to)
+          matchNames(source.slice(part.from, part.to)).map(({ from, to }) =>
+            Decoration.mark({
+              class: "font-medium cm-name-highlight",
+            }).range(part.from + from, part.from + to)
+          )
         )
 
       return decorations
@@ -57,7 +52,30 @@ function getHighlightDecorations(view: EditorView): DecorationSet {
     return []
   })
 
-  return Decoration.set(decorations)
+  return Decoration.set(decorations.sort((a, b) => a.from - b.from))
+}
+
+function matchNumbers(inputStr: string) {
+  const regex = /\b\d+(\.\d+)?\b/g
+  let match
+  const ranges = []
+
+  while ((match = regex.exec(inputStr)) !== null) {
+    ranges.push({ from: match.index, to: match.index + match[0].length, value: match[0] })
+  }
+
+  return ranges
+}
+function matchNames(inputStr: string) {
+  const regex = /[a-zA-Z][a-zA-Z]*:?/g
+  let match
+  const ranges = []
+
+  while ((match = regex.exec(inputStr)) !== null) {
+    ranges.push({ from: match.index, to: match.index + match[0].length, value: match[0] })
+  }
+
+  return ranges
 }
 
 /*

@@ -4,6 +4,7 @@ import { sortBy } from "lodash"
 import { FnNode, IdRefNode, InlineExprNode } from "./ast"
 import { createValueNode, getNode, Graph } from "../graph"
 import { REF_ID_REGEX } from "../editor/plugins/refIdTokenPlugin"
+import { OVERRIDE_INFERRED_RELATIONSHIP } from "../config"
 
 export interface FunctionSuggestion {
   name: string
@@ -264,6 +265,8 @@ export interface Insertion {
 export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
   const pattern = getPattern(formulaScope)
 
+  console.log(pattern)
+
   if (!pattern) {
     return []
   }
@@ -275,6 +278,8 @@ export function repeatFormula(graph: Graph, formulaScope: Scope): Insertion[] {
   const requiredType = fnParameters[anchorArgument.name as string]
 
   const insertions: Insertion[] = []
+
+  console.log(requiredType)
 
   rootScope.traverseScope<undefined>(
     (scope) => {
@@ -405,7 +410,7 @@ function getPattern(formulaScope: Scope): Pattern | undefined {
 
     // there are multiple ways to generalize patterns, right now we just have a single strategy for each relationship type
     if (parameter) {
-      switch (parameter.relationship) {
+      switch (OVERRIDE_INFERRED_RELATIONSHIP ? "parent" : parameter.relationship) {
         case "parent":
           // generalize to the closest parent relationship of that data type but allow other values in between
 

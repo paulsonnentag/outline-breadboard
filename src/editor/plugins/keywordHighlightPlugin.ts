@@ -29,7 +29,7 @@ function getHighlightDecorations(view: EditorView): DecorationSet {
 
     return Decoration.set([
       Decoration.mark({
-        class: "text-gray-500",
+        class: "font-medium text-gray-400",
       }).range(0, key.length),
     ])
   }

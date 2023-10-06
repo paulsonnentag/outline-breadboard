@@ -13,6 +13,11 @@ import { round } from "../../utils"
 import { FunctionDefs } from "./function-def"
 import { DataWithProvenance } from "../scopes"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
+import {
+  HARD_CODED_RESULT_FRIDAY,
+  HARD_CODED_RESULT_SATURDAY,
+  USE_HARD_CODED_RESULTS,
+} from "../../config"
 
 interface WeatherContext {
   locations: DataWithProvenance<google.maps.LatLngLiteral>[]
@@ -99,321 +104,10 @@ export interface WeatherInformation {
   max: number
   mean: number
   weatherCode?: number
+  precipitationProbability?: number
 }
 
 const OFFLINE = false
-
-const USE_HARD_CODED_RESULTS = false
-
-const HARD_CODED_RESULT_FRIDAY = {
-  min: 18,
-  max: 21,
-  //min: 16.5,
-  // max: 29.6,
-  mean: 23.7,
-  weatherCode: 3,
-  hourly: {
-    "00:00": {
-      temp: 23.4,
-      precipitation_probability: 0,
-      windspeed_10m: 7,
-      windgusts_10m: 18.4,
-    },
-    "01:00": {
-      temp: 23.2,
-      precipitation_probability: 0,
-      windspeed_10m: 5.5,
-      windgusts_10m: 17.3,
-    },
-    "02:00": {
-      temp: 23.1,
-      precipitation_probability: 0,
-      windspeed_10m: 4.9,
-      windgusts_10m: 16.2,
-    },
-    "03:00": {
-      temp: 23,
-      precipitation_probability: 0,
-      windspeed_10m: 5.2,
-      windgusts_10m: 18,
-    },
-    "04:00": {
-      temp: 23.1,
-      precipitation_probability: 0,
-      windspeed_10m: 7.1,
-      windgusts_10m: 19.8,
-    },
-    "05:00": {
-      temp: 22.9,
-      precipitation_probability: 0,
-      windspeed_10m: 9.4,
-      windgusts_10m: 21.6,
-    },
-    "06:00": {
-      temp: 22.1,
-      precipitation_probability: 0,
-      windspeed_10m: 11.9,
-      windgusts_10m: 28.8,
-    },
-    "07:00": {
-      temp: 21.1,
-      precipitation_probability: 0,
-      windspeed_10m: 14.8,
-      windgusts_10m: 35.6,
-    },
-    "08:00": {
-      temp: 20.6,
-      precipitation_probability: 0,
-      windspeed_10m: 16.2,
-      windgusts_10m: 42.8,
-    },
-    "09:00": {
-      temp: 20.9,
-      precipitation_probability: 0,
-      windspeed_10m: 16,
-      windgusts_10m: 40.3,
-    },
-    "10:00": {
-      temp: 21.6,
-      precipitation_probability: 0,
-      windspeed_10m: 14.9,
-      windgusts_10m: 38.2,
-    },
-    "11:00": {
-      temp: 22.5,
-      precipitation_probability: 10,
-      windspeed_10m: 15,
-      windgusts_10m: 35.6,
-    },
-    "12:00": {
-      temp: 23.6,
-      precipitation_probability: 20,
-      windspeed_10m: 16.6,
-      windgusts_10m: 39.2,
-    },
-    "13:00": {
-      temp: 24.8,
-      precipitation_probability: 23,
-      windspeed_10m: 18.3,
-      windgusts_10m: 42.5,
-    },
-    "14:00": {
-      temp: 25.4,
-      precipitation_probability: 25,
-      windspeed_10m: 19.4,
-      windgusts_10m: 46.1,
-    },
-    "15:00": {
-      temp: 24.9,
-      precipitation_probability: 30,
-      windspeed_10m: 19.2,
-      windgusts_10m: 47.9,
-    },
-    "16:00": {
-      temp: 23.8,
-      precipitation_probability: 40,
-      windspeed_10m: 19.3,
-      windgusts_10m: 0,
-    },
-    "17:00": {
-      temp: 23,
-      precipitation_probability: 39,
-      windspeed_10m: 18.8,
-      windgusts_10m: 0,
-    },
-    "18:00": {
-      temp: 29.4,
-      precipitation_probability: 27,
-      windspeed_10m: 9.1,
-      windgusts_10m: 23.8,
-    },
-    "19:00": {
-      temp: 29,
-      precipitation_probability: 28,
-      windspeed_10m: 8.2,
-      windgusts_10m: 21.6,
-    },
-    "20:00": {
-      temp: 28.3,
-      precipitation_probability: 29,
-      windspeed_10m: 7.4,
-      windgusts_10m: 19.4,
-    },
-    "21:00": {
-      temp: 26.9,
-      precipitation_probability: 30,
-      windspeed_10m: 7.4,
-      windgusts_10m: 19.4,
-    },
-    "22:00": {
-      temp: 25.3,
-      precipitation_probability: 31,
-      windspeed_10m: 7.9,
-      windgusts_10m: 19.4,
-    },
-    "23:00": {
-      temp: 24,
-      precipitation_probability: 32,
-      windspeed_10m: 7.7,
-      windgusts_10m: 19.4,
-    },
-  },
-}
-
-const HARD_CODED_RESULT_SATURDAY = {
-  min: 23,
-  max: 20,
-  //min: 16.5,
-  // max: 29.6,
-  mean: 23.7,
-  weatherCode: 80,
-  hourly: {
-    "00:00": {
-      temp: 23.4,
-      precipitation_probability: 0,
-      windspeed_10m: 7,
-      windgusts_10m: 18.4,
-    },
-    "01:00": {
-      temp: 23.2,
-      precipitation_probability: 0,
-      windspeed_10m: 5.5,
-      windgusts_10m: 17.3,
-    },
-    "02:00": {
-      temp: 23.1,
-      precipitation_probability: 0,
-      windspeed_10m: 4.9,
-      windgusts_10m: 16.2,
-    },
-    "03:00": {
-      temp: 23,
-      precipitation_probability: 0,
-      windspeed_10m: 5.2,
-      windgusts_10m: 18,
-    },
-    "04:00": {
-      temp: 23.1,
-      precipitation_probability: 0,
-      windspeed_10m: 7.1,
-      windgusts_10m: 19.8,
-    },
-    "05:00": {
-      temp: 22.9,
-      precipitation_probability: 0,
-      windspeed_10m: 9.4,
-      windgusts_10m: 21.6,
-    },
-    "06:00": {
-      temp: 22.1,
-      precipitation_probability: 0,
-      windspeed_10m: 11.9,
-      windgusts_10m: 28.8,
-    },
-    "07:00": {
-      temp: 21.1,
-      precipitation_probability: 0,
-      windspeed_10m: 14.8,
-      windgusts_10m: 35.6,
-    },
-    "08:00": {
-      temp: 20.6,
-      precipitation_probability: 0,
-      windspeed_10m: 16.2,
-      windgusts_10m: 42.8,
-    },
-    "09:00": {
-      temp: 20.9,
-      precipitation_probability: 0,
-      windspeed_10m: 16,
-      windgusts_10m: 40.3,
-    },
-    "10:00": {
-      temp: 21.6,
-      precipitation_probability: 0,
-      windspeed_10m: 14.9,
-      windgusts_10m: 38.2,
-    },
-    "11:00": {
-      temp: 22.5,
-      precipitation_probability: 10,
-      windspeed_10m: 15,
-      windgusts_10m: 35.6,
-    },
-    "12:00": {
-      temp: 23.6,
-      precipitation_probability: 20,
-      windspeed_10m: 16.6,
-      windgusts_10m: 39.2,
-    },
-    "13:00": {
-      temp: 24.8,
-      precipitation_probability: 23,
-      windspeed_10m: 18.3,
-      windgusts_10m: 42.5,
-    },
-    "14:00": {
-      temp: 25.4,
-      precipitation_probability: 25,
-      windspeed_10m: 19.4,
-      windgusts_10m: 46.1,
-    },
-    "15:00": {
-      temp: 24.9,
-      precipitation_probability: 30,
-      windspeed_10m: 19.2,
-      windgusts_10m: 47.9,
-    },
-    "16:00": {
-      temp: 23.8,
-      precipitation_probability: 40,
-      windspeed_10m: 19.3,
-      windgusts_10m: 0,
-    },
-    "17:00": {
-      temp: 23,
-      precipitation_probability: 39,
-      windspeed_10m: 18.8,
-      windgusts_10m: 0,
-    },
-    "18:00": {
-      temp: 29.4,
-      precipitation_probability: 27,
-      windspeed_10m: 9.1,
-      windgusts_10m: 23.8,
-    },
-    "19:00": {
-      temp: 29,
-      precipitation_probability: 28,
-      windspeed_10m: 8.2,
-      windgusts_10m: 21.6,
-    },
-    "20:00": {
-      temp: 28.3,
-      precipitation_probability: 29,
-      windspeed_10m: 7.4,
-      windgusts_10m: 19.4,
-    },
-    "21:00": {
-      temp: 26.9,
-      precipitation_probability: 30,
-      windspeed_10m: 7.4,
-      windgusts_10m: 19.4,
-    },
-    "22:00": {
-      temp: 25.3,
-      precipitation_probability: 31,
-      windspeed_10m: 7.9,
-      windgusts_10m: 19.4,
-    },
-    "23:00": {
-      temp: 24,
-      precipitation_probability: 32,
-      windspeed_10m: 7.7,
-      windgusts_10m: 19.4,
-    },
-  },
-}
 
 async function getWeatherInformation(
   date: Date,
@@ -430,9 +124,9 @@ async function getWeatherInformation(
 
   console.log(date.toString())
 
-  if (date.toString().startsWith("Sat Jul 15 2023") && USE_HARD_CODED_RESULTS) {
+  if (date.toString().startsWith("Sat Oct 07 2023") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_SATURDAY
-  } else if (date.toString().startsWith("Fri Jul 15 2023") && USE_HARD_CODED_RESULTS) {
+  } else if (date.toString().startsWith("Fri Oct 06 2023") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_FRIDAY
   }
 
@@ -518,7 +212,8 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
       "https://api.open-meteo.com/v1/forecast",
       `?latitude=${location.lat}`,
       `&longitude=${location.lng}`,
-      "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,weathercode&hourly=temperature_2m,windspeed_10m,windgusts_10m,precipitation_probability",
+      "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,weathercode,precipitation_probability_max",
+      "&hourly=weathercode,temperature_2m,windspeed_10m,windgusts_10m,precipitation_probability",
       "&forecast_days=16",
       `&timezone=${encodeURIComponent(currentTimezone)}`,
     ].join("")
@@ -532,6 +227,7 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
       max: rawForecast.daily.temperature_2m_max[index],
       mean: rawForecast.daily.temperature_2m_mean[index],
       weatherCode: rawForecast.daily.weathercode[index],
+      precipitationProbability: rawForecast.daily.precipitation_probability_max[index],
       hourly: rawForecast.hourly.time
         .slice(hourlyOffset, hourlyOffset + 42)
         .reduce((hourlyObj: any, hourlyTime: any, hourlyIndexWithoutOffset: any) => {
@@ -540,9 +236,10 @@ async function fetchForecast(location: google.maps.LatLngLiteral): Promise<any> 
 
           hourlyObj[hourlyTime.match(timePattern)?.[1] || hourlyTime] = {
             temp: rawForecast.hourly.temperature_2m[hourlyIndex],
-            precipitation_probability: rawForecast.hourly.precipitation_probability[hourlyIndex],
-            windspeed_10m: rawForecast.hourly.windspeed_10m[hourlyIndex],
-            windgusts_10m: rawForecast.hourly.windgusts_10m[hourlyIndex],
+            precipitationProbability: rawForecast.hourly.precipitation_probability[hourlyIndex],
+            windspeed10m: rawForecast.hourly.windspeed_10m[hourlyIndex],
+            windgusts10m: rawForecast.hourly.windgusts_10m[hourlyIndex],
+            weatherCode: rawForecast.hourly.weathercode[hourlyIndex],
           }
 
           return hourlyObj
@@ -633,7 +330,36 @@ export function getWeatherSummary(value: WeatherInformation): string {
     result.push(description)
   }
 
-  result.push(`${Math.round(value.min)}° / ${Math.round(value.max)}°`)
+  result.push(`${Math.round(value.min)}° · ${Math.round(value.max)}°`)
+
+  if (value.precipitationProbability && value.precipitationProbability >= 10) {
+    result.push(`🌧️ ${value.precipitationProbability} %`)
+  }
+
+  return result.join(" ")
+}
+
+export function getHourlyWeatherSummary(value: any): string {
+  const result: string[] = []
+
+  const weatherIcon = value.weatherCode ? getWeatherIcon(value.weatherCode) : "☀️"
+  if (weatherIcon) {
+    result.push(weatherIcon)
+  }
+
+  /*
+  const description = value.weatherCode
+    ? getWeatherDescription(value.weatherCode).toLowerCase()
+    : undefined
+  if (description) {
+    result.push(description)
+  }*/
+
+  result.push(`${Math.round(value.temp)}°`)
+
+  if (value.precipitationProbability && value.precipitationProbability >= 10) {
+    result.push(`🌧️ ${value.precipitationProbability} %`)
+  }
 
   return result.join(" ")
 }
@@ -701,7 +427,7 @@ function getWeatherDescription(code: number): string {
   }
 }
 
-function getWeatherIcon(code: number) {
+export function getWeatherIcon(code: number) {
   switch (code) {
     case 0: // clear sky
     case 1: // mainly clear

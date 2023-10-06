@@ -20,6 +20,7 @@ import { useStaticCallback } from "../hooks"
 import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView } from "../language/functions"
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
+import { SHOW_FUNCTION_SUGGESTIONS } from "../config"
 
 export interface OutlineEditorProps {
   scope: Scope
@@ -558,7 +559,7 @@ export function OutlineEditor({
               />
               <ComputationResultsSummaryView scope={scope} />
             </div>
-            {!disableCustomViews && isFocused && (
+            {!disableCustomViews && SHOW_FUNCTION_SUGGESTIONS && isFocused && (
               <NodeContextMenu
                 hideFunctionButtons={isMenuOpen}
                 computationSuggestionUpdated={() =>

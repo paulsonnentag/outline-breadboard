@@ -1,9 +1,9 @@
-import { DataWithProvenance } from "../language/scopes"
-import { DateContents, isSameDay } from "./CalendarGrid"
 import { Scope } from "../language/scopes"
+import { DateContents, isSameDay } from "./CalendarGrid"
 import { Time } from "../properties"
-import { safeJsonStringify } from "../utils"
 import ColorScale from "color-scales"
+import { SHOW_MOCK_DATA_IN_CALENDAR } from "../config"
+import { getHourlyWeatherSummary } from "../language/functions/weather"
 
 interface CalendarColsProps {
   dates: DateInfo[]
@@ -48,7 +48,7 @@ export default function CalendarBlocks({
     currentDate.setDate(currentDate.getDate() + 1)
   }
 
-  const hoursOfDay = Array.from({ length: 24 }, (_, i) => i)
+  const hoursOfDay = Array.from({ length: 24 }, (_, i) => i).slice(8)
 
   function otherDataFor(
     matchingDates: DateInfo[],
@@ -64,8 +64,6 @@ export default function CalendarBlocks({
               )
               .flatMap((v) => v.data)
               .flatMap((data) => {
-                console.log(data)
-
                 let results: { label: string; value: number }[] = []
 
                 // These should be defined by the user...
@@ -76,12 +74,10 @@ export default function CalendarBlocks({
                   results.push({ label: "High winds", value: 1 })
                 }*/
 
-                if (data.precipitation_probability > 10) {
-                  results.push({
-                    label: `Precipitation ${data.precipitation_probability}%`,
-                    value: data.precipitation_probability / 100,
-                  })
-                }
+                results.push({
+                  label: getHourlyWeatherSummary(data),
+                  value: 0,
+                })
 
                 if (data.temperature_2m <= 0) {
                   results.push({ label: "Freezing", value: 1 })
@@ -95,8 +91,18 @@ export default function CalendarBlocks({
     ]
   }
 
+  console.log(datesInRange)
+
   return (
-    <div className="overflow-scroll">
+    <div className="overflow-scroll relative">
+      {SHOW_MOCK_DATA_IN_CALENDAR && (
+        <div className="w-[100px] absolute top-[161px] left-[202px] bg-blue-50 border rounded border-blue-200 h-[360px] p-2">
+          Go to flea market near
+          <br />
+          <span className="text-blue-500 break-words">Frankenberger Park</span>
+        </div>
+      )}
+
       <table className="table-auto border-collapse border border-gray-300">
         <thead>
           <tr>
@@ -106,6 +112,7 @@ export default function CalendarBlocks({
                 key={index}
                 className="py-2 px-3 bg-gray-100 border border-gray-300"
                 style={{ minWidth: "140px" }}
+                colSpan={2}
               >
                 {date.toLocaleString("default", { weekday: "long", month: "long", day: "numeric" })}
 
@@ -136,29 +143,29 @@ export default function CalendarBlocks({
                 })
 
                 return (
-                  <td key={`${date}_${hour}`} className="border border-gray-300">
-                    <div className="flex gap-2">
+                  <td key={`${date}_${hour}`} className="border border-gray-300 w-[138px]">
+                    <div className="flex gap-2 px-2 py-1">
                       {otherDataFor(matchingDates, hour).map((entry) => (
-                        <p
-                          className="my-1 px-1 rounded-sm  text-blue-600 font-medium
-                        text-sm"
-                          style={{ background: colorScale.getColor(entry.value).toHexString() }}
-                        >
+                        <p className="px-1 rounded border text-purple-600 border-purple-200 cursor-pointer hover:bg-purple-200">
                           {entry.label}
                         </p>
                       ))}
                     </div>
 
-                    <DateRow
-                      key={date.toISOString()}
-                      scopes={matchingTimes}
-                      date={date}
-                      isHoveringOverId={isHoveringOverId}
-                      setIsHoveringOverId={setIsHoveringOverId}
-                    />
+                    {!SHOW_MOCK_DATA_IN_CALENDAR && (
+                      <DateRow
+                        key={date.toISOString()}
+                        scopes={matchingTimes}
+                        date={date}
+                        isHoveringOverId={isHoveringOverId}
+                        setIsHoveringOverId={setIsHoveringOverId}
+                      />
+                    )}
                   </td>
                 )
               })}
+
+              <td className="border border-gray-300 px-3 text-xs text-gray-400 w-[110px]"></td>
             </tr>
           ))}
         </tbody>

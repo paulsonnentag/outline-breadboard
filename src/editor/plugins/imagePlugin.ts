@@ -7,6 +7,7 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view"
+import { IMAGE_HEIGHT } from "../../config"
 
 class ImageWidget extends WidgetType {
   constructor(readonly url: string) {
@@ -21,7 +22,8 @@ class ImageWidget extends WidgetType {
     const container = document.createElement("span")
     const image = document.createElement("img")
     image.src = this.url
-    image.style.height = "200px"
+    image.className = "embedded-image"
+    image.style.height = IMAGE_HEIGHT
     image.style.width = "auto"
     container.append(image)
 

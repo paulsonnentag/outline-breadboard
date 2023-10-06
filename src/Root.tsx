@@ -37,12 +37,16 @@ import { PopoverOutlineView } from "./views/MapNodeView"
 import { useStaticCallback } from "./hooks"
 import { FnNode, InlineExprNode } from "./language/ast"
 import { FUNCTIONS } from "./language/functions"
+import {
+  DEFAULT_PANEL_WIDTH,
+  FIRST_PANEL_WIDTH,
+  FIXED_WIDTH_FIRST_PANEL_ENABLED,
+  SHOW_CLOSE_BUTTON,
+} from "./config"
 
 interface RootProps {
   profileDocId: DocumentId
 }
-
-const DEFAULT_WIDTH = 600
 
 // set in env.local to true to speed up page reloads during development, only the selected document will be loaded
 // @ts-ignore
@@ -411,7 +415,10 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
         const selectedSubPath =
           selectedPath && selectedPath[0] === index ? selectedPath.slice(1) : undefined
 
-        let width: number = doc.graph[rootId].paneWidth || DEFAULT_WIDTH
+        let width: number =
+          index === 0 && FIXED_WIDTH_FIRST_PANEL_ENABLED
+            ? FIRST_PANEL_WIDTH
+            : doc.graph[rootId].paneWidth || DEFAULT_PANEL_WIDTH
 
         return (
           <div key={index} className="flex">
@@ -419,7 +426,7 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
               className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md"
               style={{ width: `${width}px` }}
             >
-              {!isSettingsPath && (
+              {!isSettingsPath && SHOW_CLOSE_BUTTON && (
                 <div className="absolute top-1 right-1 z-50">
                   <IconButton icon="close" onClick={() => onCloseRootNodeAt(index)} />
                 </div>

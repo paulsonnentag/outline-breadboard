@@ -152,3 +152,8 @@
   padding-left: 2px;
 }
 
+/* hack to remove spacing below embedded image */
+.embedded-image {
+  margin-bottom: -23px;
+}
+

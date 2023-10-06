@@ -17,7 +17,7 @@ export const FUNCTIONS: FunctionDefs = {
   ...WEATHER_FN,
   ...SUNSET_FN,
   ...FLIGHT_STATUS_FN,
-  ...PARKING_SPOTS_FN
+  //...PARKING_SPOTS_FN
 }
 
 interface ComputationsSummaryViewProps {

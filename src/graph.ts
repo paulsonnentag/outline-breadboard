@@ -9,6 +9,7 @@ import { ALIAS_REGEX } from "./language"
 import { parseDate } from "./properties"
 import { addDays, isAfter, isBefore, isToday, isTomorrow, startOfToday } from "date-fns"
 import { getWeekdayName } from "./utils"
+import { ALWAYS_SHOW_WEEKDAY_NAMES, SHOW_RELATIVE_DAY_NAMES } from "./config"
 
 export interface GraphDoc {
   rootNodeIds: string[]
@@ -271,8 +272,6 @@ export function isNodeCollapsed(graph: Graph, nodeId: string): boolean {
   return graph[nodeId].isCollapsed
 }
 
-const SHOW_RELATIVE_DAY_NAMES = true
-
 export function getLabelOfNode(node: ValueNode): string {
   let aliasMatch = node.value.match(ALIAS_REGEX)
   if (aliasMatch) {
@@ -285,11 +284,14 @@ export function getLabelOfNode(node: ValueNode): string {
       return "Today"
     }
 
-    if (isTomorrow(date)) {
+    if (isTomorrow(date) && SHOW_RELATIVE_DAY_NAMES) {
       return "Tomorrow"
     }
 
-    if (isBefore(date, addDays(startOfToday(), 7)) && isAfter(date, startOfToday())) {
+    if (
+      (isBefore(date, addDays(startOfToday(), 7)) && isAfter(date, startOfToday())) ||
+      ALWAYS_SHOW_WEEKDAY_NAMES
+    ) {
       return getWeekdayName(date)
     }
   }

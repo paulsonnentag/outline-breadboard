@@ -42,7 +42,7 @@ export const formulaSemantics = grammar.createSemantics().addOperation("toAst", 
   nameRef: (name) => {
     const from = name.source.startIdx
     const to = name.source.endIdx
-    return new NameRefNode(from, to, name.sourceString)
+    return new NameRefNode(from, to, name.sourceString.trim())
   },
 
   StringLiteral: function (_q1, string, _q2) {

@@ -13,11 +13,7 @@ import { round } from "../../utils"
 import { FunctionDefs } from "./function-def"
 import { DataWithProvenance } from "../scopes"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
-import {
-  HARD_CODED_RESULT_FRIDAY,
-  HARD_CODED_RESULT_SATURDAY,
-  USE_HARD_CODED_RESULTS,
-} from "../../config"
+import { HARD_CODED_RESULT_SATURDAY, USE_HARD_CODED_RESULTS } from "../../config"
 
 interface WeatherContext {
   locations: DataWithProvenance<google.maps.LatLngLiteral>[]
@@ -126,9 +122,9 @@ async function getWeatherInformation(
 
   if (date.toString().startsWith("Sat Oct 07 2023") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_SATURDAY
-  } else if (date.toString().startsWith("Fri Oct 06 2023") && USE_HARD_CODED_RESULTS) {
+  } /* else if (date.toString().startsWith("Fri Oct 06 2023") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_FRIDAY
-  }
+  }*/
 
   const alignedDate = startOfDay(date)
   const currentDay = startOfDay(Date.now())

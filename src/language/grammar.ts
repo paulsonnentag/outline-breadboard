@@ -22,7 +22,7 @@ Node {
     = propertyChar+
 
   propertyChar
-    = alnum | "_"
+    = alnum | "_" | " "
 
   StringLiteral
     = "\\"" StringChar+ "\\""

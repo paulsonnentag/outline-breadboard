@@ -20,6 +20,7 @@ import { DataWithProvenance, Scope } from "../language/scopes"
 import { RootOutlineEditor } from "../Root"
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
 import LatLngLiteral = google.maps.LatLngLiteral
+import { INLINE_MAP_HEIGHT } from "../config"
 
 export interface Marker {
   color?: string
@@ -459,7 +460,7 @@ export function MapNodeView({
 
       mapsMarker.position = marker.data.position
       const isDefaultColor = marker.data.color === undefined
-      mapsMarker.zIndex = isHovering ? 10 : !isDefaultColor ? 10 : 0
+      mapsMarker.zIndex = isHovering || marker.data.icon ? 10 : !isDefaultColor ? 10 : 0
     }
   }
 
@@ -573,7 +574,7 @@ export function MapNodeView({
       className={
         fullpane
           ? "w-auto absolute left-0 right-0 bottom-0 top-16 min-h-[400px]"
-          : "w-auto h-[400px] border border-gray-200 relative"
+          : `w-auto ${INLINE_MAP_HEIGHT} border border-gray-200 relative`
       }
     >
       <div

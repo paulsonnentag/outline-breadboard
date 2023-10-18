@@ -8,6 +8,7 @@ import { parseDate, parseTime, Time } from "../properties"
 import CalendarCols from "./CalendarCols"
 import { Scope } from "../language/scopes"
 import CalendarBlocks from "./CalendarBlocks"
+import { SHOW_MOCK_DATA_IN_CALENDAR } from "../config"
 
 export function CalendarNodeView({
   node,
@@ -18,63 +19,71 @@ export function CalendarNodeView({
   const { graph } = useGraph()
   const [view, setView] = useState(2)
 
-  const bulletsWithDate: DataWithProvenance<DataWithProvenance<Date>>[] = scope.extractDataInScope((scope) => {  
-    return scope.getOwnPropertyAndPropertiesOfTransclusion<Date>("date", parseDate)
-  }, { skipTranscludedScopes: true})
+  const bulletsWithDate: DataWithProvenance<DataWithProvenance<Date>>[] = scope.extractDataInScope(
+    (scope) => {
+      return scope.getOwnPropertyAndPropertiesOfTransclusion<Date>("date", parseDate)
+    },
+    { skipTranscludedScopes: true }
+  )
 
   const dateScopesWithBullets: {
-    [date:string] : { 
-      date: Date, 
-      dateScope: Scope, 
-      scopes: Scope[],
+    [date: string]: {
+      date: Date
+      dateScope: Scope
+      scopes: Scope[]
       times: {
-        [time:string]: {
-          time: Time,
+        [time: string]: {
+          time: Time
           scopes: Scope[]
         }
       }
     }
-  } = {  }
+  } = {}
 
   bulletsWithDate.forEach((bulletWithDate) => {
-      const referencedDate = bulletWithDate.data.data
-      const key = referencedDate.toLocaleDateString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric'
-      });
+    const referencedDate = bulletWithDate.data.data
+    const key = referencedDate.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    })
 
-      let dateScope = dateScopesWithBullets[key]
+    let dateScope = dateScopesWithBullets[key]
 
-      if (!dateScope) {
-        dateScope = dateScopesWithBullets[key] = {
-          date: referencedDate, 
-          scopes: [], 
-          dateScope: bulletWithDate.data.scope,
-          times: {},
-        }
+    if (!dateScope) {
+      dateScope = dateScopesWithBullets[key] = {
+        date: referencedDate,
+        scopes: [],
+        dateScope: bulletWithDate.data.scope,
+        times: {},
       }
-      dateScope.scopes.push(bulletWithDate.scope)
+    }
+    dateScope.scopes.push(bulletWithDate.scope)
   })
 
-  const bulletsWithTime: DataWithProvenance<DataWithProvenance<Time>>[] = scope.extractDataInScope((scope) => {  
-    return scope.getOwnPropertyAndPropertiesOfTransclusion<Time>("time", parseTime)
-  }, { skipTranscludedScopes: true})
+  const bulletsWithTime: DataWithProvenance<DataWithProvenance<Time>>[] = scope.extractDataInScope(
+    (scope) => {
+      return scope.getOwnPropertyAndPropertiesOfTransclusion<Time>("time", parseTime)
+    },
+    { skipTranscludedScopes: true }
+  )
 
   for (const bullet of bulletsWithTime) {
     const time = bullet.data.data
-    const timeKey = `${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padEnd(2, '0')}`
+    const timeKey = `${time.hour.toString().padStart(2, "0")}:${time.minute
+      .toString()
+      .padEnd(2, "0")}`
 
     const dateStr = bullet.data.scope.lookupValue("date", true)
     const date = parseDate(dateStr)
 
     if (date) {
       let timeScope = dateScopesWithBullets[dateStr].times[timeKey]
-      
+
       if (!timeScope) {
         timeScope = dateScopesWithBullets[dateStr].times[timeKey] = {
           time,
-          scopes: []
+          scopes: [],
         }
       }
 
@@ -83,12 +92,18 @@ export function CalendarNodeView({
   }
 
   Object.values(dateScopesWithBullets).forEach((dateScopes) => {
-    dateScopes.scopes = [dateScopes.dateScope].concat(dateScopes.scopes.filter((scope) => dateScopes.scopes.every(otherScope => otherScope.id == scope.id || !scope.isInScope(otherScope.id))))
-  }) 
+    dateScopes.scopes = [dateScopes.dateScope].concat(
+      dateScopes.scopes.filter((scope) =>
+        dateScopes.scopes.every(
+          (otherScope) => otherScope.id == scope.id || !scope.isInScope(otherScope.id)
+        )
+      )
+    )
+  })
 
   return (
     <div>
-      <CalendarTabs view={view} setView={setView} />
+      {!SHOW_MOCK_DATA_IN_CALENDAR && <CalendarTabs view={view} setView={setView} />}
 
       {view === 0 && (
         <CalendarGrid

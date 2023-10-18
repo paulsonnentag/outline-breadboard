@@ -20,7 +20,7 @@ import { useStaticCallback } from "../hooks"
 import { Scope } from "../language/scopes"
 import { ComputationResultsSummaryView } from "../language/functions"
 import { createParkingSpotNode, isParkingSpotId } from "../language/functions/parkingSpots"
-import { SHOW_FUNCTION_SUGGESTIONS } from "../config"
+import { HIDE_VIEW_PROPERTY, SHOW_FUNCTION_SUGGESTIONS } from "../config"
 
 export interface OutlineEditorProps {
   scope: Scope
@@ -38,8 +38,6 @@ export interface OutlineEditorProps {
   disableCustomViews?: boolean
   showRootBullet?: boolean
 }
-
-const HIDE_VIEW_PROPERTY = false
 
 export function OutlineEditor({
   nodeId,

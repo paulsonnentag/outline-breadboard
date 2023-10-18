@@ -116,8 +116,10 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
       const unit = (await scope.lookupValueAsync("lengthUnit")) ?? "kilometers"
       const result = await getParkingSpots(position.lat, position.lng)
 
-      return result.filter((parkingSpot: ParkingSpot) => {
+      const filtered = result.filter((parkingSpot: ParkingSpot) => {
         return (
+          parkingSpot.position.lat &&
+          parkingSpot.position.lng &&
           turfDistance(
             turfPoint([position.lng, position.lat]),
             turfPoint([parkingSpot.position.lng, parkingSpot.position.lat]),
@@ -127,6 +129,7 @@ export const PARKING_SPOTS_FN: FunctionDefs = {
           ) <= maxDistance
         )
       })
+      return filtered
     },
   },
 }

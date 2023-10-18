@@ -41,6 +41,7 @@ import {
   DEFAULT_PANEL_WIDTH,
   FIRST_PANEL_WIDTH,
   FIXED_WIDTH_FIRST_PANEL_ENABLED,
+  LOG_NODE_ID_ON_HOVER,
   SHOW_CLOSE_BUTTON,
 } from "./config"
 
@@ -176,7 +177,7 @@ export function Root({ profileDocId }: RootProps) {
         onImport={onImport}
       />
 
-      <div className="p-4 bg-gray-50 flex w-full h-screen items-middle relative overflow-auto">
+      <div className="p-4 flex w-full h-screen items-middle relative overflow-auto">
         {selectedGraphId && (
           <PathViewer graphId={selectedGraphId} settingsGraphId={profile.settingsGraphId} />
         )}
@@ -334,10 +335,17 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
   const [settingsDoc] = useDocument<GraphDoc>(settingsGraphId)
   const [selectedPath, setSelectedPath] = useState<number[] | undefined>(undefined)
   const [focusOffset, setFocusOffset] = useState<number>(0)
-  const [isHoveringOverId, setIsHoveringOverId] = useState<string | undefined>(undefined)
+  const [isHoveringOverId, _setIsHoveringOverId] = useState<string | undefined>(undefined)
   const [initializedGraphId, setInitializedGraphId] = useState<DocumentId | undefined>()
   const [temporaryMapObjects, setTemporaryMapObjects] = useState<TemporaryMapObjects | undefined>()
   const isSettingsPath = settingsGraphId === graphId
+
+  function setIsHoveringOverId(id: string | undefined) {
+    if (LOG_NODE_ID_ON_HOVER) {
+      console.log("hover", id)
+    }
+    _setIsHoveringOverId(id)
+  }
 
   const graphContext: GraphContextProps | undefined = useMemo(
     () =>
@@ -423,7 +431,7 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
         return (
           <div key={index} className="flex">
             <div
-              className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md"
+              className="p-6 bg-white border border-gray-200 relative overflow-auto flex-none rounded-md shadow"
               style={{ width: `${width}px` }}
             >
               {!isSettingsPath && SHOW_CLOSE_BUTTON && (

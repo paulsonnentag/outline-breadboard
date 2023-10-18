@@ -1,4 +1,4 @@
-const IS_DEMO_MODE = true
+const IS_DEMO_MODE = false
 
 export const SHOW_RELATIVE_DAY_NAMES = !IS_DEMO_MODE
 export const ALWAYS_SHOW_WEEKDAY_NAMES = IS_DEMO_MODE
@@ -6,15 +6,36 @@ export const SHOW_CLOSE_BUTTON = true
 export const IMAGE_HEIGHT = IS_DEMO_MODE ? "100PX" : "200px"
 export const SHOW_FUNCTION_SUGGESTIONS = true
 export const OVERRIDE_INFERRED_RELATIONSHIP = IS_DEMO_MODE
+export const HIDE_VIEW_PROPERTY = IS_DEMO_MODE
+export const INLINE_MAP_HEIGHT = "h-[275px]"
+
+export const FLEA_MARKET_EXAMPLE_EVENT_NODE_ID = "9b5b7ca3-771a-4fc9-b38d-0905950e69a5"
+export const FLEA_MARKET_EXAMPLE_WEATHER_NODE_ID = "4d37334e-88df-4791-9436-bd97d75402fa"
+
+export const LOG_NODE_ID_ON_HOVER = true
 
 export const SHOW_MOCK_DATA_IN_CALENDAR = IS_DEMO_MODE
 
 export const DEFAULT_PANEL_WIDTH = 400
 
-export const FIXED_WIDTH_FIRST_PANEL_ENABLED = IS_DEMO_MODE
-export const FIRST_PANEL_WIDTH = 700
+export const FIXED_WIDTH_FIRST_PANEL_ENABLED = false // IS_DEMO_MODE
+export const FIRST_PANEL_WIDTH = 800
 
 export const USE_HARD_CODED_RESULTS = IS_DEMO_MODE
+
+export const HARD_CODED_RESULT_FRIDAY = {
+  min: 11,
+  max: 19,
+  weatherCode: 3,
+  hourly: {},
+}
+
+export const HARD_CODED_RESULT_SUNDAY = {
+  min: 12,
+  max: 21,
+  weatherCode: 0,
+  hourly: {},
+}
 
 export const HARD_CODED_RESULT_SATURDAY = {
   min: 12,

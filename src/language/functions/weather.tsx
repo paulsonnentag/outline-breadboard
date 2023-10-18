@@ -13,7 +13,12 @@ import { round } from "../../utils"
 import { FunctionDefs } from "./function-def"
 import { DataWithProvenance } from "../scopes"
 import { FunctionSuggestion, Parameter } from "../function-suggestions"
-import { HARD_CODED_RESULT_SATURDAY, USE_HARD_CODED_RESULTS } from "../../config"
+import {
+  HARD_CODED_RESULT_FRIDAY,
+  HARD_CODED_RESULT_SATURDAY,
+  HARD_CODED_RESULT_SUNDAY,
+  USE_HARD_CODED_RESULTS,
+} from "../../config"
 
 interface WeatherContext {
   locations: DataWithProvenance<google.maps.LatLngLiteral>[]
@@ -120,8 +125,13 @@ async function getWeatherInformation(
 
   console.log(date.toString())
 
-  if (date.toString().startsWith("Sat Oct 07 2023") && USE_HARD_CODED_RESULTS) {
+  if (date.toString().includes("Fri") && USE_HARD_CODED_RESULTS) {
+    return HARD_CODED_RESULT_FRIDAY
+  } else if (date.toString().includes("Sat") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_SATURDAY
+  }
+  if (date.toString().includes("Sun") && USE_HARD_CODED_RESULTS) {
+    return HARD_CODED_RESULT_SUNDAY
   } /* else if (date.toString().startsWith("Fri Oct 06 2023") && USE_HARD_CODED_RESULTS) {
     return HARD_CODED_RESULT_FRIDAY
   }*/

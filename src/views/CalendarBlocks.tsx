@@ -2,8 +2,13 @@ import { Scope } from "../language/scopes"
 import { DateContents, isSameDay } from "./CalendarGrid"
 import { Time } from "../properties"
 import ColorScale from "color-scales"
-import { SHOW_MOCK_DATA_IN_CALENDAR } from "../config"
+import {
+  FLEA_MARKET_EXAMPLE_EVENT_NODE_ID,
+  FLEA_MARKET_EXAMPLE_WEATHER_NODE_ID,
+  SHOW_MOCK_DATA_IN_CALENDAR,
+} from "../config"
 import { getHourlyWeatherSummary } from "../language/functions/weather"
+import classNames from "classnames"
 
 interface CalendarColsProps {
   dates: DateInfo[]
@@ -91,12 +96,19 @@ export default function CalendarBlocks({
     ]
   }
 
-  console.log(datesInRange)
-
   return (
     <div className="overflow-scroll relative">
       {SHOW_MOCK_DATA_IN_CALENDAR && (
-        <div className="w-[100px] absolute top-[161px] left-[202px] bg-blue-50 border rounded border-blue-200 h-[360px] p-2">
+        <div
+          onMouseOver={() => setIsHoveringOverId(FLEA_MARKET_EXAMPLE_EVENT_NODE_ID)}
+          onMouseLeave={() => setIsHoveringOverId(undefined)}
+          className={classNames(
+            "w-[100px] absolute top-[161px] left-[202px] bg-blue-50 border rounded border-blue-200 h-[360px] p-2",
+            {
+              "bg-blue-200": isHoveringOverId === FLEA_MARKET_EXAMPLE_EVENT_NODE_ID,
+            }
+          )}
+        >
           Go to flea market near
           <br />
           <span className="text-blue-500 break-words">Frankenberger Park</span>
@@ -146,7 +158,19 @@ export default function CalendarBlocks({
                   <td key={`${date}_${hour}`} className="border border-gray-300 w-[138px]">
                     <div className="flex gap-2 px-2 py-1">
                       {otherDataFor(matchingDates, hour).map((entry) => (
-                        <p className="px-1 rounded border text-purple-600 border-purple-200 cursor-pointer hover:bg-purple-200">
+                        <p
+                          className={classNames(
+                            "px-1 rounded border text-purple-600 border-purple-200 cursor-pointer hover:bg-purple-200",
+                            {
+                              "bg-purple-200":
+                                isHoveringOverId === FLEA_MARKET_EXAMPLE_WEATHER_NODE_ID,
+                            }
+                          )}
+                          onMouseOver={() =>
+                            setIsHoveringOverId(FLEA_MARKET_EXAMPLE_WEATHER_NODE_ID)
+                          }
+                          onMouseLeave={() => setIsHoveringOverId(undefined)}
+                        >
                           {entry.label}
                         </p>
                       ))}

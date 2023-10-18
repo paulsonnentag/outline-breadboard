@@ -99,7 +99,7 @@ export function formatDuration(durationInMs: number) {
     return `${hours} h${minutes !== 0 ? ` ${minutes}` : ""}`
   }
 
-  return `${minutes} m`
+  return `${minutes} min`
 }
 
 export function formatDistance(distanceInKm: number, distanceUnit: string) {

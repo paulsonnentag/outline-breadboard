@@ -19,6 +19,7 @@ import {
   HARD_CODED_RESULT_SUNDAY,
   USE_HARD_CODED_RESULTS,
 } from "../../config"
+import { DragEvent } from "react"
 
 interface WeatherContext {
   locations: DataWithProvenance<google.maps.LatLngLiteral>[]
@@ -73,6 +74,71 @@ export const WEATHER_FN: FunctionDefs = {
         },
       ],
     },
+    expandedView: (weather, color) => {
+      if (!weather) {
+        return null
+      }
+
+      return (
+        <div className={`bg-${color}-200 text-${color}-600 rounded p-1 overflow-auto`}>
+          <div className="w-[300px] p-2 flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <div className="bullet flex-shrink-0 computed"></div>
+              <b>min:</b> {weather.min}°
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="bullet flex-shrink-0 computed"></div>
+              <b>max:</b> {weather.max}°
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="bullet flex-shrink-0 computed"></div>
+              <b>precipitationProbability:</b> {weather.precipitationProbability}%
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="bullet flex-shrink-0 computed"></div>
+              <b>emoji:</b> {getWeatherIcon(weather.weatherCode)}
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="bullet flex-shrink-0 computed"></div>
+              <b>description</b>: {getWeatherDescription(weather.weatherCode)}
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="bullet flex-shrink-0 computed"></div>
+              <b>hourly</b>:
+            </div>
+            <div className="flex flex-col gap-1 ml-3">
+              {Object.entries(weather.hourly).map(([time, data]) => (
+                <div>
+                  <div className="flex items-center gap-1">
+                    <div className="bullet flex-shrink-0 computed"></div>
+                    <b>"{time}"</b>:
+                  </div>
+                  <div className="flex flex-col gap-1 ml-3">
+                    <div className="flex items-center gap-1">
+                      <div className="bullet flex-shrink-0 computed"></div>
+                      <b>temp:</b> {data.temp}°
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="bullet flex-shrink-0 computed"></div>
+                      <b>precipitationProbability:</b> {data.precipitationProbability}%
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="bullet flex-shrink-0 computed"></div>
+                      <b>emoji:</b> {getWeatherIcon(data.weatherCode)}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="bullet flex-shrink-0 computed"></div>
+                      <b>description</b>: {getWeatherDescription(data.weatherCode)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    },
+
     parameters: {
       in: "location",
       on: "date",

@@ -81,7 +81,7 @@ export const WEATHER_FN: FunctionDefs = {
 
       return (
         <div className={`bg-${color}-200 text-${color}-600 rounded p-1 overflow-auto`}>
-          <div className="w-[300px] p-2 flex flex-col gap-1">
+          <div className="w-[300px] p-2 flex flex-col gap-1" style={{ fontSize: "20px" }}>
             <div className="flex items-center gap-1">
               <div className="bullet flex-shrink-0 computed"></div>
               <b>min:</b> {weather.min}°
@@ -92,7 +92,7 @@ export const WEATHER_FN: FunctionDefs = {
             </div>
             <div className="flex items-center gap-1">
               <div className="bullet flex-shrink-0 computed"></div>
-              <b>precipitationProbability:</b> {weather.precipitationProbability}%
+              <b>precipitation:</b> {weather.precipitationProbability ?? 0}%
             </div>
             <div className="flex items-center gap-1">
               <div className="bullet flex-shrink-0 computed"></div>
@@ -120,7 +120,7 @@ export const WEATHER_FN: FunctionDefs = {
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="bullet flex-shrink-0 computed"></div>
-                      <b>precipitationProbability:</b> {data.precipitationProbability}%
+                      <b>precipitation:</b> {data.precipitationProbability}%
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="bullet flex-shrink-0 computed"></div>
@@ -479,7 +479,7 @@ function getWeatherDescription(code: number): string {
     case 77:
       return "Snow grains"
     case 80:
-      return "Slight rain showers"
+      return "Slight rain"
     case 81:
       return "Moderate rain showers"
     case 82:

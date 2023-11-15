@@ -474,7 +474,7 @@ export function OutlineEditor({
         <>
           <div
             className={classNames(
-              "flex items-start w-full",
+              "flex items-start w-full justify-center",
               isRoot ? "mt-[6px]" : "mt-[1px] ml-[-10px]",
               {
                 "opacity-50": node.isTemporary,

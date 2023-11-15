@@ -381,6 +381,12 @@ export function MapNodeView({
       const markerContent = mapsMarker.content as HTMLDivElement
 
       if (icon) {
+        let pin = mapsMarker.__pin
+        if (pin) {
+          delete mapsMarker.__pin
+          mapsMarker.content = document.createElement("div")
+        }
+
         markerContent.innerHTML = `${icon}&#xFE0F;` // control character to force rendering char as emoji
         markerContent.style.textShadow = "0 0 2px black"
 
@@ -391,20 +397,29 @@ export function MapNodeView({
         }
 
         markerContent.style.backgroundColor = "transparent"
+        markerContent.style.transform = `translate(0, 10px)`
       } else {
+        let pin = mapsMarker.__pin
+        if (!pin) {
+          pin = mapsMarker.__pin = new google.maps.marker.PinElement({})
+          mapsMarker.content = mapsMarker.__pin.element
+        }
+
+        /*
         markerContent.innerHTML = ""
         markerContent.className = "w-[20px] h-[20px] rounded-full cursor-pointer border"
+*/
 
         if (isHovering) {
-          markerContent.style.backgroundColor = colorPalette[500]
-          markerContent.style.borderColor = colorPalette[600]
+          pin.background = colorPalette[500]
+          pin.borderColor = colorPalette[600]
+          pin.glyphColor = colorPalette[600]
         } else {
-          markerContent.style.backgroundColor = colorPalette[400]
-          markerContent.style.borderColor = colorPalette[500]
+          pin.background = colorPalette[400]
+          pin.borderColor = colorPalette[500]
+          pin.glyphColor = colorPalette[500]
         }
       }
-
-      markerContent.style.transform = `translate(0, 10px)`
 
       // new version of google maps, but types haven't been updates
       ;(mapsMarker as any).__onclick = async () => {

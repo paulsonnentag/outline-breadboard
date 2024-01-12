@@ -341,9 +341,6 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
   const isSettingsPath = settingsGraphId === graphId
 
   function setIsHoveringOverId(id: string | undefined) {
-    if (LOG_NODE_ID_ON_HOVER) {
-      console.log("hover", id)
-    }
     _setIsHoveringOverId(id)
   }
 

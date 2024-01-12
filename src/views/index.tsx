@@ -8,7 +8,7 @@ import classNames from "classnames"
 
 export const ViewDefinitions = [
   { id: "map", title: "Map", icon: "map" },
-  { id: "table", title: "Table", icon: "table_chart" },
+  //  { id: "table", title: "Table", icon: "table_chart" },
   { id: "calendar", title: "Calendar", icon: "calendar_month" },
 ]
 

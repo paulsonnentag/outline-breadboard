@@ -66,6 +66,7 @@ interface TextInputProps {
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
   onChangeIsMenuOpen: (isMenuOpen: boolean) => void
+  isReadOnly: boolean
 }
 
 interface AutocompleteMenu {
@@ -111,6 +112,7 @@ export function TextInput({
   isHoveringOverId,
   setIsHoveringOverId,
   onChangeIsMenuOpen,
+  isReadOnly = false,
 }: TextInputProps) {
   const onOpenPopOver = useOpenPopOver()
   const graphContext = useGraph()
@@ -160,6 +162,7 @@ export function TextInput({
         imagePlugin,
         cursorTooltipField,
         keywordHighlightPlugin,
+        EditorView.editable.of(!isReadOnly),
       ],
       parent: containerRef.current,
       dispatch(transaction) {
@@ -555,7 +558,12 @@ export function TextInput({
       }}
       onDragLeaveCapture={(evt) => evt.stopPropagation()}
     >
-      <div ref={containerRef} onKeyDownCapture={onKeyDown} onFocus={onFocus} onBlur={_onBlur}></div>
+      <div
+        ref={containerRef}
+        onKeyDownCapture={!isReadOnly ? onKeyDown : undefined}
+        onFocus={!isReadOnly ? onFocus : undefined}
+        onBlur={!isReadOnly ? _onBlur : undefined}
+      ></div>
 
       {isMenuOpen && search !== undefined && (
         <SuggestionMenu

@@ -16,7 +16,7 @@ export const LOG_NODE_ID_ON_HOVER = true
 
 export const SHOW_MOCK_DATA_IN_CALENDAR = IS_DEMO_MODE
 
-export const DEFAULT_PANEL_WIDTH = 400
+export const DEFAULT_PANEL_WIDTH = 800
 
 export const FIXED_WIDTH_FIRST_PANEL_ENABLED = false // IS_DEMO_MODE
 export const FIRST_PANEL_WIDTH = 800

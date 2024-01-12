@@ -103,15 +103,8 @@ export function CalendarNodeView({
 
   return (
     <div>
-      {!SHOW_MOCK_DATA_IN_CALENDAR && <CalendarTabs view={view} setView={setView} />}
+      <CalendarTabs view={view} setView={setView} />
 
-      {view === 0 && (
-        <CalendarGrid
-          dates={Object.values(dateScopesWithBullets)}
-          isHoveringOverId={isHoveringOverId}
-          setIsHoveringOverId={setIsHoveringOverId}
-        />
-      )}
       {view === 1 && (
         <CalendarList
           dates={Object.values(dateScopesWithBullets)}
@@ -146,20 +139,22 @@ function CalendarTabs({ view, setView }: CalendarTabsProps) {
   return (
     <div className="border-b border-gray-200">
       <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
-        <li className="mr-2">
-          <a
-            href="#"
-            className={`inline-flex items-center p-4 border-b-2 group ${
-              view === 0 ? "border-blue-600 text-blue-600" : "border-transparent"
-            }`}
-            onClick={() => setView(0)}
-          >
-            <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>
-              calendar_view_month
-            </span>{" "}
-            Grid
-          </a>
-        </li>
+        {false && (
+          <li className="mr-2">
+            <a
+              href="#"
+              className={`inline-flex items-center p-4 border-b-2 group ${
+                view === 0 ? "border-blue-600 text-blue-600" : "border-transparent"
+              }`}
+              onClick={() => setView(0)}
+            >
+              <span className="material-icons-outlined mr-1" style={{ fontSize: "16px" }}>
+                calendar_view_month
+              </span>{" "}
+              Grid
+            </a>
+          </li>
+        )}
         <li className="mr-2">
           <a
             href="#"

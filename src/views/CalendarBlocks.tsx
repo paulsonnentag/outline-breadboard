@@ -71,13 +71,11 @@ export default function CalendarBlocks({
               .flatMap((data) => {
                 let results: { label: string; value: number }[] = []
 
-                // These should be defined by the user...
-                /*
                 if (data.windgusts_10m > 40) {
                   results.push({ label: "High winds", value: 1 })
                 } else if (data.windspeed_10m > 20) {
                   results.push({ label: "High winds", value: 1 })
-                }*/
+                }
 
                 results.push({
                   label: getHourlyWeatherSummary(data),
@@ -98,23 +96,6 @@ export default function CalendarBlocks({
 
   return (
     <div className="overflow-scroll relative">
-      {SHOW_MOCK_DATA_IN_CALENDAR && (
-        <div
-          onMouseOver={() => setIsHoveringOverId(FLEA_MARKET_EXAMPLE_EVENT_NODE_ID)}
-          onMouseLeave={() => setIsHoveringOverId(undefined)}
-          className={classNames(
-            "w-[100px] absolute top-[161px] left-[202px] bg-blue-50 border rounded border-blue-200 h-[360px] p-2",
-            {
-              "bg-blue-200": isHoveringOverId === FLEA_MARKET_EXAMPLE_EVENT_NODE_ID,
-            }
-          )}
-        >
-          Go to flea market near
-          <br />
-          <span className="text-blue-500 break-words">Frankenberger Park</span>
-        </div>
-      )}
-
       <table className="table-auto border-collapse border border-gray-300">
         <thead>
           <tr>
@@ -124,7 +105,6 @@ export default function CalendarBlocks({
                 key={index}
                 className="py-2 px-3 bg-gray-100 border border-gray-300"
                 style={{ minWidth: "140px" }}
-                colSpan={2}
               >
                 {date.toLocaleString("default", { weekday: "long", month: "long", day: "numeric" })}
 
@@ -155,41 +135,33 @@ export default function CalendarBlocks({
                 })
 
                 return (
-                  <td key={`${date}_${hour}`} className="border border-gray-300 w-[138px]">
-                    <div className="flex gap-2 px-2 py-1">
+                  <td key={`${date}_${hour}`} className="border border-gray-300">
+                    <div className="flex gap-2 px-2 py-1 flex-wrap">
                       {otherDataFor(matchingDates, hour).map((entry) => (
                         <p
                           className={classNames(
-                            "px-1 rounded border text-purple-600 border-purple-200 cursor-pointer hover:bg-purple-200",
+                            "px-1 rounded border text-purple-600 border-purple-200 cursor-pointer hover:bg-purple-200 whitespace-nowrap",
                             {
                               "bg-purple-200":
                                 isHoveringOverId === FLEA_MARKET_EXAMPLE_WEATHER_NODE_ID,
                             }
                           )}
-                          onMouseOver={() =>
-                            setIsHoveringOverId(FLEA_MARKET_EXAMPLE_WEATHER_NODE_ID)
-                          }
-                          onMouseLeave={() => setIsHoveringOverId(undefined)}
                         >
                           {entry.label}
                         </p>
                       ))}
                     </div>
 
-                    {!SHOW_MOCK_DATA_IN_CALENDAR && (
-                      <DateRow
-                        key={date.toISOString()}
-                        scopes={matchingTimes}
-                        date={date}
-                        isHoveringOverId={isHoveringOverId}
-                        setIsHoveringOverId={setIsHoveringOverId}
-                      />
-                    )}
+                    <DateRow
+                      key={date.toISOString()}
+                      scopes={matchingTimes}
+                      date={date}
+                      isHoveringOverId={isHoveringOverId}
+                      setIsHoveringOverId={setIsHoveringOverId}
+                    />
                   </td>
                 )
               })}
-
-              <td className="border border-gray-300 px-3 text-xs text-gray-400 w-[110px]"></td>
             </tr>
           ))}
         </tbody>

@@ -37,6 +37,7 @@ export interface OutlineEditorProps {
   setIsHoveringOverId: (nodeId: string | undefined) => void
   disableCustomViews?: boolean
   showRootBullet?: boolean
+  isReadOnly?: boolean
 }
 
 export function OutlineEditor({
@@ -54,6 +55,7 @@ export function OutlineEditor({
   setIsHoveringOverId,
   disableCustomViews = false,
   showRootBullet = false,
+  isReadOnly = false,
 }: OutlineEditorProps) {
   const { graph, changeGraph } = useGraph()
   const [isBeingDragged, setIsBeingDragged] = useState(false)
@@ -535,6 +537,7 @@ export function OutlineEditor({
               onMouseLeave={() => isHoveringOverId == node.id && setIsHoveringOverId(undefined)}
             >
               <TextInput
+                isReadOnly={isReadOnly}
                 parentIds={parentIds}
                 isRoot={isRoot}
                 nodeId={node.id}
@@ -610,6 +613,7 @@ export function OutlineEditor({
               {scope.childScopes.map((childScope, index) =>
                 scope && (!childScope.source.startsWith("view:") || !HIDE_VIEW_PROPERTY) ? (
                   <OutlineEditor
+                    isReadOnly={isReadOnly}
                     scope={childScope}
                     isParentDragged={isBeingDragged}
                     key={index}

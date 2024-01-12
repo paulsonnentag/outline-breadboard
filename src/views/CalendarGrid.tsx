@@ -6,7 +6,7 @@ import { ComputationResultsSummaryView } from "../language/functions"
 import { WeatherInfoView } from "../language/functions/weather"
 
 interface CalendarGridProps {
-  dates: { date: Date, scopes: Scope[] }[]
+  dates: { date: Date; scopes: Scope[] }[]
   isHoveringOverId: string | undefined
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
@@ -53,7 +53,9 @@ export default function CalendarGrid({
                 <DateCell
                   key={j}
                   date={date}
-                  scopes={dates.filter((d) => d.date.getTime() === date.getTime()).flatMap(d => d.scopes)}
+                  scopes={dates
+                    .filter((d) => d.date.getTime() === date.getTime())
+                    .flatMap((d) => d.scopes)}
                   showMonth={(i == 0 && j == 0) || date.getDate() === 1}
                   isHoveringOverId={isHoveringOverId}
                   setIsHoveringOverId={setIsHoveringOverId}
@@ -75,7 +77,13 @@ interface DateCellProps {
   setIsHoveringOverId: (nodeId: string | undefined) => void
 }
 
-function DateCell({ date, scopes, showMonth, isHoveringOverId, setIsHoveringOverId }: DateCellProps) {
+function DateCell({
+  date,
+  scopes,
+  showMonth,
+  isHoveringOverId,
+  setIsHoveringOverId,
+}: DateCellProps) {
   const isToday = isSameDay(date, new Date())
   const monthName = showMonth ? date.toLocaleString("default", { month: "long" }) : null
 
@@ -110,14 +118,25 @@ interface DateContentsProps {
   isHoveringOverId: string | undefined
 }
 
-export function DateContents({ scopes, summary, setIsHoveringOverId, isHoveringOverId }: DateContentsProps) {
-  return (<>
-    {scopes.map(scope => 
-      <div key={scope.id}>
-        <DateContentsBlock scope={scope} summary={summary} setIsHoveringOverId={setIsHoveringOverId} isHoveringOverId={isHoveringOverId} />
-      </div>
-    )}
-  </>
+export function DateContents({
+  scopes,
+  summary,
+  setIsHoveringOverId,
+  isHoveringOverId,
+}: DateContentsProps) {
+  return (
+    <>
+      {scopes.map((scope) => (
+        <div key={scope.id}>
+          <DateContentsBlock
+            scope={scope}
+            summary={summary}
+            setIsHoveringOverId={setIsHoveringOverId}
+            isHoveringOverId={isHoveringOverId}
+          />
+        </div>
+      ))}
+    </>
   )
 }
 
@@ -133,33 +152,35 @@ function DateContentsBlock(props: DateContentsBlockProps) {
 
   return (
     <div
-      className={classNames("text-sm text-gray-600", { "bg-slate-200 rounded": isHoveringOverId && scope.isInScope(isHoveringOverId) })}
+      className={classNames("text-sm text-gray-600", {
+        "bg-slate-200 rounded": isHoveringOverId && scope.isInScope(isHoveringOverId),
+      })}
       onMouseEnter={() => setIsHoveringOverId(scope.id)}
       onMouseLeave={() => isHoveringOverId === scope.id && setIsHoveringOverId(undefined)}
     >
-      {summary && <>
-        {/* {`${scope.valueOf()}`} */}
-        {/* <SummaryView scope={scope} /> */}
-        <DateSummary {...props} />
-      </>
-      }
-      {!summary && 
+      {summary && (
+        <>
+          {/* {`${scope.valueOf()}`} */}
+          {/* <SummaryView scope={scope} /> */}
+          <DateSummary {...props} />
+        </>
+      )}
+      {!summary && (
         <RootOutlineEditor
+          isReadOnly={true}
           focusOffset={0}
           nodeId={scope.id}
           index={0}
           path={[]}
           parentIds={[]}
           selectedPath={[]}
-          onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {
-            
-          }}
-          onOpenNodeInNewPane={node => {}}
+          onChangeSelectedPath={(newSelectedPath, newFocusOffset = 0) => {}}
+          onOpenNodeInNewPane={(node) => {}}
           isHoveringOverId={undefined}
           setIsHoveringOverId={() => {}}
           disableCustomViews={true}
         />
-      }
+      )}
     </div>
   )
 }
@@ -167,9 +188,7 @@ function DateContentsBlock(props: DateContentsBlockProps) {
 function DateSummary(props: DateContentsBlockProps) {
   const { scope, summary, setIsHoveringOverId, isHoveringOverId } = props
 
-  return (
-    <ScopeSummary {...props} />
-  )
+  return <ScopeSummary {...props} />
 }
 
 interface ScopeSummaryProps {
@@ -180,17 +199,19 @@ interface ScopeSummaryProps {
 
 function ScopeSummary(props: ScopeSummaryProps) {
   let value = props.scope.valueOf()
-  
+
   return (
     <div>
-      {value && value.min && value.max && value.weatherCode && <>
-        {/* This is hard-coded, but should be made abstract */}
-        <WeatherInfoView value={value} />
-      </>}
-
-      {props.scope.childScopes.map(scope => 
-        <ScopeSummary {...props} scope={scope} key={scope.id} />
+      {value && value.min && value.max && value.weatherCode && (
+        <>
+          {/* This is hard-coded, but should be made abstract */}
+          <WeatherInfoView value={value} />
+        </>
       )}
+
+      {props.scope.childScopes.map((scope) => (
+        <ScopeSummary {...props} scope={scope} key={scope.id} />
+      ))}
     </div>
   )
 }

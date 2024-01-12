@@ -381,8 +381,10 @@ export function MapNodeView({
       const markerContent = mapsMarker.content as HTMLDivElement
 
       if (icon) {
+        // @ts-ignore
         let pin = mapsMarker.__pin
         if (pin) {
+          // @ts-ignore
           delete mapsMarker.__pin
           mapsMarker.content = document.createElement("div")
         }
@@ -399,9 +401,11 @@ export function MapNodeView({
         markerContent.style.backgroundColor = "transparent"
         markerContent.style.transform = `translate(0, 10px)`
       } else {
-        let pin = mapsMarker.__pin
+        let pin = (mapsMarker as any).__pin
         if (!pin) {
-          pin = mapsMarker.__pin = new google.maps.marker.PinElement({})
+          // @ts-ignore
+          pin = (mapsMarker as any).__pin = new google.maps.marker.PinElement({})
+          // @ts-ignore
           mapsMarker.content = mapsMarker.__pin.element
         }
 

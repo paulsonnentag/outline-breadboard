@@ -116,19 +116,19 @@ export const WEATHER_FN: FunctionDefs = {
                   <div className="flex flex-col gap-1 ml-3">
                     <div className="flex items-center gap-1">
                       <div className="bullet flex-shrink-0 computed"></div>
-                      <b>temp:</b> {data.temp}°
+                      <b>temp:</b> {(data as any).temp}°
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="bullet flex-shrink-0 computed"></div>
-                      <b>precipitation:</b> {data.precipitationProbability}%
+                      <b>precipitation:</b> {(data as any).precipitationProbability}%
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="bullet flex-shrink-0 computed"></div>
-                      <b>emoji:</b> {getWeatherIcon(data.weatherCode)}
+                      <b>emoji:</b> {getWeatherIcon((data as any).weatherCode)}
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="bullet flex-shrink-0 computed"></div>
-                      <b>description</b>: {getWeatherDescription(data.weatherCode)}
+                      <b>description</b>: {getWeatherDescription((data as any).weatherCode)}
                     </div>
                   </div>
                 </div>
@@ -188,19 +188,6 @@ async function getWeatherInformation(
       }, 1000)
     })
   }
-
-  console.log(date.toString())
-
-  if (date.toString().includes("Fri") && USE_HARD_CODED_RESULTS) {
-    return HARD_CODED_RESULT_FRIDAY
-  } else if (date.toString().includes("Sat") && USE_HARD_CODED_RESULTS) {
-    return HARD_CODED_RESULT_SATURDAY
-  }
-  if (date.toString().includes("Sun") && USE_HARD_CODED_RESULTS) {
-    return HARD_CODED_RESULT_SUNDAY
-  } /* else if (date.toString().startsWith("Fri Oct 06 2023") && USE_HARD_CODED_RESULTS) {
-    return HARD_CODED_RESULT_FRIDAY
-  }*/
 
   const alignedDate = startOfDay(date)
   const currentDay = startOfDay(Date.now())

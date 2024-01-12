@@ -8,5 +8,4 @@ export const EXAMPLES: GraphDoc[] = [
   functionOverview as GraphDoc,
   seattle36Hours as GraphDoc,
   polesOfInconvenience as GraphDoc,
-  detailPlanPoi16 as GraphDoc,
 ]

@@ -163,11 +163,12 @@ const getParkingSpots = async (lat: number, lng: number): Promise<ParkingSpot[]>
   }
 
   const result = fetch(
-    `https://api.val.town/v1/eval/@${encodeURIComponent(
-      `paulsun.parkingSpots(${lat}, ${lng}, ${RADIUS_IN_KM})`
+    `https://api.allorigins.win/get?url=${encodeURIComponent(
+      `https://park4night.com/api/places/around?lat=${lat}&lng=${lng}&radius=${5}&filter=%7B%7D&lang=en`
     )}`
   )
     .then((response) => response.json())
+    .then((data) => JSON.parse(data.contents))
     .then((spots) => {
       return Promise.all(
         spots

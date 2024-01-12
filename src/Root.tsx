@@ -51,7 +51,7 @@ interface RootProps {
 
 // set in env.local to true to speed up page reloads during development, only the selected document will be loaded
 // @ts-ignore
-const LOAD_SINGLE_DOC = __APP_ENV__.LOAD_SINGLE_DOC || false
+const LOAD_SINGLE_DOC = false
 
 export function Root({ profileDocId }: RootProps) {
   const repo = useRepo()

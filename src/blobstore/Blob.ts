@@ -77,7 +77,7 @@ async function loadBinaryData(
     const { id: documentId } = parseBinaryDataId(binaryDataId)
     const handle = getRepo().find<BinaryObjectDoc>(documentId as unknown as DocumentId)
 
-    const doc = await handle.value()
+    const doc = await handle.doc()
     if (!doc.binary) throw new Error("Got a document with no binary...")
 
     const { mimeType, binary } = doc

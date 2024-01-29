@@ -25,7 +25,7 @@ export function useDocumentWithHistory<T>(
     if (!handle) {
       return
     }
-    handle.value().then((v) => setDoc(v as Doc<T>))
+    handle.doc().then((v) => setDoc(v as Doc<T>))
     const listener = (h: DocHandleChangeEvent<T>) => setDoc(h.handle.doc as Doc<T>) // TODO: this is kinda gross
     handle.on("change", listener)
 

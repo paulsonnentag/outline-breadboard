@@ -116,7 +116,7 @@ export function Root({ profileDocId }: RootProps) {
     }
 
     const handle = repo.find<GraphDoc>(selectedGraphId)
-    const doc = await handle.value()
+    const doc = await handle.doc()
     const firstRootNodeId = doc.rootNodeIds[0]
     const node = getNode(doc.graph, firstRootNodeId)
     const filename = `${node.value.toLowerCase().replaceAll(" ", "_") ?? "untitled"}`

@@ -78,16 +78,18 @@ export function CalendarNodeView({
     const date = parseDate(dateStr)
 
     if (date) {
-      let timeScope = dateScopesWithBullets[dateStr].times[timeKey]
+      let timeScope = dateScopesWithBullets[dateStr]?.times[timeKey]
 
-      if (!timeScope) {
+      if (!timeScope && dateScopesWithBullets[dateStr]) {
         timeScope = dateScopesWithBullets[dateStr].times[timeKey] = {
           time,
           scopes: [],
         }
       }
 
-      timeScope.scopes.push(bullet.scope)
+      if (timeScope) {
+        timeScope.scopes.push(bullet.scope)
+      }
     }
   }
 

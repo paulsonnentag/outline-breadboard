@@ -1,305 +1,401 @@
 {
   "graph": {
-    "b5a41063-1013-4afc-9fbe-4130448d2fe2": {
-      "type": "value",
-      "id": "b5a41063-1013-4afc-9fbe-4130448d2fe2",
-      "value": "Function overview",
-      "children": [
-        "2e9aa694-3352-49a8-ade3-2ff9ea98722f",
-        "4e7d095a-b5dd-4180-af10-0bb013340b04",
-        "721dde9e-a38b-4c69-a453-941846007c47",
-        "8abd86a7-3af6-4448-ba07-d96a989c3893",
-        "e597308f-2f73-4c42-b9c7-a0927b6fd912",
-        "d25b6f17-a32c-4e8f-9266-d7ed9717a828",
-        "53d8bdae-47b4-4825-b34d-5b6e1809f332"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "269bfcf6-df02-48a2-8ae5-54f110baf298": {
-      "type": "value",
-      "id": "269bfcf6-df02-48a2-8ae5-54f110baf298",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
     "01/01/2023": {
-      "type": "value",
-      "id": "01/01/2023",
-      "value": "01/01/2023",
       "children": [
         "e418382e-3b54-45b0-ae62-035b3a25fd4d"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "01/01/2023",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "e418382e-3b54-45b0-ae62-035b3a25fd4d": {
-      "type": "value",
-      "id": "e418382e-3b54-45b0-ae62-035b3a25fd4d",
-      "value": "date: 01/01/2023",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "6a8893ee-0d17-4084-9f20-1d662b6f6265": {
-      "type": "value",
-      "id": "6a8893ee-0d17-4084-9f20-1d662b6f6265",
-      "value": "#[ChIJHRmKsHyZwEcRT0QOC64Oo2M]",
-      "children": [
-        "2a679c0b-9a0c-48f3-8816-a51460f78c8a"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "ChIJHRmKsHyZwEcRT0QOC64Oo2M": {
-      "type": "value",
-      "id": "ChIJHRmKsHyZwEcRT0QOC64Oo2M",
-      "value": "Aachen",
-      "children": [
-        "ca00cfe6-a43b-438b-ab56-9925ff05e818",
-        "4d09900e-bae9-42af-8427-779801da7cd6",
-        "5be6c037-ee1f-4ea6-a3e6-15cd68756f08"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "ca00cfe6-a43b-438b-ab56-9925ff05e818": {
-      "type": "value",
-      "id": "ca00cfe6-a43b-438b-ab56-9925ff05e818",
-      "value": "address: Aachen, Germany",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "address"
-    },
-    "4d09900e-bae9-42af-8427-779801da7cd6": {
       "type": "value",
-      "id": "4d09900e-bae9-42af-8427-779801da7cd6",
-      "value": "website: http://www.aachen.de/",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "website"
-    },
-    "5be6c037-ee1f-4ea6-a3e6-15cd68756f08": {
-      "type": "value",
-      "id": "5be6c037-ee1f-4ea6-a3e6-15cd68756f08",
-      "value": "position: 50.7753455, 6.083886800000001",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "position"
-    },
-    "f8ac9f8d-d369-49eb-a679-54c0bcd7cb5f": {
-      "type": "value",
-      "id": "f8ac9f8d-d369-49eb-a679-54c0bcd7cb5f",
-      "value": "#[01/02/2023]",
-      "children": [
-        "4269ef01-77e4-430a-adab-04aeeb74fc78"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
+      "value": "01/01/2023"
     },
     "01/02/2023": {
-      "type": "value",
-      "id": "01/02/2023",
-      "value": "01/02/2023",
       "children": [
         "29611b2c-e72f-4d3c-8fa5-5e48a0be3512"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "01/02/2023",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "29611b2c-e72f-4d3c-8fa5-5e48a0be3512": {
+      "isTemporary": false,
       "type": "value",
-      "id": "29611b2c-e72f-4d3c-8fa5-5e48a0be3512",
-      "value": "date: 01/02/2023",
+      "value": "01/02/2023"
+    },
+    "01/03/2023": {
+      "children": [
+        "3ee45625-91fd-4724-9ab0-cfedd94b778e"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "01/03/2023",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "01/03/2023"
+    },
+    "01:00": {
+      "children": [
+        "e7c2612a-95a4-48e8-b82f-cb5a5ae23010"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "01:00",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "01:00"
+    },
+    "02257c0b-73b8-46d7-9d27-e6a27e5cb077": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "02257c0b-73b8-46d7-9d27-e6a27e5cb077",
       "isCollapsed": false,
       "isSelected": false,
+      "isTemporary": false,
+      "key": "address",
+      "type": "value",
+      "value": "address: Cologne, Germany"
+    },
+    "06/07/2023": {
+      "children": [
+        "addc4f4a-d014-4c48-a704-f99290d1ce44"
+      ],
+      "computedProps": {},
       "expandedResultsByIndex": {},
-      "isTemporary": false
+      "id": "06/07/2023",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "06/07/2023"
+    },
+    "08c4b79b-f93e-4e11-b863-0027db6e4b97": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "08c4b79b-f93e-4e11-b863-0027db6e4b97",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "0a720245-c49b-4884-a7ef-51381f5f1eeb": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "0a720245-c49b-4884-a7ef-51381f5f1eeb",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "0dbb0eec-eca4-4a0e-bc03-e29be38aa8d0": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "0dbb0eec-eca4-4a0e-bc03-e29be38aa8d0",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[12:00]Dentist appointment"
+    },
+    "0de33380-ade6-4e14-8f9a-f8445fbb4847": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "0de33380-ade6-4e14-8f9a-f8445fbb4847",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "1168ce12-171c-4956-a6d4-fc50463e9183": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "1168ce12-171c-4956-a6d4-fc50463e9183",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "phone",
+      "type": "value",
+      "value": "phone: 0800 8002534"
+    },
+    "12:00": {
+      "children": [
+        "57370b3c-d65e-4f20-a38c-b28963233931"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "12:00",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "12:00"
+    },
+    "164462a4-7801-4a8d-bf06-ec463a3e8f61": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "164462a4-7801-4a8d-bf06-ec463a3e8f61",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "170773ef-d384-4729-b7c0-6ea2b3b4691e": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "170773ef-d384-4729-b7c0-6ea2b3b4691e",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "1a36042d-bdce-4ba5-860b-cbb5cf4d04c6": {
+      "children": [],
+      "computedProps": {},
+      "id": "1a36042d-bdce-4ba5-860b-cbb5cf4d04c6",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "1d8f79ff-d77a-4839-b59c-b0e2fb2b4f1a": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "1d8f79ff-d77a-4839-b59c-b0e2fb2b4f1a",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "1f2d91bb-9a54-48df-a843-cc2d8d8aaa4c": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "1f2d91bb-9a54-48df-a843-cc2d8d8aaa4c",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "address",
+      "type": "value",
+      "value": "address: Lousberg, 52070 Aachen, Germany"
+    },
+    "227a0fba-7ac1-4176-8c5d-248fb05495d0": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "227a0fba-7ac1-4176-8c5d-248fb05495d0",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "258cb370-d2e4-40fc-b08a-5bd89f482239": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "258cb370-d2e4-40fc-b08a-5bd89f482239",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "269bfcf6-df02-48a2-8ae5-54f110baf298": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "269bfcf6-df02-48a2-8ae5-54f110baf298",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "28754bbe-f4b3-4517-8394-1f8719104461": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "28754bbe-f4b3-4517-8394-1f8719104461",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "29611b2c-e72f-4d3c-8fa5-5e48a0be3512": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "29611b2c-e72f-4d3c-8fa5-5e48a0be3512",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "date: 01/02/2023"
+    },
+    "2a679c0b-9a0c-48f3-8816-a51460f78c8a": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "2a679c0b-9a0c-48f3-8816-a51460f78c8a",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Weather(in: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M], on: #[01/01/2023])}"
+    },
+    "2e9aa694-3352-49a8-ade3-2ff9ea98722f": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "2e9aa694-3352-49a8-ade3-2ff9ea98722f",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "2ed3d15e-c548-4bd2-8d83-8ac6a04bfa30": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "2ed3d15e-c548-4bd2-8d83-8ac6a04bfa30",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "Return books at #[ChIJOSfsMXqZwEcRsEBuWQ2x87k]"
+    },
+    "32089ece-a52a-469f-87b7-fca80ef36637": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "32089ece-a52a-469f-87b7-fca80ef36637",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Weather(in: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ], on: #[01/02/2023])}"
+    },
+    "3ee45625-91fd-4724-9ab0-cfedd94b778e": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "3ee45625-91fd-4724-9ab0-cfedd94b778e",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "date: 01/03/2023"
+    },
+    "40a91c69-1af9-40da-9b04-5cd10973984d": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "40a91c69-1af9-40da-9b04-5cd10973984d",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "phone",
+      "type": "value",
+      "value": "phone: 0241 8094459"
     },
     "4269ef01-77e4-430a-adab-04aeeb74fc78": {
-      "type": "value",
-      "id": "4269ef01-77e4-430a-adab-04aeeb74fc78",
-      "value": "#[ChIJAVkDPzdOqEcRcDteW0YgIQQ]",
       "children": [
         "951498a5-bc84-4fa1-b5fd-4bd4e194ca7d",
         "d4e2b9d4-bf48-4494-893f-c4a7f25206da"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "4269ef01-77e4-430a-adab-04aeeb74fc78",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "ChIJAVkDPzdOqEcRcDteW0YgIQQ": {
-      "type": "value",
-      "id": "ChIJAVkDPzdOqEcRcDteW0YgIQQ",
-      "value": "Berlin",
-      "children": [
-        "8c340bbe-887f-4556-815d-a54d3437c9d9",
-        "aaaf1b30-8d13-4c9b-bebc-e373e222e215"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "8c340bbe-887f-4556-815d-a54d3437c9d9": {
-      "type": "value",
-      "id": "8c340bbe-887f-4556-815d-a54d3437c9d9",
-      "value": "address: Berlin, Germany",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "address"
-    },
-    "aaaf1b30-8d13-4c9b-bebc-e373e222e215": {
       "type": "value",
-      "id": "aaaf1b30-8d13-4c9b-bebc-e373e222e215",
-      "value": "position: 52.52000659999999, 13.404954",
+      "value": "#[ChIJAVkDPzdOqEcRcDteW0YgIQQ]"
+    },
+    "43ec3625-b2eb-4011-a50a-238470cf50b3": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "43ec3625-b2eb-4011-a50a-238470cf50b3",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "position"
-    },
-    "2a679c0b-9a0c-48f3-8816-a51460f78c8a": {
       "type": "value",
-      "id": "2a679c0b-9a0c-48f3-8816-a51460f78c8a",
-      "value": "{Weather(in: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M], on: #[01/01/2023])}",
+      "value": ""
+    },
+    "4419e8e3-c044-40eb-b85d-d4c93b4341de": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "4419e8e3-c044-40eb-b85d-d4c93b4341de",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "951498a5-bc84-4fa1-b5fd-4bd4e194ca7d": {
+      "isTemporary": false,
       "type": "value",
-      "id": "951498a5-bc84-4fa1-b5fd-4bd4e194ca7d",
-      "value": "{Weather(in: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ], on: #[01/02/2023])}",
+      "value": "{Bike(from: #[ChIJOSfsMXqZwEcRsEBuWQ2x87k], to: #[ChIJI8YqZVKZwEcRpsH2S0aDwHY])}"
+    },
+    "468c3a55-2468-45d8-85a2-fb4f572a75be": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "468c3a55-2468-45d8-85a2-fb4f572a75be",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "8abd86a7-3af6-4448-ba07-d96a989c3893": {
+      "isTemporary": false,
       "type": "value",
-      "id": "8abd86a7-3af6-4448-ba07-d96a989c3893",
-      "value": "## Route ##",
+      "value": "{Drive(from: #[ChIJ5S-raZElv0cR8HcqSvxgJwQ], to: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ])}"
+    },
+    "49df0424-1dc9-4ad8-a7ca-ca7adeddb803": {
       "children": [
-        "227a0fba-7ac1-4176-8c5d-248fb05495d0",
-        "afdf1615-c742-433b-9e46-fa6c2ca6d30b",
-        "7e710f78-6e39-4642-b67e-a436770db8db",
-        "97f2e449-5e3e-4427-8f4c-fe138cc8f671",
-        "fde3c2fb-5c4d-4d9a-bdf7-5613c5671788",
-        "2ed3d15e-c548-4bd2-8d83-8ac6a04bfa30",
-        "4419e8e3-c044-40eb-b85d-d4c93b4341de",
-        "ff9e595d-c182-4633-a216-710778bec95b",
-        "9b1c584a-2a45-42f3-91f8-3ba08f982da0"
+        "0dbb0eec-eca4-4a0e-bc03-e29be38aa8d0"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "49df0424-1dc9-4ad8-a7ca-ca7adeddb803",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "7564ef7a-2290-45fb-b272-e16292989d3d": {
+      "isTemporary": false,
       "type": "value",
-      "id": "7564ef7a-2290-45fb-b272-e16292989d3d",
-      "value": "",
+      "value": "#[01/02/2023]"
+    },
+    "4d09900e-bae9-42af-8427-779801da7cd6": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "4d09900e-bae9-42af-8427-779801da7cd6",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "5b6ea282-7cc2-474d-b7a6-58e9f5e14f3a": {
+      "isTemporary": false,
+      "key": "website",
       "type": "value",
-      "id": "5b6ea282-7cc2-474d-b7a6-58e9f5e14f3a",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "edb61998-d9ce-497d-8938-1dc2abc089d6": {
-      "type": "value",
-      "id": "edb61998-d9ce-497d-8938-1dc2abc089d6",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "bdf2a21e-a692-434e-a596-385c539c3b86": {
-      "type": "value",
-      "id": "bdf2a21e-a692-434e-a596-385c539c3b86",
-      "value": "#[01/01/2023]",
-      "children": [
-        "6a8893ee-0d17-4084-9f20-1d662b6f6265"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
+      "value": "website: http://www.aachen.de/"
     },
     "4e7d095a-b5dd-4180-af10-0bb013340b04": {
-      "type": "value",
-      "id": "4e7d095a-b5dd-4180-af10-0bb013340b04",
-      "value": "## Weather ##",
       "children": [
         "28754bbe-f4b3-4517-8394-1f8719104461",
         "bdf2a21e-a692-434e-a596-385c539c3b86",
@@ -313,301 +409,584 @@
         "80684629-b7a1-409b-a351-0c0b2ae70c97"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "4e7d095a-b5dd-4180-af10-0bb013340b04",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "d4e2b9d4-bf48-4494-893f-c4a7f25206da": {
+      "isTemporary": false,
       "type": "value",
-      "id": "d4e2b9d4-bf48-4494-893f-c4a7f25206da",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
+      "value": "## Weather ##"
     },
-    "a41dbb8e-bea0-46eb-ab34-e2a520b53b51": {
-      "type": "value",
-      "id": "a41dbb8e-bea0-46eb-ab34-e2a520b53b51",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "9b85d926-5d55-4c58-9807-22b82ae4ee9b": {
-      "type": "value",
-      "id": "9b85d926-5d55-4c58-9807-22b82ae4ee9b",
-      "value": "#[01/02/2023]",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "afdf1615-c742-433b-9e46-fa6c2ca6d30b": {
-      "type": "value",
-      "id": "afdf1615-c742-433b-9e46-fa6c2ca6d30b",
-      "value": "Drive from #[ChIJ5S-raZElv0cR8HcqSvxgJwQ]to #[ChIJAVkDPzdOqEcRcDteW0YgIQQ]",
+    "4eb0dd89-ff81-4ed6-a2a0-44a89a1165ce": {
       "children": [
-        "468c3a55-2468-45d8-85a2-fb4f572a75be"
+        "1d8f79ff-d77a-4839-b59c-b0e2fb2b4f1a",
+        "49df0424-1dc9-4ad8-a7ca-ca7adeddb803"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "4eb0dd89-ff81-4ed6-a2a0-44a89a1165ce",
       "isCollapsed": false,
       "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "Time Example",
+      "view": "calendar"
+    },
+    "53d8bdae-47b4-4825-b34d-5b6e1809f332": {
+      "children": [],
+      "computedProps": {},
       "expandedResultsByIndex": {},
-      "isTemporary": false
+      "id": "53d8bdae-47b4-4825-b34d-5b6e1809f332",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "550bc370-484d-4216-a06f-37d950a76d53": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "550bc370-484d-4216-a06f-37d950a76d53",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "rating",
+      "type": "value",
+      "value": "rating: 4.5"
+    },
+    "56b933f1-9080-4646-bd5d-aff3147aea7e": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "56b933f1-9080-4646-bd5d-aff3147aea7e",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Route(from: #[ChIJ5S-raZElv0cR8HcqSvxgJwQ], to: #[ChIJ8xqbKn2ZwEcRL5jeDgz3KbY])}"
+    },
+    "57370b3c-d65e-4f20-a38c-b28963233931": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "57370b3c-d65e-4f20-a38c-b28963233931",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "time: 12:00"
+    },
+    "59568182-8ff9-4cc0-ad92-a1efe8485e77": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "59568182-8ff9-4cc0-ad92-a1efe8485e77",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "5b6ea282-7cc2-474d-b7a6-58e9f5e14f3a": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "5b6ea282-7cc2-474d-b7a6-58e9f5e14f3a",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "5b8f90a7-ffed-42c0-a985-79228bd1cc8a": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "5b8f90a7-ffed-42c0-a985-79228bd1cc8a",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": true,
+      "type": "value",
+      "value": "{Weather(in: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M], on: #[01/02/2023])}"
+    },
+    "5be6c037-ee1f-4ea6-a3e6-15cd68756f08": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "5be6c037-ee1f-4ea6-a3e6-15cd68756f08",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "position",
+      "type": "value",
+      "value": "position: 50.7753455, 6.083886800000001"
+    },
+    "5e506580-8568-46d0-bcc7-49aa596b5c8f": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "5e506580-8568-46d0-bcc7-49aa596b5c8f",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "6005ae45-2e3f-4a3d-80f3-c218c5bb9494": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "6005ae45-2e3f-4a3d-80f3-c218c5bb9494",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "position",
+      "type": "value",
+      "value": "position: 50.7729307, 6.084161700000001"
+    },
+    "60d5cb90-5a09-461f-b637-050a4246f6cb": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "60d5cb90-5a09-461f-b637-050a4246f6cb",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "626f4c0c-162a-48da-aadf-fdd3476553d7": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "626f4c0c-162a-48da-aadf-fdd3476553d7",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "635585a9-97bd-4e47-9800-ae464dee2a99": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "635585a9-97bd-4e47-9800-ae464dee2a99",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "position",
+      "type": "value",
+      "value": "position: 50.786944, 6.079167000000001"
+    },
+    "6a8893ee-0d17-4084-9f20-1d662b6f6265": {
+      "children": [
+        "2a679c0b-9a0c-48f3-8816-a51460f78c8a"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "6a8893ee-0d17-4084-9f20-1d662b6f6265",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[ChIJHRmKsHyZwEcRT0QOC64Oo2M]"
+    },
+    "6ca688cd-718e-440e-8aa7-e53ba40f7bbb": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "6ca688cd-718e-440e-8aa7-e53ba40f7bbb",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "website",
+      "type": "value",
+      "value": "website: https://www.aldi-sued.de/?pk_campaign=wvz&pk_source=Google&pk_keyword=D3494"
+    },
+    "6fc89b83-caf7-4761-a7c7-b7ac26790192": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "6fc89b83-caf7-4761-a7c7-b7ac26790192",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Sunset(in: #[ChIJPVU9I3SZwEcRsSaqKpAEP1U], on: #[06/07/2023])}"
+    },
+    "721dde9e-a38b-4c69-a453-941846007c47": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "721dde9e-a38b-4c69-a453-941846007c47",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "725befee-0b22-426f-8ec6-4256046e8740": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "725befee-0b22-426f-8ec6-4256046e8740",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "72b3b0b9-86bd-4fe2-bda9-735bfbab4fe8": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "72b3b0b9-86bd-4fe2-bda9-735bfbab4fe8",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "72df8607-e56f-44b5-9432-e31fc89d17bd": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "72df8607-e56f-44b5-9432-e31fc89d17bd",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "73a88be0-2347-486f-a555-136292791842": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "73a88be0-2347-486f-a555-136292791842",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "website",
+      "type": "value",
+      "value": "website: http://www.cologne.de/"
+    },
+    "7564ef7a-2290-45fb-b272-e16292989d3d": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "7564ef7a-2290-45fb-b272-e16292989d3d",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "761af51f-07b2-41d3-a4dc-a4441fc7fb46": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "761af51f-07b2-41d3-a4dc-a4441fc7fb46",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "position",
+      "type": "value",
+      "value": "position: 50.77928419999999, 6.1202989"
+    },
+    "77553b3e-fcdb-4ebf-b1a7-1cecce71120b": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "77553b3e-fcdb-4ebf-b1a7-1cecce71120b",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "phone",
+      "type": "value",
+      "value": "phone: 0241 99034065"
+    },
+    "79042a8a-a62c-4014-b425-97bb72079599": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "79042a8a-a62c-4014-b425-97bb72079599",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "7a2b99da-a6d9-4821-8617-e232ce4a0dc3": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "7a2b99da-a6d9-4821-8617-e232ce4a0dc3",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "departure",
+      "type": "value",
+      "value": "departure: LAX"
+    },
+    "7e710f78-6e39-4642-b67e-a436770db8db": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "7e710f78-6e39-4642-b67e-a436770db8db",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "7f1feaab-9d35-45d2-b517-f4b2238c4f0d": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "7f1feaab-9d35-45d2-b517-f4b2238c4f0d",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Sunset(in: #[ChIJPVU9I3SZwEcRsSaqKpAEP1U], on: #[06/07/2023])}"
+    },
+    "80684629-b7a1-409b-a351-0c0b2ae70c97": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "80684629-b7a1-409b-a351-0c0b2ae70c97",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Weather(in: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M], on: #[01/03/2023])}"
+    },
+    "8136ca5b-1624-4dab-8b84-2241f26f2bed": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "8136ca5b-1624-4dab-8b84-2241f26f2bed",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "8230f69d-298d-4887-9739-cf2f49c042ae": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "8230f69d-298d-4887-9739-cf2f49c042ae",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[12:00]Dentist "
+    },
+    "8404c3b3-c9c8-4dc1-b27e-3e1d621454b4": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "8404c3b3-c9c8-4dc1-b27e-3e1d621454b4",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "rating",
+      "type": "value",
+      "value": "rating: 3.9"
+    },
+    "89d3815e-5d0c-4ca4-af1e-3e6a5643320d": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "89d3815e-5d0c-4ca4-af1e-3e6a5643320d",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "flightNumber",
+      "type": "value",
+      "value": "flightNumber: LH123"
+    },
+    "8abd86a7-3af6-4448-ba07-d96a989c3893": {
+      "children": [
+        "afdf1615-c742-433b-9e46-fa6c2ca6d30b",
+        "7e710f78-6e39-4642-b67e-a436770db8db",
+        "97f2e449-5e3e-4427-8f4c-fe138cc8f671",
+        "fde3c2fb-5c4d-4d9a-bdf7-5613c5671788",
+        "2ed3d15e-c548-4bd2-8d83-8ac6a04bfa30",
+        "4419e8e3-c044-40eb-b85d-d4c93b4341de",
+        "ff9e595d-c182-4633-a216-710778bec95b",
+        "9b1c584a-2a45-42f3-91f8-3ba08f982da0"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "8abd86a7-3af6-4448-ba07-d96a989c3893",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "## Route ##"
+    },
+    "8c340bbe-887f-4556-815d-a54d3437c9d9": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "8c340bbe-887f-4556-815d-a54d3437c9d9",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "address",
+      "type": "value",
+      "value": "address: Berlin, Germany"
+    },
+    "8cab0e46-74e7-4f6f-b895-b88ff35d25ab": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "8cab0e46-74e7-4f6f-b895-b88ff35d25ab",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Route(from: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ], to: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M])}"
+    },
+    "951498a5-bc84-4fa1-b5fd-4bd4e194ca7d": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "951498a5-bc84-4fa1-b5fd-4bd4e194ca7d",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Weather(in: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ], on: #[01/02/2023])}"
+    },
+    "95b5e300-a667-4993-9da4-7de3b23520d4": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "95b5e300-a667-4993-9da4-7de3b23520d4",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "96301975-81c7-4349-906c-af020be296a1": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "96301975-81c7-4349-906c-af020be296a1",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "96488c14-06ee-4617-a35c-f97a9a2b665c": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "96488c14-06ee-4617-a35c-f97a9a2b665c",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[ChIJAVkDPzdOqEcRcDteW0YgIQQ]"
+    },
+    "97f2e449-5e3e-4427-8f4c-fe138cc8f671": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "97f2e449-5e3e-4427-8f4c-fe138cc8f671",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "Meet friend at #[ChIJ8xqbKn2ZwEcRL5jeDgz3KbY]"
+    },
+    "99da8c66-1640-4a59-b7d2-db7875fe67f7": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "99da8c66-1640-4a59-b7d2-db7875fe67f7",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "rating",
+      "type": "value",
+      "value": "rating: 4.8"
+    },
+    "9b1c584a-2a45-42f3-91f8-3ba08f982da0": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "9b1c584a-2a45-42f3-91f8-3ba08f982da0",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "9b8428af-39af-42cb-bdab-055d7259064a": {
+      "children": [],
+      "computedProps": {},
+      "id": "9b8428af-39af-42cb-bdab-055d7259064a",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{ParkingSpots(near: #[ChIJPVU9I3SZwEcRsSaqKpAEP1U], maxDistance: 2)}"
+    },
+    "9b85d926-5d55-4c58-9807-22b82ae4ee9b": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "9b85d926-5d55-4c58-9807-22b82ae4ee9b",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[01/02/2023]"
+    },
+    "9d5001ae-55e3-43aa-bf98-3bb5af4356ec": {
+      "children": [],
+      "computedProps": {},
+      "id": "9d5001ae-55e3-43aa-bf98-3bb5af4356ec",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "9ff498d4-62aa-4ed8-b95d-8480e0061e52": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "9ff498d4-62aa-4ed8-b95d-8480e0061e52",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[01/03/2023]"
     },
     "ChIJ5S-raZElv0cR8HcqSvxgJwQ": {
-      "type": "value",
-      "id": "ChIJ5S-raZElv0cR8HcqSvxgJwQ",
-      "value": "Cologne",
       "children": [
         "02257c0b-73b8-46d7-9d27-e6a27e5cb077",
         "73a88be0-2347-486f-a555-136292791842",
         "ddb36674-8c34-4be1-8ea3-058f5ae83186"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ChIJ5S-raZElv0cR8HcqSvxgJwQ",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "02257c0b-73b8-46d7-9d27-e6a27e5cb077": {
-      "type": "value",
-      "id": "02257c0b-73b8-46d7-9d27-e6a27e5cb077",
-      "value": "address: Cologne, Germany",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "address"
-    },
-    "73a88be0-2347-486f-a555-136292791842": {
       "type": "value",
-      "id": "73a88be0-2347-486f-a555-136292791842",
-      "value": "website: http://www.cologne.de/",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "website"
-    },
-    "ddb36674-8c34-4be1-8ea3-058f5ae83186": {
-      "type": "value",
-      "id": "ddb36674-8c34-4be1-8ea3-058f5ae83186",
-      "value": "position: 50.937531, 6.9602786",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "position"
-    },
-    "468c3a55-2468-45d8-85a2-fb4f572a75be": {
-      "type": "value",
-      "id": "468c3a55-2468-45d8-85a2-fb4f572a75be",
-      "value": "{Drive(from: #[ChIJ5S-raZElv0cR8HcqSvxgJwQ], to: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "258cb370-d2e4-40fc-b08a-5bd89f482239": {
-      "type": "value",
-      "id": "258cb370-d2e4-40fc-b08a-5bd89f482239",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "721dde9e-a38b-4c69-a453-941846007c47": {
-      "type": "value",
-      "id": "721dde9e-a38b-4c69-a453-941846007c47",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "96488c14-06ee-4617-a35c-f97a9a2b665c": {
-      "type": "value",
-      "id": "96488c14-06ee-4617-a35c-f97a9a2b665c",
-      "value": "#[ChIJAVkDPzdOqEcRcDteW0YgIQQ]",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "bb878bd4-14cb-4e8c-9d33-96ac45538a87": {
-      "type": "value",
-      "id": "bb878bd4-14cb-4e8c-9d33-96ac45538a87",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "9ff498d4-62aa-4ed8-b95d-8480e0061e52": {
-      "type": "value",
-      "id": "9ff498d4-62aa-4ed8-b95d-8480e0061e52",
-      "value": "#[01/03/2023]",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "ab90947e-d306-4893-8fea-7d029965d80f": {
-      "type": "value",
-      "id": "ab90947e-d306-4893-8fea-7d029965d80f",
-      "value": "#[ChIJHRmKsHyZwEcRT0QOC64Oo2M]",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "32089ece-a52a-469f-87b7-fca80ef36637": {
-      "type": "value",
-      "id": "32089ece-a52a-469f-87b7-fca80ef36637",
-      "value": "{Weather(in: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ], on: #[01/02/2023])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "5b8f90a7-ffed-42c0-a985-79228bd1cc8a": {
-      "type": "value",
-      "id": "5b8f90a7-ffed-42c0-a985-79228bd1cc8a",
-      "value": "{Weather(in: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M], on: #[01/02/2023])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": true
-    },
-    "8136ca5b-1624-4dab-8b84-2241f26f2bed": {
-      "type": "value",
-      "id": "8136ca5b-1624-4dab-8b84-2241f26f2bed",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "725befee-0b22-426f-8ec6-4256046e8740": {
-      "type": "value",
-      "id": "725befee-0b22-426f-8ec6-4256046e8740",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "01/03/2023": {
-      "type": "value",
-      "id": "01/03/2023",
-      "value": "01/03/2023",
-      "children": [
-        "3ee45625-91fd-4724-9ab0-cfedd94b778e"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "3ee45625-91fd-4724-9ab0-cfedd94b778e": {
-      "type": "value",
-      "id": "3ee45625-91fd-4724-9ab0-cfedd94b778e",
-      "value": "date: 01/03/2023",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "80684629-b7a1-409b-a351-0c0b2ae70c97": {
-      "type": "value",
-      "id": "80684629-b7a1-409b-a351-0c0b2ae70c97",
-      "value": "{Weather(in: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M], on: #[01/03/2023])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "164462a4-7801-4a8d-bf06-ec463a3e8f61": {
-      "type": "value",
-      "id": "164462a4-7801-4a8d-bf06-ec463a3e8f61",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "72df8607-e56f-44b5-9432-e31fc89d17bd": {
-      "type": "value",
-      "id": "72df8607-e56f-44b5-9432-e31fc89d17bd",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "97f2e449-5e3e-4427-8f4c-fe138cc8f671": {
-      "type": "value",
-      "id": "97f2e449-5e3e-4427-8f4c-fe138cc8f671",
-      "value": "Meet friend at #[ChIJ8xqbKn2ZwEcRL5jeDgz3KbY]",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
+      "value": "Cologne"
     },
     "ChIJ8xqbKn2ZwEcRL5jeDgz3KbY": {
-      "type": "value",
-      "id": "ChIJ8xqbKn2ZwEcRL5jeDgz3KbY",
-      "value": "Baristinho",
       "children": [
         "550bc370-484d-4216-a06f-37d950a76d53",
         "d335b888-926c-4b6d-b2b6-cfb429c57de6",
@@ -616,174 +995,44 @@
         "6005ae45-2e3f-4a3d-80f3-c218c5bb9494"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ChIJ8xqbKn2ZwEcRL5jeDgz3KbY",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "550bc370-484d-4216-a06f-37d950a76d53": {
-      "type": "value",
-      "id": "550bc370-484d-4216-a06f-37d950a76d53",
-      "value": "rating: 4.5",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "rating"
-    },
-    "d335b888-926c-4b6d-b2b6-cfb429c57de6": {
       "type": "value",
-      "id": "d335b888-926c-4b6d-b2b6-cfb429c57de6",
-      "value": "address: Kleinmarschierstraße 48-52, 52062 Aachen, Germany",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "address"
+      "value": "Baristinho"
     },
-    "77553b3e-fcdb-4ebf-b1a7-1cecce71120b": {
-      "type": "value",
-      "id": "77553b3e-fcdb-4ebf-b1a7-1cecce71120b",
-      "value": "phone: 0241 99034065",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "phone"
-    },
-    "bcacec95-9d0e-40f2-9be7-810c94e6eb2d": {
-      "type": "value",
-      "id": "bcacec95-9d0e-40f2-9be7-810c94e6eb2d",
-      "value": "website: http://baristinho.de/",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "website"
-    },
-    "6005ae45-2e3f-4a3d-80f3-c218c5bb9494": {
-      "type": "value",
-      "id": "6005ae45-2e3f-4a3d-80f3-c218c5bb9494",
-      "value": "position: 50.7729307, 6.084161700000001",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "position"
-    },
-    "2ed3d15e-c548-4bd2-8d83-8ac6a04bfa30": {
-      "type": "value",
-      "id": "2ed3d15e-c548-4bd2-8d83-8ac6a04bfa30",
-      "value": "Return books at #[ChIJOSfsMXqZwEcRsEBuWQ2x87k]",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "ChIJOSfsMXqZwEcRsEBuWQ2x87k": {
-      "type": "value",
-      "id": "ChIJOSfsMXqZwEcRsEBuWQ2x87k",
-      "value": "University Library RWTH",
+    "ChIJAVkDPzdOqEcRcDteW0YgIQQ": {
       "children": [
-        "8404c3b3-c9c8-4dc1-b27e-3e1d621454b4",
-        "aaf3971b-314a-4552-b757-c07be6317741",
-        "40a91c69-1af9-40da-9b04-5cd10973984d",
-        "f74f8146-da9e-4d16-a650-b064269a0d38",
-        "fd0d4c3d-2ee1-44bd-a228-afa816f1bdab"
+        "8c340bbe-887f-4556-815d-a54d3437c9d9",
+        "aaaf1b30-8d13-4c9b-bebc-e373e222e215"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ChIJAVkDPzdOqEcRcDteW0YgIQQ",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "8404c3b3-c9c8-4dc1-b27e-3e1d621454b4": {
-      "type": "value",
-      "id": "8404c3b3-c9c8-4dc1-b27e-3e1d621454b4",
-      "value": "rating: 3.9",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "rating"
-    },
-    "aaf3971b-314a-4552-b757-c07be6317741": {
       "type": "value",
-      "id": "aaf3971b-314a-4552-b757-c07be6317741",
-      "value": "address: Templergraben 61, 52062 Aachen, Germany",
-      "children": [],
+      "value": "Berlin"
+    },
+    "ChIJHRmKsHyZwEcRT0QOC64Oo2M": {
+      "children": [
+        "ca00cfe6-a43b-438b-ab56-9925ff05e818",
+        "4d09900e-bae9-42af-8427-779801da7cd6",
+        "5be6c037-ee1f-4ea6-a3e6-15cd68756f08"
+      ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ChIJHRmKsHyZwEcRT0QOC64Oo2M",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "address"
-    },
-    "40a91c69-1af9-40da-9b04-5cd10973984d": {
       "type": "value",
-      "id": "40a91c69-1af9-40da-9b04-5cd10973984d",
-      "value": "phone: 0241 8094459",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "phone"
-    },
-    "f74f8146-da9e-4d16-a650-b064269a0d38": {
-      "type": "value",
-      "id": "f74f8146-da9e-4d16-a650-b064269a0d38",
-      "value": "website: https://www.ub.rwth-aachen.de/",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "website"
-    },
-    "fd0d4c3d-2ee1-44bd-a228-afa816f1bdab": {
-      "type": "value",
-      "id": "fd0d4c3d-2ee1-44bd-a228-afa816f1bdab",
-      "value": "position: 50.7787279, 6.0801722",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "position"
-    },
-    "ff9e595d-c182-4633-a216-710778bec95b": {
-      "type": "value",
-      "id": "ff9e595d-c182-4633-a216-710778bec95b",
-      "value": "Buy groceries at #[ChIJI8YqZVKZwEcRpsH2S0aDwHY]",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
+      "value": "Aachen"
     },
     "ChIJI8YqZVKZwEcRpsH2S0aDwHY": {
-      "type": "value",
-      "id": "ChIJI8YqZVKZwEcRpsH2S0aDwHY",
-      "value": "ALDI",
       "children": [
         "b88b5c9c-8073-4903-957d-ca844a66d675",
         "ca8321fc-e1c2-4eb7-939b-01b8950d7c76",
@@ -792,702 +1041,518 @@
         "761af51f-07b2-41d3-a4dc-a4441fc7fb46"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ChIJI8YqZVKZwEcRpsH2S0aDwHY",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "b88b5c9c-8073-4903-957d-ca844a66d675": {
-      "type": "value",
-      "id": "b88b5c9c-8073-4903-957d-ca844a66d675",
-      "value": "rating: 4.4",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "rating"
-    },
-    "ca8321fc-e1c2-4eb7-939b-01b8950d7c76": {
       "type": "value",
-      "id": "ca8321fc-e1c2-4eb7-939b-01b8950d7c76",
-      "value": "address: Elsassstraße 139, 52068 Aachen, Germany",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "address"
+      "value": "ALDI"
     },
-    "1168ce12-171c-4956-a6d4-fc50463e9183": {
-      "type": "value",
-      "id": "1168ce12-171c-4956-a6d4-fc50463e9183",
-      "value": "phone: 0800 8002534",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "phone"
-    },
-    "6ca688cd-718e-440e-8aa7-e53ba40f7bbb": {
-      "type": "value",
-      "id": "6ca688cd-718e-440e-8aa7-e53ba40f7bbb",
-      "value": "website: https://www.aldi-sued.de/?pk_campaign=wvz&pk_source=Google&pk_keyword=D3494",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "website"
-    },
-    "761af51f-07b2-41d3-a4dc-a4441fc7fb46": {
-      "type": "value",
-      "id": "761af51f-07b2-41d3-a4dc-a4441fc7fb46",
-      "value": "position: 50.77928419999999, 6.1202989",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "position"
-    },
-    "0a720245-c49b-4884-a7ef-51381f5f1eeb": {
-      "type": "value",
-      "id": "0a720245-c49b-4884-a7ef-51381f5f1eeb",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "fde3c2fb-5c4d-4d9a-bdf7-5613c5671788": {
-      "type": "value",
-      "id": "fde3c2fb-5c4d-4d9a-bdf7-5613c5671788",
-      "value": "{Walk(from: #[ChIJ8xqbKn2ZwEcRL5jeDgz3KbY], to: #[ChIJOSfsMXqZwEcRsEBuWQ2x87k])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "8cab0e46-74e7-4f6f-b895-b88ff35d25ab": {
-      "type": "value",
-      "id": "8cab0e46-74e7-4f6f-b895-b88ff35d25ab",
-      "value": "{Route(from: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ], to: #[ChIJHRmKsHyZwEcRT0QOC64Oo2M])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "56b933f1-9080-4646-bd5d-aff3147aea7e": {
-      "type": "value",
-      "id": "56b933f1-9080-4646-bd5d-aff3147aea7e",
-      "value": "{Route(from: #[ChIJ5S-raZElv0cR8HcqSvxgJwQ], to: #[ChIJ8xqbKn2ZwEcRL5jeDgz3KbY])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "4419e8e3-c044-40eb-b85d-d4c93b4341de": {
-      "type": "value",
-      "id": "4419e8e3-c044-40eb-b85d-d4c93b4341de",
-      "value": "{Bike(from: #[ChIJOSfsMXqZwEcRsEBuWQ2x87k], to: #[ChIJI8YqZVKZwEcRpsH2S0aDwHY])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "f41a2d4e-f5b0-4491-a25d-103dc1fd86ae": {
-      "type": "value",
-      "id": "f41a2d4e-f5b0-4491-a25d-103dc1fd86ae",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "f2c385be-ba95-47f6-b87c-77bef99e0199": {
-      "type": "value",
-      "id": "f2c385be-ba95-47f6-b87c-77bef99e0199",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "e2654d1c-7982-4dd1-a8b6-1e9139242140": {
-      "type": "value",
-      "id": "e2654d1c-7982-4dd1-a8b6-1e9139242140",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "43ec3625-b2eb-4011-a50a-238470cf50b3": {
-      "type": "value",
-      "id": "43ec3625-b2eb-4011-a50a-238470cf50b3",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "7e710f78-6e39-4642-b67e-a436770db8db": {
-      "type": "value",
-      "id": "7e710f78-6e39-4642-b67e-a436770db8db",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "227a0fba-7ac1-4176-8c5d-248fb05495d0": {
-      "type": "value",
-      "id": "227a0fba-7ac1-4176-8c5d-248fb05495d0",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "28754bbe-f4b3-4517-8394-1f8719104461": {
-      "type": "value",
-      "id": "28754bbe-f4b3-4517-8394-1f8719104461",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "9b1c584a-2a45-42f3-91f8-3ba08f982da0": {
-      "type": "value",
-      "id": "9b1c584a-2a45-42f3-91f8-3ba08f982da0",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "e597308f-2f73-4c42-b9c7-a0927b6fd912": {
-      "type": "value",
-      "id": "e597308f-2f73-4c42-b9c7-a0927b6fd912",
-      "value": "## Sunset/Sunrise ##",
+    "ChIJOSfsMXqZwEcRsEBuWQ2x87k": {
       "children": [
-        "1a36042d-bdce-4ba5-860b-cbb5cf4d04c6",
-        "d838bba2-5ce1-4123-949e-f72cb5700c0a"
+        "8404c3b3-c9c8-4dc1-b27e-3e1d621454b4",
+        "aaf3971b-314a-4552-b757-c07be6317741",
+        "40a91c69-1af9-40da-9b04-5cd10973984d",
+        "f74f8146-da9e-4d16-a650-b064269a0d38",
+        "fd0d4c3d-2ee1-44bd-a228-afa816f1bdab"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ChIJOSfsMXqZwEcRsEBuWQ2x87k",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "96301975-81c7-4349-906c-af020be296a1": {
+      "isTemporary": false,
       "type": "value",
-      "id": "96301975-81c7-4349-906c-af020be296a1",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "60d5cb90-5a09-461f-b637-050a4246f6cb": {
-      "type": "value",
-      "id": "60d5cb90-5a09-461f-b637-050a4246f6cb",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "d838bba2-5ce1-4123-949e-f72cb5700c0a": {
-      "type": "value",
-      "id": "d838bba2-5ce1-4123-949e-f72cb5700c0a",
-      "value": "Evening picnic  #[06/07/2023]at #[ChIJPVU9I3SZwEcRsSaqKpAEP1U]",
-      "children": [
-        "6fc89b83-caf7-4761-a7c7-b7ac26790192",
-        "a307b28d-3126-4c1a-9412-da66b1c778ec"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
+      "value": "University Library RWTH"
     },
     "ChIJPVU9I3SZwEcRsSaqKpAEP1U": {
-      "type": "value",
-      "id": "ChIJPVU9I3SZwEcRsSaqKpAEP1U",
-      "value": "Lousberg",
       "children": [
         "99da8c66-1640-4a59-b7d2-db7875fe67f7",
         "1f2d91bb-9a54-48df-a843-cc2d8d8aaa4c",
         "635585a9-97bd-4e47-9800-ae464dee2a99"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ChIJPVU9I3SZwEcRsSaqKpAEP1U",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "99da8c66-1640-4a59-b7d2-db7875fe67f7": {
-      "type": "value",
-      "id": "99da8c66-1640-4a59-b7d2-db7875fe67f7",
-      "value": "rating: 4.8",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "rating"
-    },
-    "1f2d91bb-9a54-48df-a843-cc2d8d8aaa4c": {
       "type": "value",
-      "id": "1f2d91bb-9a54-48df-a843-cc2d8d8aaa4c",
-      "value": "address: Lousberg, 52070 Aachen, Germany",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "address"
-    },
-    "635585a9-97bd-4e47-9800-ae464dee2a99": {
-      "type": "value",
-      "id": "635585a9-97bd-4e47-9800-ae464dee2a99",
-      "value": "position: 50.786944, 6.079167000000001",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "position"
-    },
-    "b7035d25-777c-48ed-87d0-3433c765f709": {
-      "type": "value",
-      "id": "b7035d25-777c-48ed-87d0-3433c765f709",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "79042a8a-a62c-4014-b425-97bb72079599": {
-      "type": "value",
-      "id": "79042a8a-a62c-4014-b425-97bb72079599",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "170773ef-d384-4729-b7c0-6ea2b3b4691e": {
-      "type": "value",
-      "id": "170773ef-d384-4729-b7c0-6ea2b3b4691e",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "08c4b79b-f93e-4e11-b863-0027db6e4b97": {
-      "type": "value",
-      "id": "08c4b79b-f93e-4e11-b863-0027db6e4b97",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "53d8bdae-47b4-4825-b34d-5b6e1809f332": {
-      "type": "value",
-      "id": "53d8bdae-47b4-4825-b34d-5b6e1809f332",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "06/07/2023": {
-      "type": "value",
-      "id": "06/07/2023",
-      "value": "06/07/2023",
-      "children": [
-        "addc4f4a-d014-4c48-a704-f99290d1ce44"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "addc4f4a-d014-4c48-a704-f99290d1ce44": {
-      "type": "value",
-      "id": "addc4f4a-d014-4c48-a704-f99290d1ce44",
-      "value": "date: 06/07/2023",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "7f1feaab-9d35-45d2-b517-f4b2238c4f0d": {
-      "type": "value",
-      "id": "7f1feaab-9d35-45d2-b517-f4b2238c4f0d",
-      "value": "{Sunset(in: #[ChIJPVU9I3SZwEcRsSaqKpAEP1U], on: #[06/07/2023])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "6fc89b83-caf7-4761-a7c7-b7ac26790192": {
-      "type": "value",
-      "id": "6fc89b83-caf7-4761-a7c7-b7ac26790192",
-      "value": "{Sunset(in: #[ChIJPVU9I3SZwEcRsSaqKpAEP1U], on: #[06/07/2023])}",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
+      "value": "Lousberg"
     },
     "a307b28d-3126-4c1a-9412-da66b1c778ec": {
-      "type": "value",
-      "id": "a307b28d-3126-4c1a-9412-da66b1c778ec",
-      "value": "",
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "a307b28d-3126-4c1a-9412-da66b1c778ec",
       "isCollapsed": false,
       "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "a41dbb8e-bea0-46eb-ab34-e2a520b53b51": {
+      "children": [],
+      "computedProps": {},
       "expandedResultsByIndex": {},
-      "isTemporary": false
+      "id": "a41dbb8e-bea0-46eb-ab34-e2a520b53b51",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "aaaf1b30-8d13-4c9b-bebc-e373e222e215": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "aaaf1b30-8d13-4c9b-bebc-e373e222e215",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "position",
+      "type": "value",
+      "value": "position: 52.52000659999999, 13.404954"
+    },
+    "aaf3971b-314a-4552-b757-c07be6317741": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "aaf3971b-314a-4552-b757-c07be6317741",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "address",
+      "type": "value",
+      "value": "address: Templergraben 61, 52062 Aachen, Germany"
+    },
+    "ab90947e-d306-4893-8fea-7d029965d80f": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ab90947e-d306-4893-8fea-7d029965d80f",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[ChIJHRmKsHyZwEcRT0QOC64Oo2M]"
+    },
+    "ac640ad3-9f58-47d6-b5d7-71d35771cc9f": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ac640ad3-9f58-47d6-b5d7-71d35771cc9f",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "arrival",
+      "type": "value",
+      "value": "arrival: JFK"
+    },
+    "addc4f4a-d014-4c48-a704-f99290d1ce44": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "addc4f4a-d014-4c48-a704-f99290d1ce44",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "date: 06/07/2023"
+    },
+    "afdf1615-c742-433b-9e46-fa6c2ca6d30b": {
+      "children": [
+        "468c3a55-2468-45d8-85a2-fb4f572a75be"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "afdf1615-c742-433b-9e46-fa6c2ca6d30b",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "Drive from #[ChIJ5S-raZElv0cR8HcqSvxgJwQ]to #[ChIJAVkDPzdOqEcRcDteW0YgIQQ]"
+    },
+    "b5a41063-1013-4afc-9fbe-4130448d2fe2": {
+      "children": [
+        "2e9aa694-3352-49a8-ade3-2ff9ea98722f",
+        "4e7d095a-b5dd-4180-af10-0bb013340b04",
+        "721dde9e-a38b-4c69-a453-941846007c47",
+        "8abd86a7-3af6-4448-ba07-d96a989c3893",
+        "e597308f-2f73-4c42-b9c7-a0927b6fd912",
+        "d25b6f17-a32c-4e8f-9266-d7ed9717a828",
+        "53d8bdae-47b4-4825-b34d-5b6e1809f332",
+        "c51d6dc6-5c88-42f3-becf-953485147f3a"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "b5a41063-1013-4afc-9fbe-4130448d2fe2",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "Function overview"
+    },
+    "b7035d25-777c-48ed-87d0-3433c765f709": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "b7035d25-777c-48ed-87d0-3433c765f709",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "b88b5c9c-8073-4903-957d-ca844a66d675": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "b88b5c9c-8073-4903-957d-ca844a66d675",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "rating",
+      "type": "value",
+      "value": "rating: 4.4"
+    },
+    "bb878bd4-14cb-4e8c-9d33-96ac45538a87": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "bb878bd4-14cb-4e8c-9d33-96ac45538a87",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "bcacec95-9d0e-40f2-9be7-810c94e6eb2d": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "bcacec95-9d0e-40f2-9be7-810c94e6eb2d",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "website",
+      "type": "value",
+      "value": "website: http://baristinho.de/"
+    },
+    "bdf2a21e-a692-434e-a596-385c539c3b86": {
+      "children": [
+        "6a8893ee-0d17-4084-9f20-1d662b6f6265"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "bdf2a21e-a692-434e-a596-385c539c3b86",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[01/01/2023]"
+    },
+    "bff041ce-0281-4feb-bc88-4f50050a46a2": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "bff041ce-0281-4feb-bc88-4f50050a46a2",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "ca00cfe6-a43b-438b-ab56-9925ff05e818": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ca00cfe6-a43b-438b-ab56-9925ff05e818",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "address",
+      "type": "value",
+      "value": "address: Aachen, Germany"
+    },
+    "ca8321fc-e1c2-4eb7-939b-01b8950d7c76": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ca8321fc-e1c2-4eb7-939b-01b8950d7c76",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "address",
+      "type": "value",
+      "value": "address: Elsassstraße 139, 52068 Aachen, Germany"
+    },
+    "cc507f22-a3f6-4a95-bf7a-9177c1101208": {
+      "children": [],
+      "computedProps": {},
+      "id": "cc507f22-a3f6-4a95-bf7a-9177c1101208",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
     },
     "d25b6f17-a32c-4e8f-9266-d7ed9717a828": {
-      "type": "value",
-      "id": "d25b6f17-a32c-4e8f-9266-d7ed9717a828",
-      "value": "## Parking Spots ##",
       "children": [
         "9b8428af-39af-42cb-bdab-055d7259064a"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "d25b6f17-a32c-4e8f-9266-d7ed9717a828",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "0de33380-ade6-4e14-8f9a-f8445fbb4847": {
+      "isTemporary": false,
       "type": "value",
-      "id": "0de33380-ade6-4e14-8f9a-f8445fbb4847",
-      "value": "",
+      "value": "## Parking Spots ##"
+    },
+    "d335b888-926c-4b6d-b2b6-cfb429c57de6": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "d335b888-926c-4b6d-b2b6-cfb429c57de6",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "72b3b0b9-86bd-4fe2-bda9-735bfbab4fe8": {
+      "isTemporary": false,
+      "key": "address",
       "type": "value",
-      "id": "72b3b0b9-86bd-4fe2-bda9-735bfbab4fe8",
-      "value": "",
+      "value": "address: Kleinmarschierstraße 48-52, 52062 Aachen, Germany"
+    },
+    "d4e2b9d4-bf48-4494-893f-c4a7f25206da": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "d4e2b9d4-bf48-4494-893f-c4a7f25206da",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "bff041ce-0281-4feb-bc88-4f50050a46a2": {
+      "isTemporary": false,
       "type": "value",
-      "id": "bff041ce-0281-4feb-bc88-4f50050a46a2",
-      "value": "",
+      "value": ""
+    },
+    "d838bba2-5ce1-4123-949e-f72cb5700c0a": {
+      "children": [
+        "6fc89b83-caf7-4761-a7c7-b7ac26790192",
+        "a307b28d-3126-4c1a-9412-da66b1c778ec"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "d838bba2-5ce1-4123-949e-f72cb5700c0a",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "Evening picnic  #[06/07/2023]at #[ChIJPVU9I3SZwEcRsSaqKpAEP1U]"
+    },
+    "ddb36674-8c34-4be1-8ea3-058f5ae83186": {
       "children": [],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ddb36674-8c34-4be1-8ea3-058f5ae83186",
       "isCollapsed": false,
       "isSelected": false,
+      "isTemporary": false,
+      "key": "position",
+      "type": "value",
+      "value": "position: 50.937531, 6.9602786"
+    },
+    "e2654d1c-7982-4dd1-a8b6-1e9139242140": {
+      "children": [],
+      "computedProps": {},
       "expandedResultsByIndex": {},
-      "isTemporary": false
+      "id": "e2654d1c-7982-4dd1-a8b6-1e9139242140",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "e418382e-3b54-45b0-ae62-035b3a25fd4d": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "e418382e-3b54-45b0-ae62-035b3a25fd4d",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "date: 01/01/2023"
+    },
+    "e597308f-2f73-4c42-b9c7-a0927b6fd912": {
+      "children": [
+        "1a36042d-bdce-4ba5-860b-cbb5cf4d04c6",
+        "d838bba2-5ce1-4123-949e-f72cb5700c0a"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "e597308f-2f73-4c42-b9c7-a0927b6fd912",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "## Sunset/Sunrise ##"
+    },
+    "e7c2612a-95a4-48e8-b82f-cb5a5ae23010": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "e7c2612a-95a4-48e8-b82f-cb5a5ae23010",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "time: 01:00"
+    },
+    "edb61998-d9ce-497d-8938-1dc2abc089d6": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "edb61998-d9ce-497d-8938-1dc2abc089d6",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "f2c385be-ba95-47f6-b87c-77bef99e0199": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "f2c385be-ba95-47f6-b87c-77bef99e0199",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "f41a2d4e-f5b0-4491-a25d-103dc1fd86ae": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "f41a2d4e-f5b0-4491-a25d-103dc1fd86ae",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "f74f8146-da9e-4d16-a650-b064269a0d38": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "f74f8146-da9e-4d16-a650-b064269a0d38",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "website",
+      "type": "value",
+      "value": "website: https://www.ub.rwth-aachen.de/"
+    },
+    "f8ac9f8d-d369-49eb-a679-54c0bcd7cb5f": {
+      "children": [
+        "4269ef01-77e4-430a-adab-04aeeb74fc78"
+      ],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "f8ac9f8d-d369-49eb-a679-54c0bcd7cb5f",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "#[01/02/2023]"
+    },
+    "fd0d4c3d-2ee1-44bd-a228-afa816f1bdab": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "fd0d4c3d-2ee1-44bd-a228-afa816f1bdab",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "key": "position",
+      "type": "value",
+      "value": "position: 50.7787279, 6.0801722"
+    },
+    "fdc009f2-3cdc-4a90-88c6-82c8566c663e": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "fdc009f2-3cdc-4a90-88c6-82c8566c663e",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": ""
+    },
+    "fde3c2fb-5c4d-4d9a-bdf7-5613c5671788": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "fde3c2fb-5c4d-4d9a-bdf7-5613c5671788",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "{Walk(from: #[ChIJ8xqbKn2ZwEcRL5jeDgz3KbY], to: #[ChIJOSfsMXqZwEcRsEBuWQ2x87k])}"
+    },
+    "ff9e595d-c182-4633-a216-710778bec95b": {
+      "children": [],
+      "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "ff9e595d-c182-4633-a216-710778bec95b",
+      "isCollapsed": false,
+      "isSelected": false,
+      "isTemporary": false,
+      "type": "value",
+      "value": "Buy groceries at #[ChIJI8YqZVKZwEcRpsH2S0aDwHY]"
     },
     "flight-LH123": {
-      "type": "value",
-      "id": "flight-LH123",
-      "value": "LH123",
       "children": [
         "89d3815e-5d0c-4ca4-af1e-3e6a5643320d",
         "7a2b99da-a6d9-4821-8617-e232ce4a0dc3",
         "ac640ad3-9f58-47d6-b5d7-71d35771cc9f"
       ],
       "computedProps": {},
+      "expandedResultsByIndex": {},
+      "id": "flight-LH123",
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "89d3815e-5d0c-4ca4-af1e-3e6a5643320d": {
-      "type": "value",
-      "id": "89d3815e-5d0c-4ca4-af1e-3e6a5643320d",
-      "value": "flightNumber: LH123",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false,
-      "key": "flightNumber"
-    },
-    "7a2b99da-a6d9-4821-8617-e232ce4a0dc3": {
       "type": "value",
-      "id": "7a2b99da-a6d9-4821-8617-e232ce4a0dc3",
-      "value": "departure: LAX",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "departure"
+      "value": "LH123"
     },
-    "ac640ad3-9f58-47d6-b5d7-71d35771cc9f": {
+    "c51d6dc6-5c88-42f3-becf-953485147f3a": {
       "type": "value",
-      "id": "ac640ad3-9f58-47d6-b5d7-71d35771cc9f",
-      "value": "arrival: JFK",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "key": "arrival"
-    },
-    "626f4c0c-162a-48da-aadf-fdd3476553d7": {
-      "type": "value",
-      "id": "626f4c0c-162a-48da-aadf-fdd3476553d7",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "95b5e300-a667-4993-9da4-7de3b23520d4": {
-      "type": "value",
-      "id": "95b5e300-a667-4993-9da4-7de3b23520d4",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "4eb0dd89-ff81-4ed6-a2a0-44a89a1165ce": {
-      "type": "value",
-      "id": "4eb0dd89-ff81-4ed6-a2a0-44a89a1165ce",
-      "value": "Time Example",
+      "id": "c51d6dc6-5c88-42f3-becf-953485147f3a",
+      "value": "## Calculations ##",
       "children": [
-        "1d8f79ff-d77a-4839-b59c-b0e2fb2b4f1a",
-        "49df0424-1dc9-4ad8-a7ca-ca7adeddb803"
+        "e676ce9b-b0f3-4e13-bcc9-e86455ec5c03",
+        "68ef996f-ffbe-4d5a-816a-75d0f1e22920",
+        "24760a94-e2cc-4bff-909b-9ddad35d1526",
+        "de95ec9c-e15e-4718-b035-fa7d65f278d4"
       ],
       "computedProps": {},
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false,
-      "view": "calendar"
+      "isTemporary": false
     },
-    "1d8f79ff-d77a-4839-b59c-b0e2fb2b4f1a": {
+    "e676ce9b-b0f3-4e13-bcc9-e86455ec5c03": {
       "type": "value",
-      "id": "1d8f79ff-d77a-4839-b59c-b0e2fb2b4f1a",
-      "value": "",
+      "id": "e676ce9b-b0f3-4e13-bcc9-e86455ec5c03",
+      "value": "route: {Drive(from: #[ChIJ5S-raZElv0cR8HcqSvxgJwQ], to: #[ChIJAVkDPzdOqEcRcDteW0YgIQQ])}",
       "children": [],
       "computedProps": {},
       "isCollapsed": false,
       "isSelected": false,
-      "expandedResultsByIndex": {},
       "isTemporary": false
     },
-    "59568182-8ff9-4cc0-ad92-a1efe8485e77": {
+    "ce63559f-ffe8-4584-aa1f-60890e4d4365": {
       "type": "value",
-      "id": "59568182-8ff9-4cc0-ad92-a1efe8485e77",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "8230f69d-298d-4887-9739-cf2f49c042ae": {
-      "type": "value",
-      "id": "8230f69d-298d-4887-9739-cf2f49c042ae",
-      "value": "#[12:00]Dentist ",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "01:00": {
-      "type": "value",
-      "id": "01:00",
-      "value": "01:00",
-      "children": [
-        "e7c2612a-95a4-48e8-b82f-cb5a5ae23010"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "e7c2612a-95a4-48e8-b82f-cb5a5ae23010": {
-      "type": "value",
-      "id": "e7c2612a-95a4-48e8-b82f-cb5a5ae23010",
-      "value": "time: 01:00",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "12:00": {
-      "type": "value",
-      "id": "12:00",
-      "value": "12:00",
-      "children": [
-        "57370b3c-d65e-4f20-a38c-b28963233931"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "57370b3c-d65e-4f20-a38c-b28963233931": {
-      "type": "value",
-      "id": "57370b3c-d65e-4f20-a38c-b28963233931",
-      "value": "time: 12:00",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "49df0424-1dc9-4ad8-a7ca-ca7adeddb803": {
-      "type": "value",
-      "id": "49df0424-1dc9-4ad8-a7ca-ca7adeddb803",
-      "value": "#[01/02/2023]",
-      "children": [
-        "0dbb0eec-eca4-4a0e-bc03-e29be38aa8d0"
-      ],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "0dbb0eec-eca4-4a0e-bc03-e29be38aa8d0": {
-      "type": "value",
-      "id": "0dbb0eec-eca4-4a0e-bc03-e29be38aa8d0",
-      "value": "#[12:00]Dentist appointment",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "5e506580-8568-46d0-bcc7-49aa596b5c8f": {
-      "type": "value",
-      "id": "5e506580-8568-46d0-bcc7-49aa596b5c8f",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "2e9aa694-3352-49a8-ade3-2ff9ea98722f": {
-      "type": "value",
-      "id": "2e9aa694-3352-49a8-ade3-2ff9ea98722f",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "fdc009f2-3cdc-4a90-88c6-82c8566c663e": {
-      "type": "value",
-      "id": "fdc009f2-3cdc-4a90-88c6-82c8566c663e",
-      "value": "",
-      "children": [],
-      "computedProps": {},
-      "isCollapsed": false,
-      "isSelected": false,
-      "expandedResultsByIndex": {},
-      "isTemporary": false
-    },
-    "1a36042d-bdce-4ba5-860b-cbb5cf4d04c6": {
-      "type": "value",
-      "id": "1a36042d-bdce-4ba5-860b-cbb5cf4d04c6",
+      "id": "ce63559f-ffe8-4584-aa1f-60890e4d4365",
       "value": "",
       "children": [],
       "computedProps": {},
@@ -1495,30 +1560,30 @@
       "isSelected": false,
       "isTemporary": false
     },
-    "9b8428af-39af-42cb-bdab-055d7259064a": {
+    "68ef996f-ffbe-4d5a-816a-75d0f1e22920": {
       "type": "value",
-      "id": "9b8428af-39af-42cb-bdab-055d7259064a",
-      "value": "{ParkingSpots(near: #[ChIJPVU9I3SZwEcRsSaqKpAEP1U], maxDistance: 2)}",
+      "id": "68ef996f-ffbe-4d5a-816a-75d0f1e22920",
+      "value": "total distance: {route.distance * 2}",
       "children": [],
       "computedProps": {},
       "isCollapsed": false,
       "isSelected": false,
       "isTemporary": false
     },
-    "cc507f22-a3f6-4a95-bf7a-9177c1101208": {
+    "24760a94-e2cc-4bff-909b-9ddad35d1526": {
       "type": "value",
-      "id": "cc507f22-a3f6-4a95-bf7a-9177c1101208",
-      "value": "",
+      "id": "24760a94-e2cc-4bff-909b-9ddad35d1526",
+      "value": "fuel cost: {total distance * 0.12}",
       "children": [],
       "computedProps": {},
       "isCollapsed": false,
       "isSelected": false,
       "isTemporary": false
     },
-    "9d5001ae-55e3-43aa-bf98-3bb5af4356ec": {
+    "de95ec9c-e15e-4718-b035-fa7d65f278d4": {
       "type": "value",
-      "id": "9d5001ae-55e3-43aa-bf98-3bb5af4356ec",
-      "value": "",
+      "id": "de95ec9c-e15e-4718-b035-fa7d65f278d4",
+      "value": "per person it will be {fuel cost / 4}euro",
       "children": [],
       "computedProps": {},
       "isCollapsed": false,

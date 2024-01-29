@@ -317,7 +317,7 @@ interface HistoricWeather {
   [monthDay: string]: { [year: string]: WeatherInformation }
 }
 
-const HISTORIC_WEATHER_CACHE: { [location: string]: HistoricWeather } = {}
+const HISTORIC_WEATHER_CACHE: { [location: string]: Promise<HistoricWeather> } = {}
 
 async function fetchHistoricWeatherData(location: google.maps.LatLngLiteral) {
   const locationKey = `${location.lat}:${location.lng}`
@@ -326,46 +326,48 @@ async function fetchHistoricWeatherData(location: google.maps.LatLngLiteral) {
     return cachedHistoricWeather
   }
 
-  const historicWeatherRaw = await fetch(
-    [
-      "https://archive-api.open-meteo.com/v1/archive",
-      `?latitude=${location.lat}`,
-      `&longitude=${location.lng}`,
-      "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,temperature_2m_min",
-      `&timezone=${encodeURIComponent(currentTimezone)}`,
-      `&start_date=${format(subYears(Date.now(), 20), "yyyy-MM-dd")}`, // take in last 20 years
-      `&end_date=${format(subDays(Date.now(), 1), "yyyy-MM-dd")}`,
-    ].join("")
-  ).then((res) => res.json())
+  const result = (HISTORIC_WEATHER_CACHE[locationKey] = new Promise(async (resolve, reject) => {
+    const historicWeatherRaw = await fetch(
+      [
+        "https://archive-api.open-meteo.com/v1/archive",
+        `?latitude=${location.lat}`,
+        `&longitude=${location.lng}`,
+        "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,temperature_2m_min",
+        `&timezone=${encodeURIComponent(currentTimezone)}`,
+        `&start_date=${format(subYears(Date.now(), 20), "yyyy-MM-dd")}`, // take in last 20 years
+        `&end_date=${format(subDays(Date.now(), 1), "yyyy-MM-dd")}`,
+      ].join("")
+    ).then((res) => res.json())
 
-  const historicWeather: HistoricWeather = {}
+    const historicWeather: HistoricWeather = {}
 
-  for (let i = 0; i < historicWeatherRaw.daily.time.length; i++) {
-    const date = historicWeatherRaw.daily.time[i]
-    const min = historicWeatherRaw.daily.temperature_2m_min[i]
-    const max = historicWeatherRaw.daily.temperature_2m_max[i]
-    const mean = historicWeatherRaw.daily.temperature_2m_mean[i]
+    for (let i = 0; i < historicWeatherRaw.daily.time.length; i++) {
+      const date = historicWeatherRaw.daily.time[i]
+      const min = historicWeatherRaw.daily.temperature_2m_min[i]
+      const max = historicWeatherRaw.daily.temperature_2m_max[i]
+      const mean = historicWeatherRaw.daily.temperature_2m_mean[i]
 
-    // filter out null values of recent dates where there is no historical data available yet
-    if (min === null || max === null || mean === null) {
-      continue
+      // filter out null values of recent dates where there is no historical data available yet
+      if (min === null || max === null || mean === null) {
+        continue
+      }
+
+      const [year, month, day] = date.split("-")
+      const dayGroupKey = `${month}-${day}`
+
+      let dayGroup = historicWeather[dayGroupKey]
+
+      if (!dayGroup) {
+        dayGroup = historicWeather[dayGroupKey] = {}
+      }
+
+      dayGroup[year] = { min, max, mean }
     }
 
-    const [year, month, day] = date.split("-")
-    const dayGroupKey = `${month}-${day}`
+    resolve(historicWeather)
+  }))
 
-    let dayGroup = historicWeather[dayGroupKey]
-
-    if (!dayGroup) {
-      dayGroup = historicWeather[dayGroupKey] = {}
-    }
-
-    dayGroup[year] = { min, max, mean }
-  }
-
-  HISTORIC_WEATHER_CACHE[locationKey] = historicWeather
-
-  return historicWeather
+  return result
 }
 
 interface WeatherInfoViewProps {

@@ -1,4 +1,4 @@
-import { DocHandle, DocumentId, Repo } from "automerge-repo"
+import { DocHandle, DocumentId, Repo } from "@automerge/automerge-repo"
 import { createGraphDoc, createRecordNode, GraphDoc } from "./graph"
 import { EXAMPLES } from "./examples"
 
@@ -53,11 +53,11 @@ export function importGraph(repo: Repo, profileId: DocumentId, graphData: GraphD
 
   const graphDocHandle = repo.create<GraphDoc>()
 
-  graphDocHandle.change((doc) => {
+  graphDocHandle.change((doc: any) => {
     doc.graph = graphData.graph
     doc.rootNodeIds = graphData.rootNodeIds
 
-    profileHandle.change((profileDoc) => {
+    profileHandle.change((profileDoc: any) => {
       if (!profileDoc.graphIds.includes(graphDocHandle.documentId)) {
         profileDoc.graphIds.push(graphDocHandle.documentId)
       }

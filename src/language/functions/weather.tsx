@@ -106,34 +106,36 @@ export const WEATHER_FN: FunctionDefs = {
               <div className="bullet flex-shrink-0 computed"></div>
               <b>hourly</b>:
             </div>
-            <div className="flex flex-col gap-1 ml-3">
-              {Object.entries(weather.hourly).map(([time, data]) => (
-                <div>
-                  <div className="flex items-center gap-1">
-                    <div className="bullet flex-shrink-0 computed"></div>
-                    <b>"{time}"</b>:
+            {weather.hourly && (
+              <div className="flex flex-col gap-1 ml-3">
+                {Object.entries(weather.hourly).map(([time, data]) => (
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <div className="bullet flex-shrink-0 computed"></div>
+                      <b>"{time}"</b>:
+                    </div>
+                    <div className="flex flex-col gap-1 ml-3">
+                      <div className="flex items-center gap-1">
+                        <div className="bullet flex-shrink-0 computed"></div>
+                        <b>temp:</b> {(data as any).temp}°
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="bullet flex-shrink-0 computed"></div>
+                        <b>precipitation:</b> {(data as any).precipitationProbability}%
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="bullet flex-shrink-0 computed"></div>
+                        <b>emoji:</b> {getWeatherIcon((data as any).weatherCode)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="bullet flex-shrink-0 computed"></div>
+                        <b>description</b>: {getWeatherDescription((data as any).weatherCode)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1 ml-3">
-                    <div className="flex items-center gap-1">
-                      <div className="bullet flex-shrink-0 computed"></div>
-                      <b>temp:</b> {(data as any).temp}°
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="bullet flex-shrink-0 computed"></div>
-                      <b>precipitation:</b> {(data as any).precipitationProbability}%
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="bullet flex-shrink-0 computed"></div>
-                      <b>emoji:</b> {getWeatherIcon((data as any).weatherCode)}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="bullet flex-shrink-0 computed"></div>
-                      <b>description</b>: {getWeatherDescription((data as any).weatherCode)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )

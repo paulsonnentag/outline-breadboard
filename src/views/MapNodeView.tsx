@@ -172,6 +172,7 @@ export function MapNodeView({
   const google = useGoogleApi()
   const mapRef = useRef<google.maps.Map>()
   const mapElementRef = useRef<HTMLDivElement>(null)
+  //@ts-ignore
   const markersRef = useRef<google.maps.marker.AdvancedMarkerView[]>([])
   const popOverRef = useRef<PopoverOutline>()
   const listenersRef = useRef<google.maps.MapsEventListener[]>([])
@@ -343,6 +344,7 @@ export function MapNodeView({
     })
     listenersRef.current = []
 
+    // @ts-ignore
     markersToDelete.forEach((marker: google.maps.marker.AdvancedMarkerView) => {
       marker.map = null
     })
@@ -366,6 +368,7 @@ export function MapNodeView({
       if (!mapsMarker) {
         const element = document.createElement("div")
 
+        //@ts-ignore
         mapsMarker = new google.maps.marker.AdvancedMarkerView({
           map: mapRef.current,
           content: element,

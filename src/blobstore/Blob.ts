@@ -1,4 +1,4 @@
-import { DocumentId } from "automerge-repo"
+import { DocumentId } from "@automerge/automerge-repo"
 import { useEffect, useState } from "react"
 import { getRepo } from "../graph"
 

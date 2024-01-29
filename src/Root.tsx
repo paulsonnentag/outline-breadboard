@@ -1,4 +1,4 @@
-import { DocumentId } from "automerge-repo"
+import { DocumentId } from "@automerge/automerge-repo"
 import {
   createContext,
   MouseEvent as ReactMouseEvent,
@@ -29,7 +29,7 @@ import { IconButton } from "./IconButton"
 import classNames from "classnames"
 import { downloadTextFile, downloadUint8Array, isString, safeJsonStringify } from "./utils"
 import { useRootScope } from "./language/scopes"
-import { useDocument, useRepo } from "automerge-repo-react-hooks"
+import { useDocument, useHandle, useRepo } from "@automerge/automerge-repo-react-hooks"
 import { importGraph, ProfileDoc } from "./profile"
 import fileDialog from "file-dialog"
 import Logo from "./Logo"
@@ -55,6 +55,7 @@ const LOAD_SINGLE_DOC = false
 
 export function Root({ profileDocId }: RootProps) {
   const repo = useRepo()
+  const profileHandle = useHandle<ProfileDoc>(profileDocId)
   const [profile, changeProfile] = useDocument<ProfileDoc>(profileDocId)
   const [selectedGraphId, setSelectedGraphId] = useState<DocumentId | undefined>()
 
@@ -68,14 +69,16 @@ export function Root({ profileDocId }: RootProps) {
         return
       }
 
-      // add unknown graphIds to profile
-      changeProfile((profile) => {
-        if (
-          !profile.graphIds.includes(documentId as DocumentId) &&
-          (documentId as DocumentId) !== profile.settingsGraphId
-        ) {
-          profile.graphIds.push(documentId as DocumentId)
-        }
+      profileHandle.whenReady().then(() => {
+        // add unknown graphIds to profile
+        changeProfile((profile: ProfileDoc) => {
+          if (
+            !profile.graphIds.includes(documentId as DocumentId) &&
+            (documentId as DocumentId) !== profile.settingsGraphId
+          ) {
+            profile.graphIds.push(documentId as DocumentId)
+          }
+        })
       })
 
       setSelectedGraphId(documentId as DocumentId)
@@ -366,7 +369,10 @@ export function PathViewer({ graphId, settingsGraphId }: PathViewerProps) {
 
     // hack: delete nodes with isTemporary = true
     // this is a workaround to reset isTemporary nodes if they are not properly removed
-    handle.change((doc) => deleteTemporaryNodesInGraphDoc(doc))
+
+    handle.whenReady().then(() => {
+      handle.change((doc: GraphDoc) => deleteTemporaryNodesInGraphDoc(doc))
+    })
 
     registerGraphHandle(handle).then(() => {
       setInitializedGraphId(handle.documentId)

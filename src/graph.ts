@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react"
-import { DocHandle, DocHandleChangeEvent, DocumentId, Repo } from "automerge-repo"
+import { DocHandle, DocumentId, Repo } from "@automerge/automerge-repo"
 import { v4 } from "uuid"
 import { Doc } from "@automerge/automerge"
-import { Change, useRepo } from "automerge-repo-react-hooks"
+import { useRepo } from "@automerge/automerge-repo-react-hooks"
 import { DataWithProvenance } from "./language/scopes"
 import { GeoJsonShape, Marker } from "./views/MapNodeView"
 import { ALIAS_REGEX } from "./language"
@@ -37,12 +37,12 @@ export async function registerGraphHandle(handle: DocHandle<GraphDoc>) {
     GRAPH_DOC_HANDLE.off("change")
   }
 
-  handle.on("change", () => {
-    GRAPH_DOC = handle.doc
+  handle.on("change", ({ doc }) => {
+    GRAPH_DOC = doc
   })
 
   GRAPH_DOC_HANDLE = handle
-  GRAPH_DOC = await handle.value()
+  GRAPH_DOC = await handle.doc()
 }
 
 export function getGraph(): Graph {
@@ -63,7 +63,7 @@ export function getGraphDocHandle() {
 
 export function createGraphDoc(repo: Repo) {
   const handle = repo.create<GraphDoc>()
-  handle.change((doc) => {
+  handle.change((doc: any) => {
     doc.graph = {}
 
     const rootNode = createValueNode(doc.graph, { value: "" })
@@ -302,7 +302,7 @@ export function getLabelOfNode(node: ValueNode): string {
 export function useGraphDocument(
   documentId: DocumentId | undefined,
   onChangeNode: (graph: Graph, nodeId: string) => void
-): [doc: Doc<GraphDoc> | undefined, changeFn: Change<GraphDoc>] {
+): [doc: Doc<GraphDoc> | undefined, changeFn: any] {
   const [doc, setDoc] = useState<Doc<GraphDoc>>()
   const repo = useRepo()
   const handle = documentId ? repo.find<GraphDoc>(documentId) : null
@@ -311,8 +311,8 @@ export function useGraphDocument(
     if (!handle) {
       return
     }
-    handle.value().then((v) => setDoc(v as Doc<GraphDoc>))
-    const listener = (h: DocHandleChangeEvent<GraphDoc>) => {
+    handle.doc().then((v) => setDoc(v as Doc<GraphDoc>))
+    const listener = (h: any) => {
       setDoc(h.handle.doc as Doc<GraphDoc>) // TODO: this is kinda gross
     }
 
@@ -329,7 +329,7 @@ export function useGraphDocument(
     }
 
     handle.change(changeFunction, {
-      patchCallback: (patch, before, after) => {
+      patchCallback: (patch: any, before: any, after: any) => {
         const { path, action } = patch
 
         if (path[0] !== "graph") {
